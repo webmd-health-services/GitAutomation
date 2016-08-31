@@ -53,10 +53,12 @@ $nativeBinaryLibRoot = Join-Path -Path $packagesRoot -ChildPath ('LibGit2Sharp.N
 
 Install-Junction -Link (Join-Path -Path $packagesRoot -ChildPath 'Pester') -Target (Join-Path -Path $packagesRoot -ChildPath ('Pester.{0}\tools' -f $pesterVersion))
 
+& (Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2\Import-LibGit2.ps1' -Resolve)
+
 $silkRoot = Join-Path -Path $packagesRoot -ChildPath 'Silk'
 if( -not (Test-Path -Path $silkRoot -PathType Container) )
 {
-    git clone 'https://github.com/splatteredbits/Silk' $silkRoot
+    Copy-GitRepository -Source 'https://github.com/splatteredbits/Silk' -DestinationPath $silkRoot
 }
 
 git -C $silkRoot fetch
