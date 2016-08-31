@@ -20,11 +20,13 @@ $nugetExePath = Join-Path -Path $PSScriptRoot -ChildPath '.\Tools\NuGet\nuget.ex
 $binRoot = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2\bin'
 Install-Directory -Path $binRoot
 
-Get-ChildItem -Path (Join-Path -Path $packagesRoot -ChildPath ('LibGit2Sharp.{0}\lib\net40' -f $libGit2SharpVersion)) |
-    Copy-Item -Destination $binRoot
-
 $nativeBinaryRoot = Join-Path -Path $binRoot -ChildPath 'NativeBinaries'
 Install-Directory -Path $nativeBinaryRoot
+
+$source = Join-Path -Path $packagesRoot -ChildPath ('LibGit2Sharp.{0}\lib\net40' -f $libGit2SharpVersion)
+$destination = $binRoot
+robocopy.exe $source $destination /MIR /NJH /NJS /NP /NDL /XD $nativeBinaryRoot
+
 
 $nativeBinaryLibRoot = Join-Path -Path $packagesRoot -ChildPath ('LibGit2Sharp.NativeBinaries.{0}\libgit2' -f $libGit2SharpNativeVersion)
 @( 
@@ -33,7 +35,18 @@ $nativeBinaryLibRoot = Join-Path -Path $packagesRoot -ChildPath ('LibGit2Sharp.N
     'windows\amd64',
     'windows\x86'
 ) | ForEach-Object {
-    Copy-Item -Path (Join-Path -Path $nativeBinaryLibRoot -ChildPath $_) -Destination (Join-Path -Path $nativeBinaryRoot -ChildPath (Split-Path -Leaf -Path $_)) -Recurse -Force
+    $source = Join-Path -Path $nativeBinaryLibRoot -ChildPath $_
+    $destination = Join-Path -Path $nativeBinaryRoot -ChildPath (Split-Path -Leaf -Path $_)
+    robocopy.exe $source $destination /MIR /NJH /NJS /NP /NDL
 }
 
 Install-Junction -Link (Join-Path -Path $packagesRoot -ChildPath 'Pester') -Target (Join-Path -Path $packagesRoot -ChildPath ('Pester.{0}\tools' -f $pesterVersion))
+
+$silkRoot = Join-Path -Path $packagesRoot -ChildPath 'Silk'
+if( -not (Test-Path -Path $silkRoot -PathType Container) )
+{
+    git clone 'https://github.com/splatteredbits/Silk' $silkRoot
+}
+
+git -C $silkRoot fetch
+git -C $silkRoot checkout master -q
