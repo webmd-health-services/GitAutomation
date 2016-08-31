@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!--
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+   
+       http://www.apache.org/licenses/LICENSE-2.0
+   
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<package>
+  <metadata>
+    <id>LibGit2</id>
+    <version>0.0.0</version>
+    <authors>Aaron Jensen</authors>
+    <owners>Aaron Jensen</owners>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+    <projectUrl>https://github.com/splatteredbits/LibGit2/wiki</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <summary>LibGit2 is a PowerShell module that wraps the libgit2 library.</summary>
+    <description>LibGit2 is a PowerShell module for automating working with Git repositories. You can use it to create, clone, push, and commit to Git repositories using objects instead of parsing the Git console's output.
+    
+    This module uses the .NET wrapper of [libgit2](https://libgit2.github.com/), "a portable, pure C implementation of.. Git", which allows you to call Git via API instead using the Git command-line interface.
+    </description>
+    <language>en-us</language>
+    <releaseNotes>
+    </releaseNotes>
+    <copyright>Copyright 2016 Aaron Jensen.</copyright>
+    <tags>git vcs rcs automation github gitlab</tags>
+  </metadata>
+  <files>
+    <file src=".\LibGit2\**\*" target="LibGit2" exclude="**\*.pdb;**\*.Tests.ps1" />
+    <file src=".\Tools\chocolateyInstall.ps1" target="Tools" />
+    <file src=".\Tools\chocolateyUninstall.ps1" target="Tools" />
+    <file src=".\LICENSE.txt" target="" />
+    <file src=".\NOTICE.txt" target="" />
+    <file src=".\LICENSE.txt" target="LibGit2" />
+    <file src=".\NOTICE.txt" target="LibGit2" />
+    <file src=".\RELEASE_NOTES.md" target="" />
+  </files>
+</package>
