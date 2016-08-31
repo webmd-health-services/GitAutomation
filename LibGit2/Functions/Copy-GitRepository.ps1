@@ -35,8 +35,8 @@ function Copy-GitRepository
 
     Set-StrictMode -Version 'Latest'
 
-    $Source = ConvertTo-FullPath -Uri $Source
-    $DestinationPath = ConvertTo-FullPath -Path $DestinationPath
+    $Source = ConvertTo-GitFullPath -Uri $Source
+    $DestinationPath = ConvertTo-GitFullPath -Path $DestinationPath
 
     $options = New-Object 'libgit2sharp.CloneOptions'
     if( $Credential )

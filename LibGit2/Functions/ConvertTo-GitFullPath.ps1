@@ -1,5 +1,5 @@
 
-function ConvertTo-FullPath
+function ConvertTo-GitFullPath
 {
     [CmdletBinding()]
     param(
