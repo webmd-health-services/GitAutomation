@@ -34,6 +34,7 @@ function Copy-GitRepository
     )
 
     Set-StrictMode -Version 'Latest'
+    Use-CallerPreference -Cmdlet $PSCmdlet -Session $ExecutionContext.SessionState
 
     $Source = ConvertTo-GitFullPath -Uri $Source
     $DestinationPath = ConvertTo-GitFullPath -Path $DestinationPath
