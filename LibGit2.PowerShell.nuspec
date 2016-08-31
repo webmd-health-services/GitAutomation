@@ -37,9 +37,9 @@
     <file src=".\Tools\chocolateyInstall.ps1" target="Tools" />
     <file src=".\Tools\chocolateyUninstall.ps1" target="Tools" />
     <file src=".\LICENSE" target="" />
-    <file src=".\NOTICE.txt" target="" />
+    <file src=".\NOTICE" target="" />
     <file src=".\LICENSE" target="LibGit2" />
-    <file src=".\NOTICE.txt" target="LibGit2" />
+    <file src=".\NOTICE" target="LibGit2" />
     <file src=".\RELEASE_NOTES.md" target="" />
   </files>
 </package>
