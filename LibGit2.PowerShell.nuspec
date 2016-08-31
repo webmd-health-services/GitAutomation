@@ -14,12 +14,12 @@
 -->
 <package>
   <metadata>
-    <id>LibGit2</id>
+    <id>LibGit2.PowerShell</id>
     <version>0.0.0</version>
     <authors>Aaron Jensen</authors>
     <owners>Aaron Jensen</owners>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
-    <projectUrl>https://github.com/splatteredbits/LibGit2/wiki</projectUrl>
+    <projectUrl>https://github.com/splatteredbits/LibGit2.PowerShell/wiki</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <summary>LibGit2 is a PowerShell module that wraps the libgit2 library.</summary>
     <description>LibGit2 is a PowerShell module for working with Git repositories. You can use it to create, clone, query, push to, pull from, and commit to Git repositories.
@@ -30,7 +30,7 @@
     <releaseNotes>
     </releaseNotes>
     <copyright>Copyright 2016 Aaron Jensen.</copyright>
-    <tags>git vcs rcs automation github gitlab</tags>
+    <tags>git vcs rcs automation github gitlab libgit2</tags>
   </metadata>
   <files>
     <file src=".\LibGit2\**\*" target="LibGit2" exclude="**\*.pdb;**\*.Tests.ps1" />
