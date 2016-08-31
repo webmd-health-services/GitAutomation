@@ -102,7 +102,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = @()
+        Tags = @('git','vcs','rcs','automation','github','gitlab','libgit2')
 
         # A URL to the license for this module.
         LicenseUri = ''
@@ -114,7 +114,9 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = ''
+        ReleaseNotes = @'
+* Created `Copy-GitRepository` function for cloning Git repositories.
+'@
 
     } # End of PSData hashtable
 
