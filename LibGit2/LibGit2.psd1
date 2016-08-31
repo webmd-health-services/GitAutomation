@@ -105,10 +105,10 @@ PrivateData = @{
         Tags = @('git','vcs','rcs','automation','github','gitlab','libgit2')
 
         # A URL to the license for this module.
-        LicenseUri = ''
+        LicenseUri = 'http://www.apache.org/licenses/LICENSE-2.0'
 
         # A URL to the main website for this project.
-        ProjectUri = ''
+        ProjectUri = 'https://github.com/splatteredbits/LibGit2.PowerShell/wiki'
 
         # A URL to an icon representing this module.
         # IconUri = ''
