@@ -29,7 +29,7 @@ This module uses the .NET wrapper of [libgit2](https://libgit2.github.com/), "a 
     <releaseNotes>
  * Created `Copy-GitRepository` function for cloning Git repositories.
 </releaseNotes>
-    <copyright>(c) 2016 ajensen. All rights reserved.</copyright>
+    <copyright>Copyright 2016 Aaron Jensen</copyright>
     <tags>git vcs rcs automation github gitlab libgit2</tags>
   </metadata>
   <files>
