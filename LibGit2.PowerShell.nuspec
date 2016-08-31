@@ -22,14 +22,13 @@
     <projectUrl>https://github.com/splatteredbits/LibGit2.PowerShell/wiki</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <summary>LibGit2 is a PowerShell module that wraps the libgit2 library.</summary>
-    <description>LibGit2 is a PowerShell module for working with Git repositories. You can use it to create, clone, query, push to, pull from, and commit to Git repositories.
-    
-    This module uses the .NET wrapper of [libgit2](https://libgit2.github.com/), "a portable, pure C implementation of... Git", which allows you to call Git via API instead using the Git command line interface.
+    <description>
     </description>
     <language>en-us</language>
     <releaseNotes>
-    </releaseNotes>
-    <copyright>Copyright 2016 Aaron Jensen.</copyright>
+ * Created `Copy-GitRepository` function for cloning Git repositories.
+</releaseNotes>
+    <copyright>(c) 2016 ajensen. All rights reserved.</copyright>
     <tags>git vcs rcs automation github gitlab libgit2</tags>
   </metadata>
   <files>
