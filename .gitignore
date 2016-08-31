@@ -1,0 +1,3 @@
+*.pdb
+LibGit2/bin
+packages/
