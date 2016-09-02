@@ -63,3 +63,12 @@ if( -not (Test-Path -Path $silkRoot -PathType Container) )
 
 git -C $silkRoot fetch
 git -C $silkRoot checkout master -q
+
+$websiteRoot = Join-Path -Path $PSScriptRoot -ChildPath 'get-libgit2.org'
+if( -not (Test-Path -Path $websiteRoot -PathType Container) )
+{
+    Copy-GitRepository -Source 'https://github.com/splatteredbits/get-libgit2.org' -DestinationPath $websiteRoot
+}
+
+git -C $websiteRoot fetch
+git -C $websiteRoot checkout master -q
