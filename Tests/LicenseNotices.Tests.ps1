@@ -52,7 +52,10 @@ Describe 'License Notices' {
                         'Publish-Carbon.ps1',
                         '*.so',
                         '*.dylib',
-                        '*.git*'
+                        '*.git*',
+                        '*.html',
+                        'CNAME',
+                        '*.css'
                     )
     
     [object[]]$filesMissingLicense = Get-ChildItem -Path $projectRoot -Exclude 'packages' |
