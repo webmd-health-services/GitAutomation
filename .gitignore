@@ -1,3 +1,4 @@
 *.pdb
 LibGit2/bin
 packages/
+get-libgit2.org/
