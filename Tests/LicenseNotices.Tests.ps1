@@ -55,7 +55,14 @@ Describe 'License Notices' {
                         '*.git*',
                         '*.html',
                         'CNAME',
-                        '*.css'
+                        '*.css',
+                        'LibGit2Sharp.dll.config',
+                        'packages.config',
+                        'repositories.config',
+                        '*.props',
+                        'libgit2.license.txt',
+                        'libgit2_filename.txt',
+                        'libgit2_hash.txt'
                     )
     
     [object[]]$filesMissingLicense = Get-ChildItem -Path $projectRoot -Exclude 'packages' |
