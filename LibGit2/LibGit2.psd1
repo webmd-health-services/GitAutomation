@@ -77,6 +77,7 @@ RequiredAssemblies = @( 'bin\LibGit2Sharp.dll', 'bin\LibGit2.Automation.dll' )
 FunctionsToExport = @(
                         'Add-GitItem',
                         'Copy-GitRepository',
+                        'Find-GitRepository',
                         'Get-GitRepository',
                         'Save-GitChange'
                     )
