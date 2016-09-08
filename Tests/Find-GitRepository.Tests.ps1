@@ -110,3 +110,38 @@ Describe 'Find-GitRepository when current directory is a repository root' {
         Pop-Location
     }
 }
+
+Describe 'Find-GitRepository when -Verify switch is used and a repository isn''t found' {
+    Clear-Error
+    $repo = Find-GitRepository -Path $env:TEMP -Verify -ErrorAction SilentlyContinue
+    Assert-NoRepositoryReturned -Repository $repo
+    It 'should write an error' {
+        $Global:Error | Should Match 'not in a Git repository'
+        $Global:ERror | Should Match ([regex]::Escape($env:TEMP))
+    }
+}
+
+Describe 'Find-GitRepository when -Verify switch is used and a repository in current directory isn''t found' {
+    Clear-Error
+    Push-Location -Path $env:TEMP
+    try
+    {
+        $repo = Find-GitRepository -Verify -ErrorAction SilentlyContinue
+        Assert-NoRepositoryReturned -Repository $repo
+        It 'should write an error' {
+            $Global:Error | Should Match 'not in a Git repository'
+            $Global:ERror | Should Match ([regex]::Escape($env:TEMP))
+        }
+    }
+    finally
+    {
+        Pop-Location
+    }
+}
+
+Describe 'Find-GitRepository when -Verify switch is used and a repository is found' {
+    Clear-Error
+    $repo = Find-GitRepository -Path $PSScriptRoot -Verify
+    Assert-ThisRepositoryFound -Repository $repo
+    Assert-ThereAreNoErrors
+}

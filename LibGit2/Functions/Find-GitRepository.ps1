@@ -41,7 +41,11 @@ function Find-GitRepository
     param(
         [string]
         # The path to start searching. 
-        $Path = (Get-Location).ProviderPath
+        $Path = (Get-Location).ProviderPath,
+
+        [Switch]
+        # Write an error if a repository isn't found. Usually, no error is written and nothing is returned when a repository isn't found.
+        $Verify
     )
 
     Set-StrictMode -Version 'Latest'
@@ -52,6 +56,8 @@ function Find-GitRepository
         Write-Error -Message ('Can''t find a repository in ''{0}'' because it does not exist.' -f $PSBoundParameters['Path'])
         return
     }
+    
+    $startedAt = $Path
 
     while( $Path -and -not [LibGit2Sharp.Repository]::IsValid($Path) )
     {
@@ -60,6 +66,10 @@ function Find-GitRepository
 
     if( -not $Path )
     {
+        if( $Verify )
+        {
+            Write-Error -Message ('Path ''{0}'' not in a Git repository.' -f $startedAt)
+        }
         return
     }
 

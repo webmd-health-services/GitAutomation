@@ -41,6 +41,13 @@ function Add-GitTestFile
     }
 }
 
+function Assert-ThereAreNoErrors
+{
+    It 'should write no errors' {
+        $Global:Error.Count | Should Be 0
+    }
+}
+
 function Clear-Error
 {
     $Global:Error.Clear()
