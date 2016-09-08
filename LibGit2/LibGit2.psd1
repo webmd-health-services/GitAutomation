@@ -79,6 +79,7 @@ FunctionsToExport = @(
                         'Copy-GitRepository',
                         'Find-GitRepository',
                         'Get-GitRepository',
+                        'New-GitRepository',
                         'Save-GitChange'
                     )
 

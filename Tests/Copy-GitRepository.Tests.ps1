@@ -22,7 +22,7 @@ function GivenLocalRepository
         $Path
     )
 
-    git init $Path
+    New-GitRepository -Path $Path
 }
 
 function GivenThereAreNoErrors

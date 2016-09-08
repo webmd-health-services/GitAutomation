@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="CommitInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RepositoryInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
