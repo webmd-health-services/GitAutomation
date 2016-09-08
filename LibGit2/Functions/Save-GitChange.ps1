@@ -23,6 +23,9 @@ function Save-GitChange
 
     Implements the `git commit` command.
 
+    .OUTPUTS
+    LibGit2.Automation.CommitInfo
+
     .LINK
     Add-GitItem
 
