@@ -23,6 +23,9 @@ function Add-GitItem
 
     This function implements the `git add` command.
 
+    .LINK
+    Save-GitChange
+
     .EXAMPLE
     Add-GitItem -Path 'C:\Projects\LibGit2'
 
@@ -74,22 +77,7 @@ function Add-GitItem
     {
         Set-StrictMode -Version 'Latest'
 
-        $RepoRoot = Resolve-Path -Path $RepoRoot -ErrorAction Ignore | Select-Object -ExpandProperty 'ProviderPath'
-        if( -not $RepoRoot )
-        {
-            Write-Error -Message ('No items added: repository ''{0}'' does not exist.' -f $PSBoundParameters['RepoRoot'])
-            return
-        }
-
-        [LibGit2Sharp.Repository]$repo = $null
-        try
-        {
-            $repo = New-Object 'LibGit2Sharp.Repository' (,$RepoRoot)
-        }
-        catch
-        {
-            Write-Error -ErrorRecord $_
-        }
+        $repo = Get-GitRepository -RepoRoot $RepoRoot
     }
 
     process

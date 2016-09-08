@@ -76,7 +76,8 @@ RequiredAssemblies = @( 'bin\LibGit2Sharp.dll' )
 # Functions to export from this module
 FunctionsToExport = @(
                         'Add-GitItem',
-                        'Copy-GitRepository'
+                        'Copy-GitRepository',
+                        'Get-GitRepository'
                     )
 
 # Cmdlets to export from this module
