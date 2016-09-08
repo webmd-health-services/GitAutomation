@@ -77,7 +77,7 @@ function Add-GitItem
     {
         Set-StrictMode -Version 'Latest'
 
-        $repo = Get-GitRepository -RepoRoot $RepoRoot
+        $repo = Find-GitRepository -Path $RepoRoot -Verify
     }
 
     process
@@ -91,16 +91,16 @@ function Add-GitItem
         {
             if( -not [IO.Path]::IsPathRooted($pathItem) )
             {
-                $pathItem = Join-Path -Path $RepoRoot -ChildPath $pathItem -Resolve
+                $pathItem = Join-Path -Path $repo.Info.WorkingDirectory -ChildPath $pathItem -Resolve
                 if( -not $pathItem )
                 {
                     continue
                 }
             }
 
-            if( -not $pathItem.StartsWith($RepoRoot, [stringcomparison]::InvariantCultureIgnoreCase) )
+            if( -not $pathItem.StartsWith($repo.Info.WorkingDirectory, [stringcomparison]::InvariantCultureIgnoreCase) )
             {
-                Write-Error -Message ('Item ''{0}'' can''t be added because it is not in the repository ''{1}''.' -f $pathItem,$RepoRoot)
+                Write-Error -Message ('Item ''{0}'' can''t be added because it is not in the repository ''{1}''.' -f $pathItem,$repo.Info.WorkingDirectory)
                 continue
             }
 

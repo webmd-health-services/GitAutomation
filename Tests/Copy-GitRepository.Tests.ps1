@@ -12,8 +12,7 @@
 
 Set-StrictMode -Version 'Latest'
 
-$PSScriptRoot = Split-Path -Path $MyInvocation.MyCommand.Definition
-& (Join-Path -Path $PSScriptRoot -ChildPath '..\Import-LibGit2.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
 
 $output = $null
 

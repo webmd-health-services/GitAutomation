@@ -146,7 +146,7 @@ Describe 'Add-GitItem when repository is not a repository' {
         Add-GitItem -Path 'file1' -ErrorAction SilentlyContinue
         It 'should write an error' {
             $Global:Error.Count | Should BeGreaterThan 0
-            $Global:Error | Should Match 'point at a valid Git repository'
+            $Global:Error | Should Match 'not in a Git repository'
         }
     }
     finally

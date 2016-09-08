@@ -54,7 +54,7 @@ function Save-GitChange
 
     Set-StrictMode -Version 'Latest'
 
-    $repo = Get-GitRepository -RepoRoot $RepoRoot
+    $repo = Find-GitRepository -Path $RepoRoot -Verify
     if( -not $repo )
     {
         return
