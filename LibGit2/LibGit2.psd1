@@ -59,7 +59,7 @@ This module uses the .NET wrapper of [libgit2](https://libgit2.github.com/), "a 
 # RequiredModules = @()
 
 # Assemblies that must be loaded prior to importing this module
-RequiredAssemblies = @( 'bin\LibGit2Sharp.dll' )
+RequiredAssemblies = @( 'bin\LibGit2Sharp.dll', 'bin\LibGit2.Automation.dll' )
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
 # ScriptsToProcess = @()

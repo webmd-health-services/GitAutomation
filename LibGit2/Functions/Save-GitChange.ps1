@@ -37,7 +37,7 @@ function Save-GitChange
     Demonstrates how to commit changes to a repository other than the current directory.
     #>
     [CmdletBinding()]
-    [OutputType([LibGit2Sharp.Commit])]
+    [OutputType([LibGit2.Automation.CommitInfo])]
     param(
         [Parameter(Mandatory=$true)]
         [string]
@@ -62,9 +62,8 @@ function Save-GitChange
         $commitOptions = New-Object 'LibGit2Sharp.CommitOptions'
         $commitOptions.AllowEmptyCommit = $false
         $author = $repo.Config.BuildSignature((Get-Date))
-        $repo.Commit( $Message, $author, $author, $commitOptions ) | 
-            Select-Object -Property 'Author','Committer','Encoding','Id','Message','MessageShort','Sha' |
-            ForEach-Object { $_.pstypenames.Add( 'LibGit2.Automation.CommitInfo' ) ; $_ }
+        $repo.Commit( $Message, $author, $author, $commitOptions ) |
+            ForEach-Object { New-Object 'LibGit2.Automation.CommitInfo' $_ } 
     }
     catch [LibGit2Sharp.EmptyCommitException]
     {
