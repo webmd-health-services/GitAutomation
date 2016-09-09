@@ -22,8 +22,12 @@ The `Import-LibGit2.ps1` script imports the `LibGit2` module from this script's 
 param(
 )
 
-#Requires -Version 2
+#Requires -Version 4
 Set-StrictMode -Version 'Latest'
-$PSScriptRoot = Split-Path -Path $MyInvocation.MyCommand.Definition
 
-Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2.psd1') -Force
+if( (Get-Module -Name 'LibGit2') )
+{
+    Remove-Module -Name 'LibGit2' -Force
+}
+
+Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2.psd1')
