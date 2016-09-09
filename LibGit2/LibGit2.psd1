@@ -16,7 +16,7 @@
 RootModule = 'LibGit2.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.0'
+ModuleVersion = '0.1.0'
 
 # ID used to uniquely identify this module
 GUID = '119a2511-62d9-4626-9728-0c8ec7068c57'
