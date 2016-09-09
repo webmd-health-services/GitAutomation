@@ -25,13 +25,9 @@ function Assert-FileNotStaged
     foreach( $pathItem in $Path )
     {
         It ('should not stage {0}' -f $pathItem) {
-            git -C $RepoRoot status --porcelain | 
-                ForEach-Object { $_ -replace '/','\' } |
-                Where-Object { $_ -notmatch '^\?\?' } |
-                Where-Object { $_ -match ('\s+{0}$' -f [regex]::Escape($pathItem)) } | 
-                Measure-Object | 
-                Select-Object -ExpandProperty 'Count' | 
-                Should Be 0
+            Get-GitRepositoryStatus -RepoRoot $RepoRoot -Path $pathItem | 
+                Where-Object { $_.IsStaged } |
+                Should BeNullOrEmpty
         }
     }
 }
@@ -48,9 +44,8 @@ function Assert-FileStaged
     foreach( $pathItem in $Path )
     {
         It ('should stage {0}' -f $pathItem) {
-            git -C $RepoRoot status --porcelain | 
-                ForEach-Object { $_ -replace '/','\' } |
-                Where-Object { $_ -match ('^(M|A|D|R|C|U)\s+{0}' -f [regex]::Escape($pathItem)) } | 
+            Get-GitRepositoryStatus -RepoRoot $RepoRoot -Path $pathItem | 
+                Where-Object { $_.IsStaged } |
                 Measure-Object | 
                 Select-Object -ExpandProperty 'Count' | 
                 Should Be 1
