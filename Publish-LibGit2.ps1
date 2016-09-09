@@ -31,6 +31,7 @@ param(
 Set-StrictMode -Version Latest
 
 & (Join-Path -Path $PSScriptRoot -ChildPath 'packages\Silk\Silk\Import-Silk.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'packages\Carbon\Import-Carbon.ps1' -Resolve)
 
 $licenseFileName = 'LICENSE'
 $noticeFileName = 'NOTICE'

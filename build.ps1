@@ -38,4 +38,14 @@ Set-ModuleVersion -ManifestPath (Join-Path -Path $PSScriptRoot -ChildPath 'LibGi
                   -PreReleaseVersion $PreReleaseVersion `
                   -BuildMetadata $BuildMetadata `
                   -ReleaseNotesPath (Join-Path -Path $PSScriptRoot -ChildPath 'RELEASE_NOTES.md' -Resolve) `
-                  -NuspecPath (Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2.PowerShell.nuspec' -Resolve)
+                  -NuspecPath (Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2.PowerShell.nuspec' -Resolve) `
+                  -SolutionPath (Join-Path -Path $PSScriptRoot -ChildPath 'Source\LibGit2.Automation.sln' -Resolve) `
+                  -AssemblyInfoPath (Join-Path -Path $PSScriptRoot -ChildPath 'Source\LibGit2.Automation\Properties\AssemblyInfo.cs' -Resolve)
+
+$source = Join-Path -Path $PSScriptRoot -ChildPath 'Source\LibGit2.Automation\bin\Debug'
+$destination = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2\bin'
+robocopy.exe $source $destination /MIR /NJH /NJS /NP /NDL /XD
+
+Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'packages\Pester' -Resolve)
+
+Invoke-Pester -Script (Join-Path -Path $PSScriptRoot -ChildPath 'Tests')
