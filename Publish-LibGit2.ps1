@@ -31,95 +31,26 @@ param(
 Set-StrictMode -Version Latest
 
 & (Join-Path -Path $PSScriptRoot -ChildPath 'packages\Silk\Silk\Import-Silk.ps1' -Resolve)
-& (Join-Path -Path $PSScriptRoot -ChildPath 'packages\Carbon\Import-Carbon.ps1' -Resolve)
 
-$licenseFileName = 'LICENSE'
-$noticeFileName = 'NOTICE'
-$releaseNotesFileName = 'RELEASE_NOTES.md'
-$releaseNotesPath = Join-Path -Path $PSScriptRoot -ChildPath $releaseNotesFileName -Resolve
+$libGitRoot = Join-Path -Path $PSScriptRoot -ChildPath 'Output\LibGit2'
+$releaseNotesPath = Join-Path -Path $libGitRoot -ChildPath 'RELEASE_NOTES.md' -Resolve
 
-$manifestPath = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2\LibGit2.psd1'
+$manifestPath = Join-Path -Path $libGitRoot -ChildPath 'LibGit2.psd1'
 $manifest = Test-ModuleManifest -Path $manifestPath
 if( -not $manifest )
 {
     return
 }
 
-$nuspecPath = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2.PowerShell.nuspec'
-$valid = Assert-ModuleVersion -ManifestPath $manifestPath -ReleaseNotesPath $releaseNotesPath -NuspecPath $nuspecPath -ExcludeAssembly 'LibGit2Sharp.dll'
-if( -not $valid )
-{
-    Write-Error -Message ('LibGit2 isn''t at the right version. Please rebuild with build.ps1.')
-    return
-}
+Publish-NuGetPackage -NupkgPath (Join-Path -Path $PSScriptRoot -ChildPath ('Output\nuget.org\LibGit2.PowerShell.{0}.nupkg' -f $manifest.Version))
 
-Set-ReleaseNotesReleaseDate -ManifestPath $manifestPath -ReleaseNotesPath $releaseNotesPath
-if( (git status --porcelain $releaseNotesPath) )
-{
-    git add $releaseNotesPath
-    git commit -m ('[{0}] Updating release date in release notes.' -f $manifest.Version) $releaseNotesPath
-    git log -1
-}
+Publish-ChocolateyPackage -NupkgPath (Join-Path -Path $PSScriptRoot -ChildPath ('Output\chocolatey.org\LibGit2.PowerShell.{0}.nupkg' -f $manifest.Version))
 
 $tags = @( 'git', 'vcs', 'rcs', 'automation', 'github', 'gitlab', 'libgit2' )
 
-Set-ModuleManifestMetadata -ManifestPath $manifestPath -Tag $tags -ReleaseNotesPath $releaseNotesPath
-if( (git status --porcelain $manifestPath) )
-{
-    git add $manifestPath
-    git commit -m ('[{0}] Updating module manifest.' -f $manifest.Version) $manifestPath
-    git log -1
-}
-
-$nuspecPath = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2.PowerShell.nuspec' -Resolve
-if( -not $nuspecPath )
-{
-    return
-}
-
-Set-ModuleNuspec -ManifestPath $manifestPath -NuspecPath $nuspecPath -ReleaseNotesPath $releaseNotesPath -Tags $tags
-
-if( (git status --porcelain $nuspecPath) )
-{
-    git add $nuspecPath
-    git commit -m ('[{0}] Updating Nuspec settings.' -f $manifest.Version) $nuspecPath
-    git log -1
-}
-
-if( -not (git tag | Where-Object { $_ -match ('^{0}$' -f [regex]::Escape($manifest.Version.ToString())) }) )
-{
-    git tag $manifest.Version.ToString()
-}
-
-# Create a clean clone so that our packages don't pick up any cruft.
-
-& (Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2\Import-LibGit2.ps1' -Resolve)
-$cloneDir = 'LibGit2+{0}' -f [IO.Path]::GetRandomFileName()
-$cloneDir = Join-Path -Path $env:TEMP -ChildPath $cloneDir
-Copy-GitRepository -Source '.' -DestinationPath $cloneDir
-
-Push-Location -Path $cloneDir
-try
-{
-    git checkout $manifest.Version
-    .\init.ps1
-
-    Publish-NuGetPackage -ManifestPath $manifestPath `
-                         -NuspecPath (Join-Path -Path $cloneDir -ChildPath 'LibGit2.PowerShell.nuspec') `
-                         -NuspecBasePath $cloneDir `
-                         -Repository @( 'nuget.org', 'chocolatey.org' ) `
-                         -PackageName 'LibGit2.PowerShell'
-
-    Publish-PowerShellGalleryModule -ManifestPath $manifestPath `
-                                    -ModulePath (Join-Path -Path $cloneDir -ChildPath 'LibGit2') `
-                                    -ReleaseNotesPath $releaseNotesPath `
-                                    -LicenseUri 'http://www.apache.org/licenses/LICENSE-2.0' `
-                                    -ProjectUri 'https://github.com/splatteredbits/LibGit2.PowerShell/wiki' `
-                                    -Tags $tags
-}
-finally
-{
-    Pop-Location
-    Remove-Item -Path $cloneDir -Recurse -Force
-}
-
+Publish-PowerShellGalleryModule -ManifestPath $manifestPath `
+                                -ModulePath $libGitRoot `
+                                -ReleaseNotesPath $releaseNotesPath `
+                                -LicenseUri 'http://www.apache.org/licenses/LICENSE-2.0' `
+                                -ProjectUri 'https://github.com/splatteredbits/LibGit2.PowerShell/wiki' `
+                                -Tags $tags

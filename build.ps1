@@ -25,7 +25,11 @@ param(
 
     [string]
     # Build metadata.
-    $BuildMetadata
+    $BuildMetadata,
+
+    [Switch]
+    # Build and create packages that will be published.
+    $ForRelease
 )
 
 #Requires -Version 4
@@ -34,7 +38,18 @@ $ErrorActionPreference = 'Stop'
 
 & (Join-Path -Path $PSScriptRoot -ChildPath 'packages\Silk\Silk\Import-Silk.ps1' -Resolve)
 
-Set-ModuleVersion -ManifestPath (Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2\LibGit2.psd1') `
+$manifestPath = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2\LibGit2.psd1'
+
+$manifest = Test-ModuleManifest -Path $manifestPath
+if( -not $manifest )
+{
+    return
+}
+
+$nuspecPath = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2.PowerShell.nuspec' -Resolve
+$releaseNotesPath = Join-Path -Path $PSScriptRoot -ChildPath 'RELEASE_NOTES.md' -Resolve
+
+Set-ModuleVersion -ManifestPath $manifestPath `
                   -Version $Version `
                   -PreReleaseVersion $PreReleaseVersion `
                   -BuildMetadata $BuildMetadata `
@@ -55,6 +70,27 @@ if( $result.FailedCount )
     exit
 }
 
+if( -not $ForRelease )
+{
+    return
+}
+
+$valid = Assert-ModuleVersion -ManifestPath $manifestPath -ReleaseNotesPath $releaseNotesPath -NuspecPath $nuspecPath -ExcludeAssembly 'LibGit2Sharp.dll'
+if( -not $valid )
+{
+    Write-Error -Message ('LibGit2 isn''t at the right version. Please use the -Version parameter to set the version.')
+    return
+}
+
+Set-ReleaseNotesReleaseDate -ManifestPath $manifestPath -ReleaseNotesPath $releaseNotesPath
+
+$tags = @( 'git', 'vcs', 'rcs', 'automation', 'github', 'gitlab', 'libgit2' )
+
+Set-ModuleManifestMetadata -ManifestPath $manifestPath -Tag $tags -ReleaseNotesPath $releaseNotesPath
+
+
+Set-ModuleNuspec -ManifestPath $manifestPath -NuspecPath $nuspecPath -ReleaseNotesPath $releaseNotesPath -Tags $tags
+
 $outputDirectory = Join-Path -Path $PSScriptRoot -ChildPath 'Output'
 if( (Test-Path -Path $outputDirectory -PathType Container) )
 {
@@ -68,13 +104,13 @@ else
 $manifestPath = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2\LibGit2.psd1'
 New-NuGetPackage -OutputDirectory (Join-Path -Path $outputDirectory -ChildPath 'nuget.org') `
                  -ManifestPath $manifestPath `
-                 -NuspecPath (Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2.PowerShell.nuspec') `
+                 -NuspecPath $nuspecPath `
                  -NuspecBasePath $PSScriptRoot `
                  -PackageName 'LibGit2.PowerShell'
 
 New-ChocolateyPackage -OutputDirectory (Join-Path -Path $outputDirectory -ChildPath 'chocolatey.org') `
                       -ManifestPath $manifestPath `
-                      -NuspecPath (Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2.PowerShell.nuspec')
+                      -NuspecPath $nuspecPath
 
 $source = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2'
 $destination = Join-Path -Path $outputDirectory -ChildPath 'LibGit2'
