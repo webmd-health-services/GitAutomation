@@ -1,6 +1,22 @@
 [
     {
-        "Name":  "Clone-GitRepository",
+        "Name":  "Copy-GitRepository",
         "Tags":  [ "clone" ]
+    },
+    {
+        "Name": "Add-GitItem",
+        "Tags": [ "add" ]
+    },
+    {
+        "Name": "Get-GitRepositoryStatus",
+        "Tags": [ "status" ]
+    },
+    {
+        "Name": "New-GitRepository",
+        "Tags": [ "init" ]
+    },
+    {
+        "Name": "Save-GitChange",
+        "Tags": [ "commit" ]
     }
 ]
