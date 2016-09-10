@@ -16,7 +16,7 @@
 RootModule = 'LibGit2.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.1.0'
+ModuleVersion = '0.1.1'
 
 # ID used to uniquely identify this module
 GUID = '119a2511-62d9-4626-9728-0c8ec7068c57'
@@ -121,12 +121,7 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
-* Created `Add-GitItem` function for promoting new, untracked, and modified files/directories to the Git staging area so they can be committed. Implements the `git add` command.
- * Created `Get-GitRepository` function for getting an object representing a repository.
- * Created `Save-GitChange` function for commiting changes to a repository. Implements the `git commit` command.
- * Created `Find-GitRepository` function for searching a directory and its parents (i.e. up it tree) for a Git repository.
- * Created `New-GitRepository` function for creating new Git repositories.
- * Created `Get-GitRepositorStatus` function for getting the state of a repository's working directory and any items staged for the next commit.
+* Fixed: NuGet, Chocolatey, and PowerShell Gallery packages are missing assemblies.
 '@
 
     } # End of PSData hashtable
