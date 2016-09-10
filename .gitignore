@@ -4,3 +4,4 @@ get-libgit2.org/
 *.suo
 **/bin/**
 **/obj/**
+Output/

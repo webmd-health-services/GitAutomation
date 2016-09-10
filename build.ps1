@@ -30,6 +30,7 @@ param(
 
 #Requires -Version 4
 Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
 
 & (Join-Path -Path $PSScriptRoot -ChildPath 'packages\Silk\Silk\Import-Silk.ps1' -Resolve)
 
@@ -48,4 +49,35 @@ robocopy.exe $source $destination /MIR /NJH /NJS /NP /NDL /XD
 
 Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'packages\Pester' -Resolve)
 
-Invoke-Pester -Script (Join-Path -Path $PSScriptRoot -ChildPath 'Tests')
+$result = Invoke-Pester -Script (Join-Path -Path $PSScriptRoot -ChildPath 'Tests') -PassThru
+if( $result.FailedCount )
+{
+    exit
+}
+
+$outputDirectory = Join-Path -Path $PSScriptRoot -ChildPath 'Output'
+if( (Test-Path -Path $outputDirectory -PathType Container) )
+{
+    Get-ChildItem -Path $outputDirectory | Remove-Item -Recurse
+}
+else
+{
+    New-Item -Path $outputDirectory -ItemType 'directory'
+}
+
+$manifestPath = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2\LibGit2.psd1'
+New-NuGetPackage -OutputDirectory (Join-Path -Path $outputDirectory -ChildPath 'nuget.org') `
+                 -ManifestPath $manifestPath `
+                 -NuspecPath (Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2.PowerShell.nuspec') `
+                 -NuspecBasePath $PSScriptRoot `
+                 -PackageName 'LibGit2.PowerShell'
+
+New-ChocolateyPackage -OutputDirectory (Join-Path -Path $outputDirectory -ChildPath 'chocolatey.org') `
+                      -ManifestPath $manifestPath `
+                      -NuspecPath (Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2.PowerShell.nuspec')
+
+$source = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2'
+$destination = Join-Path -Path $outputDirectory -ChildPath 'LibGit2'
+robocopy.exe $source $destination /MIR /NJH /NJS /NP /NDL /XD /XF '*.pdb'
+
+Get-ChildItem -Path 'RELEASE_NOTES.md','LICENSE','NOTICE' | Copy-Item -Destination $destination
