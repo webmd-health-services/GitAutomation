@@ -42,9 +42,13 @@ if( -not $manifest )
     return
 }
 
-Publish-NuGetPackage -NupkgPath (Join-Path -Path $PSScriptRoot -ChildPath ('Output\nuget.org\LibGit2.PowerShell.{0}.nupkg' -f $manifest.Version))
+$nupkgPath = Join-Path -Path $PSScriptRoot `
+                       -ChildPath ('Output\nuget.org\LibGit2.PowerShell.{0}.nupkg' -f $manifest.Version)
+Publish-NuGetPackage -NupkgPath $nupkgPath
 
-Publish-ChocolateyPackage -NupkgPath (Join-Path -Path $PSScriptRoot -ChildPath ('Output\chocolatey.org\LibGit2.PowerShell.{0}.nupkg' -f $manifest.Version))
+$nupkgPath = Join-Path -Path $PSScriptRoot `
+                       -ChildPath ('Output\chocolatey.org\LibGit2.PowerShell.{0}.nupkg' -f $manifest.Version)
+Publish-ChocolateyPackage -NupkgPath $nupkgPath
 
 $tags = @( 'git', 'vcs', 'rcs', 'automation', 'github', 'gitlab', 'libgit2' )
 

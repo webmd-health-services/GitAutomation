@@ -93,7 +93,6 @@ function Out-HtmlPage
 }
 
 $silkRoot = Join-Path -Path $PSScriptRoot -ChildPath '.\packages\Silk\Silk' -Resolve
-& (Join-Path -Path $silkRoot -ChildPath 'Import-Silk.ps1' -Resolve)
 
 if( (Get-Module -Name 'Blade') )
 {
@@ -102,7 +101,7 @@ if( (Get-Module -Name 'Blade') )
 
 $headingMap = @{ }
 
-& (Join-Path -Path $PSScriptRoot -ChildPath '.\packages\Carbon.2.2.0\Carbon\Import-Carbon.ps1' -Resolve) -Force
+& (Join-Path -Path $silkRoot -ChildPath 'Import-Silk.ps1' -Resolve)
 & (Join-Path -Path $PSScriptRoot -ChildPath '.\LibGit2\Import-LibGit2.ps1' -Resolve)
 
 try
@@ -114,7 +113,8 @@ finally
 {
 }
 
-New-ModuleHelpIndex -TagsJsonPath (Join-Path -Path $PSScriptRoot -ChildPath 'tags.json') -ModuleName 'LibGit2' -Script 'Import-LibGit2.ps1' |
+$tagsPath = Join-Path -Path $PSScriptRoot -ChildPath 'tags.json'
+New-ModuleHelpIndex -TagsJsonPath $tagsPath -ModuleName 'LibGit2' -Script 'Import-LibGit2.ps1' |
      Out-HtmlPage -Title 'PowerShell - LibGit2 Module Documentation' -VirtualPath '/documentation.html'
 
 $carbonTitle = 'LibGit2: PowerShell module for working with Git repositories'
@@ -125,10 +125,12 @@ Get-Item -Path (Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2\en-US\about_Li
     } |
     Out-HtmlPage -Title $carbonTitle -VirtualPath '/index.html'
 
-Get-Content -Path (Join-Path -Path $PSScriptRoot -ChildPath 'RELEASE_NOTES.md') -Raw | 
+$releaseNotesPath = Join-Path -Path $PSScriptRoot -ChildPath 'RELEASE_NOTES.md' 
+Get-Content -Path $releaseNotesPath -Raw | 
     Edit-HelpText -ModuleName 'LibGit2' |
     Convert-MarkdownToHtml | 
     Out-HtmlPage -Title ('Release Notes - {0}' -f $carbonTitle) -VirtualPath '/releasenotes.html'
 
-Copy-Item -Path (Join-Path -Path $silkRoot -ChildPath 'Resources\silk.css' -Resolve) `
-          -Destination (Join-Path -Path $PSScriptRoot -ChildPath 'get-libgit2.org') -Verbose
+$silkCssPath = Join-Path -Path $silkRoot -ChildPath 'Resources\silk.css' -Resolve
+$webroot = Join-Path -Path $PSScriptRoot -ChildPath 'get-libgit2.org'
+Copy-Item -Path $silkCssPath -Destination $webroot -Verbose
