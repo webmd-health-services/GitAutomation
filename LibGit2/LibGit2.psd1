@@ -81,7 +81,8 @@ FunctionsToExport = @(
                         'Get-GitRepository',
                         'Get-GitRepositoryStatus',
                         'New-GitRepository',
-                        'Save-GitChange'
+                        'Save-GitChange',
+                        'Set-GitConfiguration'
                     )
 
 # Cmdlets to export from this module
