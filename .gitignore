@@ -5,3 +5,4 @@ get-libgit2.org/
 **/bin/**
 **/obj/**
 Output/
+**/*.user
