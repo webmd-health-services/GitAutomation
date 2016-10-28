@@ -1,3 +1,8 @@
+# 0.2.0
+
+ * Added `Set-GitConfiguration` for setting Git configuration variables. Implements the `git config` command.
+ 
+
 # 0.1.1 (9 September 2016)
 
  * Fixed: NuGet, Chocolatey, and PowerShell Gallery packages are missing assemblies.
