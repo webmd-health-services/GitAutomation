@@ -33,6 +33,8 @@ if( -not (Get-Module -Name 'Carbon') )
 Install-Junction -Link (Join-Path -Path $packagesRoot -ChildPath 'Pester') -Target (Join-Path -Path $packagesRoot -ChildPath ('Pester.{0}\tools' -f $pesterVersion))
 Install-Junction -Link (Join-Path -Path $packagesRoot -ChildPath 'Carbon') -Target $carbonRoot
 
+return
+
 if( -not (Get-Module -Name 'LibGit2') )
 {
     & (Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2\Import-LibGit2.ps1' -Resolve)
