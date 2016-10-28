@@ -16,7 +16,7 @@
 RootModule = 'LibGit2.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.1.1'
+ModuleVersion = '0.2.0'
 
 # ID used to uniquely identify this module
 GUID = '119a2511-62d9-4626-9728-0c8ec7068c57'
@@ -122,7 +122,7 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
-* Fixed: NuGet, Chocolatey, and PowerShell Gallery packages are missing assemblies.
+* Added `Set-GitConfiguration` for setting Git configuration variables. Implements the `git config` command.
 '@
 
     } # End of PSData hashtable
