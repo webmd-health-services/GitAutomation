@@ -50,7 +50,7 @@ Describe 'Set-GitConfiguration when setting a specific repository''s configurati
 Describe 'Set-GitConfiguration when repo does not exist' {
     Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -RepoRoot (Get-Item -Path 'TestDrive:').FullName -ErrorVariable 'errors' -ErrorAction SilentlyContinue
     It 'should write an error' {
-        $errors | Should Match 'valid Git repository'
+        $errors | Should Match 'not in a Git repository'
     }
 }
 
@@ -60,5 +60,25 @@ Describe 'Set-GitConfiguration when setting global configuration' {
     $repo = Find-GitRepository -Path $PSScriptRoot
     It 'should set option globally' {
         $option = $repo.Config | Where-Object { $_.Key -eq 'libgit2.test' -and $_.Value -eq $value -and $_.Level -eq [LibGit2Sharp.ConfigurationLevel]::Global } | Should Not BeNullOrEmpty
+    }
+}
+
+Describe 'Set-GitConfiguration when setting a specific repository''s configuration and current directory is a sub-directory of the repository root' {
+    $repo = New-GitTestRepo
+    Push-Location -Path $repo
+    try
+    {
+        New-Item -Path 'child' -ItemType 'Directory' 
+        Set-Location -Path 'child'
+
+        Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -ErrorVariable 'errors'
+        Assert-ConfigurationVariableSet -Path '..\.git\config'
+        It 'should not write any errors' {
+            $errors | Should BeNullOrEmpty
+        }
+    }
+    finally
+    {
+        Pop-Location
     }
 }

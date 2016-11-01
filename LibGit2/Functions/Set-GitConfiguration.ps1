@@ -62,13 +62,13 @@ function Set-GitConfiguration
     Set-StrictMode -Version 'Latest'
     Use-CallerPreference -Cmdlet $PSCmdlet -Session $ExecutionContext.SessionState
 
-    $repoRootParam = @{}
+    $pathParam = @{}
     if( $RepoRoot )
     {
-        $repoRootParam['RepoRoot'] = $RepoRoot
+        $pathParam['Path'] = $RepoRoot
     }
 
-    $repo = Get-GitRepository @repoRootParam
+    $repo = Find-GitRepository @pathParam -Verify
     if( -not $repo )
     {
         return
