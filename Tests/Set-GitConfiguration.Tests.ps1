@@ -85,6 +85,34 @@ Describe 'Set-GitConfiguration when setting a specific repository''s configurati
     }
 }
 
+Describe 'Set-GitConfiguration when using a specific configuration file' {
+    $file = Join-Path -Path (Get-Item -Path 'TestDrive:').FullName -ChildPath 'fubarsnafu'
+
+    Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -Path $file -ErrorVariable 'errors'
+    Assert-ConfigurationVariableSet -Path $file
+    It 'should not write any errors' {
+        $errors | Should BeNullOrEmpty
+    }
+}
+
+Describe 'Set-GitConfiguration when using a relative path to a specific configuration file' {
+    $testDriveRoot = (Get-Item -Path 'TestDrive:').FullName 
+
+    Push-Location -Path $testDriveRoot
+    try
+    {
+        Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -Path 'fubarsnafu' -ErrorVariable 'errors'
+        Assert-ConfigurationVariableSet -Path (Join-Path -Path $testDriveRoot -ChildPath 'fubarsnafu')
+        It 'should not write any errors' {
+            $errors | Should BeNullOrEmpty
+        }
+    }
+    finally
+    {
+        Pop-Location
+    }
+}
+
 Describe 'Set-GitConfiguration when setting global configuration and not in a repository' {
     $tempRoot = (Get-Item -Path 'TestDrive:').FullName
     Mock -CommandName 'Test-Path' -ModuleName 'LibGit2' -ParameterFilter { $Path -eq 'env:HOME' } -MockWith { return $false }

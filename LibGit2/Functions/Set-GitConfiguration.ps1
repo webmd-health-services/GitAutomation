@@ -19,9 +19,11 @@ function Set-GitConfiguration
     .DESCRIPTION
     The `Set-GitConfiguration` function sets Git configuration variables. These variables change Git's behavior. Git has hundreds of variables and we can't document them here. Some are shared between Git commands. Some variables are only used by specific commands. The `git help config` help topic lists most of them.
 
-    By default, this function sets options at the repository level. To set options for the current user across all repositories, use the `-Global` switch. If running in an elevated process, `Set-GitConfiguration` will look in `$env:HOME` and `$env:USERPROFILE` (in that order) for a .gitconfig file. If it can't find one, it will create one in `$env:HOME`. If the `HOME` environment variable isn't defined, it will create a `.gitconfig` file in the `$env:USERPROFILE` directory.
+    By default, this function sets options for the current repository, or a specific repository using the `RepoRoot` parameter. To set options for the current user across all repositories, use the `-Global` switch. If running in an elevated process, `Set-GitConfiguration` will look in `$env:HOME` and `$env:USERPROFILE` (in that order) for a .gitconfig file. If it can't find one, it will create one in `$env:HOME`. If the `HOME` environment variable isn't defined, it will create a `.gitconfig` file in the `$env:USERPROFILE` directory.
     
     If running in a non-elevated process, `Set-GitConfiguration` will look in `$env:HOME`, `$env:HOMEDRIVE$env:HOMEPATH`, and `$env:USERPROFILE` (in that order) and use the first `.gitconfig` file it finds. If it can't find a `.gitconfig` file, it will create a `.gitconfig` in the `$env:HOME` directory. If the `HOME` environment variable isn't defined, it will create the `.gitconfig` file in the `$env:HOMEDRIVE$env:HOMEPATH` directory.
+
+    To set the configuration in a specific file, use the `Path` parameter. If the file doesn't exist, it is created.
 
     This function implements the `git config` command.
 
@@ -52,17 +54,45 @@ function Set-GitConfiguration
         # The value of the configuration variable.
         $Value,
 
+        [Parameter(ParameterSetName='ByScope')]
         [LibGit2Sharp.ConfigurationLevel]
         # Where to set the configuration value. Local means the value will be set for a specific repository. Global means set for the current user. System means set for all users on the current computer. The default is `Local`.
         $Scope = ([LibGit2Sharp.ConfigurationLevel]::Local),
 
+        [Parameter(Mandatory=$true,ParameterSetName='ByPath')]
         [string]
-        # The path to the repository whose configuration variables to set.
+        # The path to a specific file whose configuration to update.
+        $Path,
+
+        [Parameter(ParameterSetName='ByScope')]
+        [string]
+        # The path to the repository whose configuration variables to set. Defaults to the repository the current directory is in.
         $RepoRoot
     )
 
     Set-StrictMode -Version 'Latest'
     Use-CallerPreference -Cmdlet $PSCmdlet -Session $ExecutionContext.SessionState
+
+    if( $PSCmdlet.ParameterSetName -eq 'ByPath' )
+    {
+        if( -not (Test-Path -Path $Path -PathType Leaf) )
+        {
+            New-Item -Path $Path -ItemType 'File' -Force | Write-Verbose
+        }
+
+        $Path = Resolve-Path -Path $Path | Select-Object -ExpandProperty 'ProviderPath'
+
+        $config = [LibGit2Sharp.Configuration]::BuildFrom($Path)
+        try
+        {
+            $config.Set( $Name, $Value, 'Local' )
+        }
+        finally
+        {
+            $config.Dispose()
+        }
+        return
+    }
 
     $pathParam = @{}
     if( $RepoRoot )
@@ -99,7 +129,7 @@ function Set-GitConfiguration
             New-Item -Path $searchPaths[0] -ItemType 'File' -Force | Write-Verbose
         }
 
-        $config = [LibGit2.Automation.ConfigurationLoader]::Load()
+        $config = [LibGit2Sharp.Configuration]::BuildFrom([nullstring]::Value,[nullstring]::Value)
         try
         {
             $config.Set($Name,$Value,$Scope)
