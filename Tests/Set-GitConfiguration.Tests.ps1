@@ -15,6 +15,8 @@ Set-StrictMode -Version 'Latest'
 
 & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
 
+$globalSearchPaths = [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global)
+
 function Assert-ConfigurationVariableSet
 {
     param(
@@ -82,3 +84,41 @@ Describe 'Set-GitConfiguration when setting a specific repository''s configurati
         Pop-Location
     }
 }
+
+Describe 'Set-GitConfiguration when setting global configuration and not in a repository' {
+    $tempRoot = (Get-Item -Path 'TestDrive:').FullName
+    Mock -CommandName 'Test-Path' -ModuleName 'LibGit2' -ParameterFilter { $Path -eq 'env:HOME' } -MockWith { return $false }
+    Push-Location -Path $tempRoot
+    try
+    {
+        [LibGit2Sharp.GlobalSettings]::SetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global, ($tempRoot -replace '\\','/'))
+        Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -Scope Global -ErrorVariable 'errors'
+        Assert-ConfigurationVariableSet -Path '.gitconfig'
+        It 'should not write any errors' {
+            $errors | Should BeNullOrEmpty
+        }
+    }
+    finally
+    {
+        Pop-Location
+    }
+}
+
+Describe 'Set-GitConfiguration when HOME environment variable exists' {
+    [LibGit2Sharp.GlobalSettings]::SetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global, ($env:TEMP -replace '\\','/') )
+    $tempRoot = (Get-Item -Path 'TestDrive:').FullName
+    Mock -CommandName 'Test-Path' -ModuleName 'LibGit2' -ParameterFilter { $Path -eq 'env:HOME' } -MockWith { return $true }
+    Mock -CommandName 'Get-Item' -ModuleName 'LibGit2' -ParameterFilter { $Path -eq 'env:HOME' } -MockWith { return [pscustomobject]@{ Name = 'HOME' ; Value = (Get-Item -Path 'TestDrive:').FullName } }
+
+    Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -Scope Global -ErrorVariable 'errors'
+    Assert-ConfigurationVariableSet -Path (Join-Path -Path $tempRoot -ChildPath '.gitconfig')
+    It 'should not write any errors' {
+        $errors | Should BeNullOrEmpty
+    }
+
+    It 'should not create any other configuration files' {
+        Join-Path -Path $env:TEMP -ChildPath '.gitconfig' | Should Not Exist
+    }
+}
+
+[LibGit2Sharp.GlobalSettings]::SetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global, $globalSearchPaths)

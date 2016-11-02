@@ -19,7 +19,9 @@ function Set-GitConfiguration
     .DESCRIPTION
     The `Set-GitConfiguration` function sets Git configuration variables. These variables change Git's behavior. Git has hundreds of variables and we can't document them here. Some are shared between Git commands. Some variables are only used by specific commands. The `git help config` help topic lists most of them.
 
-    By default, this function sets options at the repository level. To set options globally, across all repositories, use the `-Global` switch.
+    By default, this function sets options at the repository level. To set options for the current user across all repositories, use the `-Global` switch. If running in an elevated process, `Set-GitConfiguration` will look in `$env:HOME` and `$env:USERPROFILE` (in that order) for a .gitconfig file. If it can't find one, it will create one in `$env:HOME`. If the `HOME` environment variable isn't defined, it will create a `.gitconfig` file in the `$env:USERPROFILE` directory.
+    
+    If running in a non-elevated process, `Set-GitConfiguration` will look in `$env:HOME`, `$env:HOMEDRIVE$env:HOMEPATH`, and `$env:USERPROFILE` (in that order) and use the first `.gitconfig` file it finds. If it can't find a `.gitconfig` file, it will create a `.gitconfig` in the `$env:HOME` directory. If the `HOME` environment variable isn't defined, it will create the `.gitconfig` file in the `$env:HOMEDRIVE$env:HOMEPATH` directory.
 
     This function implements the `git config` command.
 
@@ -68,18 +70,43 @@ function Set-GitConfiguration
         $pathParam['Path'] = $RepoRoot
     }
 
-    $repo = Find-GitRepository @pathParam -Verify
-    if( -not $repo )
+    if( $Scope -eq [LibGit2Sharp.ConfigurationLevel]::Local )
     {
-        return
-    }
+        $repo = Find-GitRepository @pathParam -Verify
+        if( -not $repo )
+        {
+            return
+        }
 
-    try
-    {
-        $repo.Config.Set($Name,$Value,$Scope)
+        try
+        {
+            $repo.Config.Set($Name,$Value,$Scope)
+        }
+        finally
+        {
+            $repo.Dispose()
+        }
     }
-    finally
+    else
     {
-        $repo.Dispose()
+        Update-GitConfigurationSearchPath -Scope $Scope
+
+        # LibGit2 only creates config files explicitly.
+        [string[]]$searchPaths = [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths($Scope) | Join-Path -ChildPath '.gitconfig' 
+        $scopeConfigFiles = $searchPaths | Where-Object { Test-Path -Path $_ -PathType Leaf }
+        if( -not $scopeConfigFiles )
+        {
+            New-Item -Path $searchPaths[0] -ItemType 'File' -Force | Write-Verbose
+        }
+
+        $config = [LibGit2.Automation.ConfigurationLoader]::Load()
+        try
+        {
+            $config.Set($Name,$Value,$Scope)
+        }
+        finally
+        {
+            $config.Dispose()
+        }
     }
 }

@@ -15,7 +15,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using LibGit2Sharp;
-using NUnit.Framework;
 
 namespace LibGit2.Automation
 {
