@@ -104,7 +104,12 @@ function Get-GitRepositoryStatus
 
     Set-StrictMode -Version 'Latest'
 
-    $repo = Find-GitRepository -Path $RepoRoot
+    $repo = Find-GitRepository -Path $RepoRoot -Verify
+    if( -not $repo )
+    {
+        return
+    }
+
     try
     {
         $statusOptions = New-Object -TypeName 'LibGit2Sharp.StatusOptions'
