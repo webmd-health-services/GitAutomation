@@ -83,7 +83,8 @@ FunctionsToExport = @(
                         'New-GitRepository',
                         'Save-GitChange',
                         'Set-GitConfiguration',
-                        'Test-GitOutgoingChange'
+                        'Test-GitOutgoingChange',
+                        'Test-GitUncommittedChange'
                     )
 
 # Cmdlets to export from this module
