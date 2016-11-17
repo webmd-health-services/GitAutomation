@@ -81,6 +81,7 @@ FunctionsToExport = @(
                         'Get-GitRepository',
                         'Get-GitRepositoryStatus',
                         'New-GitRepository',
+                        'Receive-GitChange'
                         'Save-GitChange',
                         'Set-GitConfiguration',
                         'Test-GitOutgoingChange',
