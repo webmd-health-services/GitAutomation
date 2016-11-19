@@ -85,6 +85,7 @@ FunctionsToExport = @(
                         'Save-GitChange',
                         'Set-GitConfiguration',
                         'Test-GitOutgoingChange',
+                        'Test-GitRemoteUri',
                         'Test-GitUncommittedChange'
                     )
 
