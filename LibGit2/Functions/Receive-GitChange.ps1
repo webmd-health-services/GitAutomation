@@ -14,29 +14,25 @@ function Receive-GitChange
 {
     <#
     .SYNOPSIS
-    Recieves remote changes for a repository
+    Pulls remote changes for a repository
 
     .DESCRIPTION
-    The `Recieve-GitChange` function fetches the remotes for the specified repository.
+    The `Recieve-GitChange` function fetches and merges the remote changes for the specified repository that can be fast-forwarded.
 
-    It defaults to the current repository. Use the `RepoRoot` parameter to specify an explicit path to another repo, and the `All` switch to fetch all remotes.
+    It defaults to the current repository. Use the `RepoRoot` parameter to specify an explicit path to another repo.
 
-    This function implements the `git fetch` and `git fetch --all` commands.
+    This function implements the `git pull`
 
     .EXAMPLE
-    Test-GitOutgoingChange -RepoRoot 'C:\Projects\LibGit2' -All
+    Test-GitOutgoingChange -RepoRoot 'C:\Projects\LibGit2'
 
-    Demonstrates how to fetch all remotes for a repository that isn't the current directory.
+    Demonstrates how to pull remotes changes for a repository that isn't the current directory.
     #>
     [CmdletBinding()]
     param(
         [string]
         # The repository to fetch updates for. Defaults to the current directory.
-        $RepoRoot = (Get-Location).ProviderPath,
-
-        [Switch]
-        # Receive updates for all remotes.
-        $All
+        $RepoRoot = (Get-Location).ProviderPath
     )
 
 
@@ -50,18 +46,12 @@ function Receive-GitChange
 
     try
     {
-        if( $All )
-        {
-            foreach( $remote in $repo.Network.Remotes )
-            {
-                $repo.Network.Fetch($remote)
-            }
-        }
-        else
-        {
-            $remote = $repo.Network.Remotes["origin"]
-            $repo.Network.Fetch($remote)
-        }
+        $pullOptions = New-Object LibGit2Sharp.PullOptions
+        $mergeOptions = New-Object LibGit2Sharp.MergeOptions
+        $mergeOptions.FastForwardStrategy = [LibGit2Sharp.FastForwardStrategy]::FastForwardOnly
+        $pullOptions.MergeOptions = $mergeOptions
+        $signature = $repo.Config.BuildSignature((Get-Date))
+        $repo.Network.Pull($signature, $pullOptions)
     }
     finally
     {
