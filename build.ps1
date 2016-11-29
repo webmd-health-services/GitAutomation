@@ -60,6 +60,8 @@ Set-ModuleVersion -ManifestPath $manifestPath `
                   -SolutionPath (Join-Path -Path $PSScriptRoot -ChildPath 'Source\LibGit2.Automation.sln' -Resolve) `
                   -AssemblyInfoPath (Join-Path -Path $PSScriptRoot -ChildPath 'Source\LibGit2.Automation\Properties\AssemblyInfo.cs' -Resolve)
 
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe .\Source\LibGit2.Automation.sln
+
 $source = Join-Path -Path $PSScriptRoot -ChildPath 'Source\LibGit2.Automation\bin\Debug'
 $destination = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2\bin'
 robocopy.exe $source $destination /MIR /NJH /NJS /NP /NDL /XD

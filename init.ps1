@@ -45,6 +45,7 @@ foreach( $moduleName in $moduleNames )
     }
 }
 
+
 $nugetPath = Join-Path -Path $PSScriptRoot -ChildPath '.\Silk\bin\NuGet.exe' -Resolve
 
 $sourceRoot = Join-Path -Path $PSScriptRoot -ChildPath 'Source'
