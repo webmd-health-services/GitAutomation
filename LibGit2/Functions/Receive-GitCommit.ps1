@@ -10,21 +10,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-function Receive-GitChange
+function Receive-GitCommit
 {
     <#
     .SYNOPSIS
     Pulls remote changes for a repository
 
     .DESCRIPTION
-    The `Recieve-GitChange` function fetches and merges the remote changes for the specified repository that can be fast-forwarded.
+    The `Recieve-GitCommit` function fetches and merges the remote changes for the specified repository that can be fast-forwarded.
 
     It defaults to the current repository. Use the `RepoRoot` parameter to specify an explicit path to another repo.
 
     This function implements the `git pull`
 
     .EXAMPLE
-    Test-GitOutgoingChange -RepoRoot 'C:\Projects\LibGit2'
+    Receive-GitCommit -RepoRoot 'C:\Projects\LibGit2'
 
     Demonstrates how to pull remotes changes for a repository that isn't the current directory.
     #>

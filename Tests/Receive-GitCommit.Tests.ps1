@@ -12,7 +12,7 @@
 
 & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
 
-Describe 'Receive-GitChange when there are incoming commits on master'{
+Describe 'Receive-GitCommit when there are incoming commits on master'{
     Clear-Error
 
     $remoteRepo = New-GitTestRepo
@@ -31,7 +31,7 @@ Describe 'Receive-GitChange when there are incoming commits on master'{
     $remote = Find-GitRepository -Path $remoteRepo
     try{
         $repo.Head.Tip.Sha | Should Not Be $remote.Head.Tip.Sha
-        Receive-GitChange -RepoRoot $localRepoPath
+        Receive-GitCommit -RepoRoot $localRepoPath
 
         It 'should fast-forward remote changes on master'{        
             $repo.Head.Tip.Sha | Should Be $remote.Head.Tip.Sha
@@ -49,7 +49,7 @@ Describe 'Receive-GitChange when there are incoming commits on master'{
 Describe 'Receive-GitChange when the given repo doesn''t exist' {
     Clear-Error
 
-    Receive-GitChange -RepoRoot 'C:\I\do\not\exist' -ErrorAction SilentlyContinue
+    Receive-GitCommit -RepoRoot 'C:\I\do\not\exist' -ErrorAction SilentlyContinue
     It 'should write an error' {
         $Global:Error.Count | Should Be 1
         $Global:Error | Should Match 'does not exist'
