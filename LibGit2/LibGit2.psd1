@@ -68,7 +68,10 @@ RequiredAssemblies = @( 'bin\LibGit2Sharp.dll', 'bin\LibGit2.Automation.dll' )
 TypesToProcess = @( 'Types\LibGit2Sharp.StatusEntry.types.ps1xml' )
 
 # Format files (.ps1xml) to be loaded when importing this module
-FormatsToProcess = @( 'Formats\LibGit2Sharp.StatusEntry.formats.ps1xml' )
+FormatsToProcess = @( 
+                        'Formats\LibGit2.Automation.CommitInfo.formats.ps1xml',
+                        'Formats\LibGit2Sharp.StatusEntry.formats.ps1xml' 
+                    )
 
 # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
 # NestedModules = @()
@@ -78,6 +81,7 @@ FunctionsToExport = @(
                         'Add-GitItem',
                         'Copy-GitRepository',
                         'Find-GitRepository',
+                        'Get-GitCommit',
                         'Get-GitRepository',
                         'Get-GitRepositoryStatus',
                         'New-GitRepository',
