@@ -16,7 +16,7 @@
 RootModule = 'LibGit2.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.2.0'
+ModuleVersion = '0.3.0'
 
 # ID used to uniquely identify this module
 GUID = '119a2511-62d9-4626-9728-0c8ec7068c57'
@@ -68,7 +68,10 @@ RequiredAssemblies = @( 'bin\LibGit2Sharp.dll', 'bin\LibGit2.Automation.dll' )
 TypesToProcess = @( 'Types\LibGit2Sharp.StatusEntry.types.ps1xml' )
 
 # Format files (.ps1xml) to be loaded when importing this module
-FormatsToProcess = @( 'Formats\LibGit2Sharp.StatusEntry.formats.ps1xml' )
+FormatsToProcess = @( 
+                        'Formats\LibGit2.Automation.CommitInfo.formats.ps1xml',
+                        'Formats\LibGit2Sharp.StatusEntry.formats.ps1xml' 
+                    )
 
 # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
 # NestedModules = @()
@@ -78,6 +81,7 @@ FunctionsToExport = @(
                         'Add-GitItem',
                         'Copy-GitRepository',
                         'Find-GitRepository',
+                        'Get-GitCommit',
                         'Get-GitRepository',
                         'Get-GitRepositoryStatus',
                         'New-GitRepository',
@@ -127,6 +131,7 @@ PrivateData = @{
         # ReleaseNotes of this module
         ReleaseNotes = @'
 * Added `Set-GitConfiguration` for setting Git configuration variables. Implements the `git config` command.
+ * Added SSH support. You must have an `ssh.exe` program in your path.
 '@
 
     } # End of PSData hashtable

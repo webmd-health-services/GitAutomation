@@ -1,5 +1,8 @@
 *.pdb
 packages/
+Carbon/
+Silk/
+Pester/
 get-libgit2.org/
 *.suo
 **/bin/**

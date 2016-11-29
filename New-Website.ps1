@@ -92,7 +92,7 @@ function Out-HtmlPage
     }
 }
 
-$silkRoot = Join-Path -Path $PSScriptRoot -ChildPath '.\packages\Silk\Silk' -Resolve
+$silkRoot = Join-Path -Path $PSScriptRoot -ChildPath 'Silk' -Resolve
 
 if( (Get-Module -Name 'Blade') )
 {
@@ -103,6 +103,15 @@ $headingMap = @{ }
 
 & (Join-Path -Path $silkRoot -ChildPath 'Import-Silk.ps1' -Resolve)
 & (Join-Path -Path $PSScriptRoot -ChildPath '.\LibGit2\Import-LibGit2.ps1' -Resolve)
+
+$websiteRoot = Join-Path -Path $PSScriptRoot -ChildPath 'get-libgit2.org'
+if( -not (Test-Path -Path $websiteRoot -PathType Container) )
+{
+    Copy-GitRepository -Source 'https://github.com/pshdo/get-libgit2.org' -DestinationPath $websiteRoot
+}
+
+git -C $websiteRoot fetch
+git -C $websiteRoot checkout master -q
 
 try
 {

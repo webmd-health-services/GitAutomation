@@ -50,6 +50,11 @@ function Find-GitRepository
 
     Set-StrictMode -Version 'Latest'
 
+    if( -not $Path )
+    {
+        $Path = (Get-Location).ProviderPath
+    }
+
     $Path = Resolve-Path -Path $Path -ErrorAction Ignore | Select-Object -ExpandProperty 'ProviderPath'
     if( -not $Path )
     {

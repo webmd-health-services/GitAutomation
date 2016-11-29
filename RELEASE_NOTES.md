@@ -1,4 +1,9 @@
-# 0.2.0
+# 0.3.0
+
+ * Added `Get-GitCommit` for getting commits.
+
+
+# 0.2.0 (4 November 2016)
 
  * Added `Set-GitConfiguration` for setting Git configuration variables. Implements the `git config` command.
  * Added SSH support. You must have an `ssh.exe` program in your path.

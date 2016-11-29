@@ -15,7 +15,7 @@
 <package>
   <metadata>
     <id>LibGit2.PowerShell</id>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
     <authors>Aaron Jensen</authors>
     <owners>Aaron Jensen</owners>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
@@ -28,6 +28,7 @@ This module uses the .NET wrapper of [libgit2](https://libgit2.github.com/), "a 
     <language>en-us</language>
     <releaseNotes>
  * Added `Set-GitConfiguration` for setting Git configuration variables. Implements the `git config` command.
+ * Added SSH support. You must have an `ssh.exe` program in your path.
  
 </releaseNotes>
     <copyright>Copyright 2016 Aaron Jensen</copyright>

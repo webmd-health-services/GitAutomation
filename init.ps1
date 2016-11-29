@@ -9,51 +9,46 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+[CmdletBinding()]
+param(
+    [Switch]
+    $Clean
+)
 
+#Requires -Version 4
 Set-StrictMode -Version 'Latest'
 
-$PSScriptRoot = Split-Path -Path $MyInvocation.MyCommand.Definition
+Install-PackageProvider -Name NuGet -Force -Scope CurrentUser
 
-$carbonVersion = '2.2.0'
-$pesterVersion = '3.4.3'
-$packagesRoot = Join-Path -Path $PSScriptRoot -ChildPath 'packages'
-
-$nugetExePath = Join-Path -Path $PSScriptRoot -ChildPath '.\Tools\NuGet\nuget.exe' -Resolve
-
-& $nugetExePath install 'Carbon' -Version $carbonVersion -OutputDirectory $packagesRoot
-& $nugetExePath install 'Pester' -Version $pesterVersion -OutputDirectory $packagesRoot
-
-$carbonRoot = Join-Path -Path $packagesRoot -ChildPath ('Carbon.{0}\Carbon' -f $carbonVersion)
-
-if( -not (Get-Module -Name 'Carbon') )
+$moduleNames = @( 'Pester', 'Silk', 'Carbon' )
+foreach( $moduleName in $moduleNames )
 {
-    & (Join-Path -Path $carbonRoot -ChildPath 'Import-Carbon.ps1' -Resolve)
+    $modulePath = Join-Path -Path $PSScriptRoot -ChildPath $moduleName
+    if( (Test-Path -Path $modulePath -PathType Container) )
+    {
+        if( $Clean )
+        {
+            Remove-Item -Path $modulePath -Recurse -Force
+        }
+
+        continue
+    }
+
+    Save-Module -Name $moduleName -Path $PSScriptRoot -Force
+
+    $versionDir = Join-Path -Path $modulePath -ChildPath '*.*.*'
+    if( (Test-Path -Path $versionDir -PathType Container) )
+    {
+        $versionDir = Get-Item -Path $versionDir
+        Get-ChildItem -Path $versionDir -Force | Move-Item -Destination $modulePath -Verbose
+        Remove-Item -Path $versionDir
+    }
 }
 
-Install-Junction -Link (Join-Path -Path $packagesRoot -ChildPath 'Pester') -Target (Join-Path -Path $packagesRoot -ChildPath ('Pester.{0}\tools' -f $pesterVersion))
-Install-Junction -Link (Join-Path -Path $packagesRoot -ChildPath 'Carbon') -Target $carbonRoot
 
-if( -not (Get-Module -Name 'LibGit2') )
-{
-    & (Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2\Import-LibGit2.ps1' -Resolve)
-}
+$nugetPath = Join-Path -Path $PSScriptRoot -ChildPath '.\Silk\bin\NuGet.exe' -Resolve
 
-$silkRoot = Join-Path -Path $packagesRoot -ChildPath 'Silk'
-if( -not (Test-Path -Path $silkRoot -PathType Container) )
-{
-    Copy-GitRepository -Source 'https://github.com/splatteredbits/Silk' -DestinationPath $silkRoot
-}
+$sourceRoot = Join-Path -Path $PSScriptRoot -ChildPath 'Source'
 
-git -C $silkRoot fetch
-git -C $silkRoot checkout master -q
-
-$websiteRoot = Join-Path -Path $PSScriptRoot -ChildPath 'get-libgit2.org'
-if( -not (Test-Path -Path $websiteRoot -PathType Container) )
-{
-    Copy-GitRepository -Source 'https://github.com/splatteredbits/get-libgit2.org' -DestinationPath $websiteRoot
-}
-
-git -C $websiteRoot fetch
-git -C $websiteRoot checkout master -q
-
-& (Join-Path -Path $PSScriptRoot -ChildPath 'build.ps1')
+Get-ChildItem -Path $sourceRoot -Filter 'packages.config' -Recurse |
+    ForEach-Object { & $nugetPath restore $_.FullName -SolutionDirectory $sourceRoot }
