@@ -60,7 +60,6 @@ Set-ModuleVersion -ManifestPath $manifestPath `
                   -SolutionPath (Join-Path -Path $PSScriptRoot -ChildPath 'Source\LibGit2.Automation.sln' -Resolve) `
                   -AssemblyInfoPath (Join-Path -Path $PSScriptRoot -ChildPath 'Source\LibGit2.Automation\Properties\AssemblyInfo.cs' -Resolve)
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Tools\NuGet\nuget.exe' -Resolve) restore (Join-Path -Path $PSScriptRoot -ChildPath 'Source\LibGit2.Automation.sln' -Resolve)
 C:\Windows\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe .\Source\LibGit2.Automation.sln
 
 $source = Join-Path -Path $PSScriptRoot -ChildPath 'Source\LibGit2.Automation\bin\Debug'
