@@ -1,4 +1,4 @@
-# 0.2.0
+# 0.2.0 (4 November 2016)
 
  * Added `Set-GitConfiguration` for setting Git configuration variables. Implements the `git config` command.
  * Added SSH support. You must have an `ssh.exe` program in your path.

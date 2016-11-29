@@ -123,6 +123,7 @@ PrivateData = @{
         # ReleaseNotes of this module
         ReleaseNotes = @'
 * Added `Set-GitConfiguration` for setting Git configuration variables. Implements the `git config` command.
+ * Added SSH support. You must have an `ssh.exe` program in your path.
 '@
 
     } # End of PSData hashtable
