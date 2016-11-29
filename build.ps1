@@ -36,7 +36,9 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'packages\Silk\Silk\Import-Silk.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'init.ps1' -Resolve)
+
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Silk\Import-Silk.ps1' -Resolve)
 
 $manifestPath = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2\LibGit2.psd1'
 
@@ -62,7 +64,7 @@ $source = Join-Path -Path $PSScriptRoot -ChildPath 'Source\LibGit2.Automation\bi
 $destination = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2\bin'
 robocopy.exe $source $destination /MIR /NJH /NJS /NP /NDL /XD
 
-Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'packages\Pester' -Resolve)
+Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'Pester' -Resolve)
 
 $result = Invoke-Pester -Script (Join-Path -Path $PSScriptRoot -ChildPath 'Tests') -PassThru
 if( $result.FailedCount )
