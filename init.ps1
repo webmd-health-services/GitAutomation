@@ -44,3 +44,10 @@ foreach( $moduleName in $moduleNames )
         Remove-Item -Path $versionDir
     }
 }
+
+$nugetPath = Join-Path -Path $PSScriptRoot -ChildPath '.\Silk\bin\NuGet.exe' -Resolve
+
+$sourceRoot = Join-Path -Path $PSScriptRoot -ChildPath 'Source'
+
+Get-ChildItem -Path $sourceRoot -Filter 'packages.config' -Recurse |
+    ForEach-Object { & $nugetPath restore $_.FullName -SolutionDirectory $sourceRoot }
