@@ -69,7 +69,7 @@ Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'Pester' -Resolve)
 $result = Invoke-Pester -Script (Join-Path -Path $PSScriptRoot -ChildPath 'Tests') -PassThru
 if( $result.FailedCount )
 {
-    exit
+    exit $result.FailedCount
 }
 
 if( -not $ForRelease )
