@@ -10,14 +10,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-function Test-GitOutgoingChange
+function Test-GitOutgoingCommit
 {
     <#
     .SYNOPSIS
     Tests for un-pushed commits in a git repository.
 
     .DESCRIPTION
-    The `Test-GitOutgoingChange` function checks for un-pushed commits in a git repository.
+    The `Test-GitOutgoingCommit` function checks for un-pushed commits in a git repository.
 
     It defaults to the current repository and only the current branch. Use the `RepoRoot` parameter to specify an explicit path to another repo, and the `All` switch to test all local branches.
 
@@ -29,7 +29,7 @@ function Test-GitOutgoingChange
     Demonstrates how to check for unpushed commits in the current repo on the current branch.
 
     .EXAMPLE
-    Test-GitOutgoingChange -RepoRoot 'C:\Projects\LibGit2' -All
+    Test-GitOutgoingCommit -RepoRoot 'C:\Projects\LibGit2' -All
 
     Demonstrates how to check for unpushed commits on all branches of a repository that isn't the current directory.
     #>

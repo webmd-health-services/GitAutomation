@@ -12,7 +12,7 @@
 
 & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
 
-Describe 'Test-GitOutgoingChange whithout the -All switch' {
+Describe 'Test-GitIncomingCommit whithout the -All switch' {
     Clear-Error
 
     $remoteRepo = New-GitTestRepo
@@ -24,21 +24,21 @@ Describe 'Test-GitOutgoingChange whithout the -All switch' {
     Copy-GitRepository -Source $remoteRepo -DestinationPath $localRepoPath
 
     It 'should return false if there are no changes on the current branch' {
-        Test-GitOutgoingChange -RepoRoot $localRepoPath | Should Be $false
+        Test-GitIncomingCommit -RepoRoot $localRepoPath | Should Be $false
     }
 
-    Add-GitTestFile -RepoRoot $localRepoPath -Path 'file2'
-    Add-GitItem -Path (Join-Path $localRepoPath -ChildPath 'file2') -RepoRoot $localRepoPath
-    Save-GitChange -RepoRoot $localRepoPath -Message 'file2 commit'
+    Add-GitTestFile -RepoRoot $remoteRepo -Path 'file2'
+    Add-GitItem -Path (Join-Path $remoteRepo -ChildPath 'file2') -RepoRoot $remoteRepo
+    Save-GitChange -RepoRoot $remoteRepo -Message 'file2 commit'
 
-    It 'should return true if there are unpushed commits on the current branch' {
-        Test-GitOutgoingChange -RepoRoot $localRepoPath | Should Be $true
+    It 'should return true if there are incoming commits on the current branch' {
+        Test-GitIncomingCommit -RepoRoot $localRepoPath | Should Be $true
     }
 
     Assert-ThereAreNoErrors
 }
 
-Describe 'Test-GitOutgoingChange with the -All switch' {
+Describe 'Test-GitIncomingCommit with the -All switch' {
     Clear-Error
 
     $remoteRepo = New-GitTestRepo
@@ -67,13 +67,13 @@ Describe 'Test-GitOutgoingChange with the -All switch' {
     Copy-GitRepository -Source $remoteRepo -DestinationPath $localRepoPath
 
     It 'should return false if there are no changes on any branch' {
-        Test-GitOutgoingChange -RepoRoot $localRepoPath -All | Should Be $false
+        Test-GitIncomingCommit -RepoRoot $localRepoPath -All | Should Be $false
     }
 
     # Make changes on branch-2
-    Add-GitTestFile -RepoRoot $localRepoPath -Path 'file3'
-    Add-GitItem -Path (Join-Path -Path $localRepoPath -ChildPath 'file3') -RepoRoot $localRepoPath
-    Save-GitChange -RepoRoot $localRepoPath -Message 'file3 on branch-2'
+    Add-GitTestFile -RepoRoot $remoteRepo -Path 'file3'
+    Add-GitItem -Path (Join-Path -Path $remoteRepo -ChildPath 'file3') -RepoRoot $remoteRepo
+    Save-GitChange -RepoRoot $remoteRepo -Message 'file3 on branch-2'
 
     # Switch back to master
     $localRepo = Find-GitRepository -Path $localRepoPath
@@ -87,17 +87,17 @@ Describe 'Test-GitOutgoingChange with the -All switch' {
         $localRepo.Dispose()
     }
 
-    It 'should return true if there are unpushed commits on any branch' {
-        Test-GitOutgoingChange -RepoRoot $localRepoPath -All | Should Be $true
+    It 'should return true if there are incoming commits on any branch' {
+        Test-GitIncomingCommit -RepoRoot $localRepoPath -All | Should Be $true
     }
 
     Assert-ThereAreNoErrors
 }
 
-Describe 'Test-GitOutgoingChanges when the given repo doesn''t exist' {
+Describe 'Test-GitIncomingCommit when the given repo doesn''t exist' {
     Clear-Error
 
-    Test-GitOutgoingChange -RepoRoot 'C:\I\do\not\exist' -ErrorAction SilentlyContinue
+    Test-GitIncomingCommit -RepoRoot 'C:\I\do\not\exist' -ErrorAction SilentlyContinue
     It 'should write an error' {
         $Global:Error.Count | Should Be 1
         $Global:Error | Should Match 'does not exist'
