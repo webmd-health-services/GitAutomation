@@ -56,7 +56,7 @@ Describe 'Get-GitTag when passing a specific name' {
     $tags = Get-GitTag -RepoRoot $repo -Name 'tag1'
 
     It 'should get the specific tag'{
-        $tags.Count | Should Be 1
+        $tags | Should Not BeNullOrEmpty
         $tags.Name | Should Be 'tag1'
         $tags.Sha | Should Be $c1.Sha
     }
