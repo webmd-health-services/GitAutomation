@@ -56,6 +56,7 @@
     <Compile Include="RepositoryInfo.cs" />
     <Compile Include="SshExeTransport.cs" />
     <Compile Include="SshExeTransportStream.cs" />
+    <Compile Include="TagInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
