@@ -97,7 +97,8 @@ FunctionsToExport = @(
                         'Test-GitOutgoingCommit',
                         'Test-GitRemoteUri',
                         'Test-GitTag',
-                        'Test-GitUncommittedChange'
+                        'Test-GitUncommittedChange',
+                        'Update-GitRepository'
                     )
 
 # Cmdlets to export from this module
