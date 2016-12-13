@@ -42,23 +42,11 @@ Describe 'Test-GitIncomingCommit with the -All switch' {
     Clear-Error
 
     $remoteRepo = New-GitTestRepo
-
     Add-GitTestFile -RepoRoot $remoteRepo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $remoteRepo -ChildPath 'file1') -RepoRoot $remoteRepo
     Save-GitChange -RepoRoot $remoteRepo -Message 'file1 commit on master'
 
-    $repo = Find-GitRepository -Path $remoteRepo
-    try
-    {
-        $newBranch = $repo.Branches.Add("branch-2", "HEAD")
-        $checkoutOptions = New-Object LibGit2Sharp.CheckoutOptions
-        $repo.Checkout($newBranch, $checkoutOptions)
-    }
-    finally
-    {
-        $repo.Dispose()
-    }
-
+    New-GitBranch -RepoRoot $remoteRepo -Name 'branch-2'
     Add-GitTestFile -RepoRoot $remoteRepo -Path 'file2'
     Add-GitItem -Path (Join-Path -Path $remoteRepo -ChildPath 'file2') -RepoRoot $remoteRepo
     Save-GitChange -RepoRoot $remoteRepo -Message 'file2 commit on branch-2'
@@ -75,17 +63,8 @@ Describe 'Test-GitIncomingCommit with the -All switch' {
     Add-GitItem -Path (Join-Path -Path $remoteRepo -ChildPath 'file3') -RepoRoot $remoteRepo
     Save-GitChange -RepoRoot $remoteRepo -Message 'file3 on branch-2'
 
-    # Switch back to master
-    $localRepo = Find-GitRepository -Path $localRepoPath
-    try
-    {
-        $masterBranch = $localRepo.Branches.Add("master", "remotes/origin/master")
-        $localRepo.Checkout($masterBranch, $checkoutOptions)
-    }
-    finally
-    {
-        $localRepo.Dispose()
-    }
+    # Switch back to master by setting up local tracking branch
+    New-GitBranch -RepoRoot $localRepoPath -Name 'master' -Revision 'remotes/origin/master'
 
     It 'should return true if there are incoming commits on any branch' {
         Test-GitIncomingCommit -RepoRoot $localRepoPath -All | Should Be $true

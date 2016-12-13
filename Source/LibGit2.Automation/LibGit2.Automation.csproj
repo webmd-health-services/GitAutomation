@@ -49,12 +49,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BranchInfo.cs" />
     <Compile Include="CommitInfo.cs" />
     <Compile Include="ConfigurationLoader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RepositoryInfo.cs" />
     <Compile Include="SshExeTransport.cs" />
     <Compile Include="SshExeTransportStream.cs" />
+    <Compile Include="TagInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

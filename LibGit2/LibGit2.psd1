@@ -81,17 +81,24 @@ FunctionsToExport = @(
                         'Add-GitItem',
                         'Copy-GitRepository',
                         'Find-GitRepository',
+                        'Get-GitBranch',
                         'Get-GitCommit',
                         'Get-GitRepository',
                         'Get-GitRepositoryStatus',
+                        'Get-GitTag',
+                        'New-GitBranch',
                         'New-GitRepository',
+                        'New-GitTag',
                         'Receive-GitCommit'
                         'Save-GitChange',
                         'Set-GitConfiguration',
+                        'Test-GitBranch',
                         'Test-GitIncomingCommit',
                         'Test-GitOutgoingCommit',
                         'Test-GitRemoteUri',
-                        'Test-GitUncommittedChange'
+                        'Test-GitTag',
+                        'Test-GitUncommittedChange',
+                        'Update-GitRepository'
                     )
 
 # Cmdlets to export from this module
