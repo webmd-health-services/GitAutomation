@@ -138,8 +138,19 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
-* Added `Set-GitConfiguration` for setting Git configuration variables. Implements the `git config` command.
- * Added SSH support. You must have an `ssh.exe` program in your path.
+* Added `Get-GitCommit` function for getting commits.
+ * Added `Test-GitOutgoingCommit` function for checking if there are outgoing changes.
+ * Added `Test-GitUncommmittedChange` function for checking if there are any uncommitted changes in a repository.
+ * Added `Receive-GitCommit` function for pulling/fetching changes into a repository from a remote repository.
+ * Added `Test-GitRemoteUri` function for testing if a URI points to a Git repository.
+ * Added `Test-GitIncomingCommit` function for testing if there are incoming/unpulled/unfetched commits.
+ * Added `Get-GitBranch` function for getting the branches in a repository.
+ * Added `New-GitBranch` function for creating a new branch in a repository.
+ * Added `Test-GitBranch` function for testing if a branch exists in a repository.
+ * Added `Get-GitTag` function for getting the tags in a repository.
+ * Added `New-GitTag` function for creating tags in a repository.
+ * Added `Test-GitTag` function for testing if a tag exists in a repository.
+ * Added `Update-GitRepository` for updating a repository to a commit, branch, tag, etc, i.e. for checking out a specific commit.
 '@
 
     } # End of PSData hashtable

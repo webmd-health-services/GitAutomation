@@ -1,4 +1,4 @@
-# 0.3.0
+# 0.3.0 (13 December 2016)
 
  * Added `Get-GitCommit` function for getting commits.
  * Added `Test-GitOutgoingCommit` function for checking if there are outgoing changes.
