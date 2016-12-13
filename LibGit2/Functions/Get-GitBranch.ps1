@@ -14,12 +14,12 @@ function Get-GitBranch
 {
    <#
    .SYNOPSIS
-   Gets the current branch of a Git repository.
+   Gets the branches in a Git repository.
     
    .DESCRIPTION
-   The `Get-GitBranch` function gets a `LibGit2.Automation.BranchInfo` object.
+   The `Get-GitBranch` function returns a list of all the branches in a repository.
     
-   Use the `Current` switch to return just the current branch's info, otherwise all branches are returned.
+   Use the `Current` switch to return just the current branch.
 
    It defaults to the current repository. Use the `RepoRoot` parameter to specify an explicit path to another repo.
 
@@ -27,6 +27,11 @@ function Get-GitBranch
    Get-GitBranch -RepoRoot 'C:\Projects\LibGit2' -Current
     
    Returns an object representing the current branch for the specified repo.
+
+   .EXAMPLE
+   Get-GitBranch
+
+   Returns objects for all the branches in the current directory.
    #>
    [CmdletBinding()]
    [OutputType([LibGit2.Automation.BranchInfo])]

@@ -10,18 +10,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-function Test-GitTag{
+function Test-GitTag
+{
     <#
     .SYNOPSIS
-    Tests if a tag exists.
+    Tests if a tag exists in a Git repository.
 
     .DESCRIPTION
-    If a tag exists, returns `$true`, otherwise `$false`.  If checking for a tag in a place that doesn't have a directory, you'll get an error and nothing is returned.
+    The `Test-GitTag function tests if a tag exists in a Git repository.
+
+    If a tag exists, returns $true; otherwise $false. Pass the name of the tag to check for to the `Name` parameter.
 
     .EXAMPLE
     Test-GitTag -Name 'Hello'
 
-    Demonstrates how to check if the tag 'Hello' exists.
+    Demonstrates how to check if the tag 'Hello' exists in the current directory.
     #>
 
     [CmdletBinding()]

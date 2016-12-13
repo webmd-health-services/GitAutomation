@@ -13,12 +13,12 @@
 function Get-GitTag{
     <#
     .SYNOPSIS
-    Gets the tags in a repository.
+    Gets the tags in a Git repository.
 
     .DESCRIPTION
-    The `Get-GitTag` function gets a `LibGit2.Automation.TagInfo` object.
+    The `Get-GitTag` function returns a list of all the tags in a Git repository.
 
-    By default, all tags are returned.  You can supply a name to return a specific tag, or a wildcard to return multiple tags.
+    To get a specific tag, pass its name to the `Name` parameter. Wildcard characters are supported in the tag name. Only tags that match the wildcard pattern will be returned.
 
     .EXAMPLE
     Get-GitTag

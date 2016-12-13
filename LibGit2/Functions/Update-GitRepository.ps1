@@ -14,12 +14,10 @@ function Update-GitRepository
 {
     <#
     .SYNOPSIS
-
-    Creates a detached head state, and updates the repo to the given target
+    Updates the working directory of a Git repository to a specific commit.
 
     .DESCRIPTION
-
-    The `Update-GitRepository` function updates the repo to the given target. Unless this target is a branch name, the repo will then be in a detached head state.
+    The `Update-GitRepository` function updates a Git repository to a specific commit, i.e. it checks out a specific commit.
 
     The default target is "HEAD". Use the `Target` parameter to specifiy a different target
 
@@ -28,13 +26,11 @@ function Update-GitRepository
     This function implements the `git checkout <target>` command.
 
     .EXAMPLE
-
     Update-GitRepository -RepoRoot 'C:\Projects\LibGit2' -Target 'feature/ticket'
 
     Demonstrates how to checkout the 'feature/ticket' branch of the given repository.
 
     .EXAMPLE
-
     Update-GitRepository -RepoRoot 'C:\Projects\LibGit2' -Target 'refs/tags/tag1'
 
     Demonstrates how to create a detached head at the tag 'tag1'.
@@ -47,8 +43,8 @@ function Update-GitRepository
         $RepoRoot = (Get-Location).ProviderPath,
 
         [string]
-        # The target to update the repo to. Defaults to "HEAD"
-        $Target = "HEAD"
+        # The revision checkout, i.e. update the repository to. A revision can be a specific commit ID/sha (short or long), branch name, tag name, etc. Run git help gitrevisions or go to https://git-scm.com/docs/gitrevisions for full documentation on Git's revision syntax.
+        $Revision = "HEAD"
     )
 
     Set-StrictMode -Version 'Latest'
@@ -61,15 +57,15 @@ function Update-GitRepository
 
     try
     {
-        $validTarget = $repo.Lookup($Target)
+        $validTarget = $repo.Lookup($Revision)
         if( -not $validTarget )
         {
-            Write-Error ("No valid git object identified by '{0}' exists in the repository." -f $Target)
+            Write-Error ("No valid git object identified by '{0}' exists in the repository." -f $Revision)
             return
         }
 
         $options = New-Object LibGit2Sharp.CheckoutOptions
-        $repo.Checkout($Target, $options)
+        $repo.Checkout($Revision, $options)
     }
     finally
     {

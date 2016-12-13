@@ -14,18 +14,22 @@ function Test-GitBranch
 {
     <#
     .SYNOPSIS
-
-    Checks if a branch exists.
+    Checks if a branch exists in a Git repository.
 
     .DESCRIPTION
-
-    Returns true if branch exists.  False otherwise.
+    The `Test-GitBranch` command tests if a branch exists in a Git repository. It returns $true if a branch exists; $false otherwise.
+    
+    Pass the branch name to test to the `Name` parameter
 
     .EXAMPLE
+    Test-GitBranch -Name 'develop'
 
+    Demonstrates how to check if the 'develop' branch exists in the current directory.
+
+    .EXAMPLE
     Test-GitBranch -RepoRoot 'C:\Projects\LibGit2' -Name 'develop'
 
-    Demonstrates how to check if the 'develop' branch exists in the given repository.
+    Demonstrates how to check if the 'develop' branch exists in a specific repository.
     #>
     [CmdletBinding()]
     param(

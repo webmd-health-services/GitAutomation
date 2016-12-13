@@ -13,10 +13,14 @@
 function New-GitTag{
     <#
     .SYNOPSIS
-    Creates a new tag.
+    Creates a new tag in a Git repository.
     
     .DESCRIPTION
-    Can create a new tag, or update the target of an existing tag.
+    The `New-GitTag` function creates a tag in a Git repository. 
+    
+    A tag is a name that references/points to a specific commit in the repository. By default, the tag points to the commit checked out in the working directory. To point to a specific commit, pass the commit ID to the `Target` parameter.
+
+    If the tag already exists, this function will fail. If you want to update an existing tag to point to a different commit, use the `Force` switch.
 
     This function implements the `git tag <tagname> <target>` command.
     
@@ -48,8 +52,8 @@ function New-GitTag{
         $Name,
 
         [string]
-        # The commit this tag should point at. Defaults to "HEAD".
-        $Target = "HEAD",
+        # The revision the tag should point to/reference. A revision can be a specific commit ID/sha (short or long), branch name, tag name, etc. Run git help gitrevisions or go to https://git-scm.com/docs/gitrevisions for full documentation on Git's revision syntax.
+        $Revision = "HEAD",
 
         [Switch]
         # Overwrite existing tag to point at new target

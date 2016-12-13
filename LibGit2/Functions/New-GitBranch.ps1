@@ -15,21 +15,27 @@ function New-GitBranch
     <#
     .SYNOPSIS
 
-    Creates a new branch in the given repository.
+    Creates a new branch in a Git repository.
 
     .DESCRIPTION
 
-    The `New-GitBranch` creates a new branch in the given repository and then switches to that branch
+    The `New-GitBranch` creates a new branch in a Git repository and then switches to (i.e. checks out) that branch.
 
     It defaults to the current repository. Use the `RepoRoot` parameter to specify an explicit path to another repo.
 
-    This function implements the `git checkout -b <branchname> <startpoint>` command
+    This function implements the `git branch <branchname> <startpoint>` and `git checkout <branchname>` commands.
 
     .EXAMPLE
 
     New-GitBranch -RepoRoot 'C:\Projects\LibGit2' -Name 'develop'
 
     Demonstrates how to create a new branch named 'develop' in the specified repository.
+
+    .EXAMPLE
+
+    New-GitBranch -Name 'develop
+
+    Demonstrates how to create a new branch named 'develop' in the current directory.
     #>
     [CmdletBinding()]
     param(
@@ -43,8 +49,8 @@ function New-GitBranch
         $Name,
 
         [string]
-        # The starting point of the branch. Defaults to "HEAD"
-        $StartPoint = "HEAD"
+        # The revision where the branch should be started/created. A revision can be a specific commit ID/sha (short or long), branch name, tag name, etc. Run git help gitrevisions or go to https://git-scm.com/docs/gitrevisions for full documentation on Git's revision syntax.
+        $Revision = "HEAD"
     )
 
     Set-StrictMode -Version 'Latest'
@@ -63,13 +69,13 @@ function New-GitBranch
             return
         }
 
-        $newBranch = $repo.Branches.Add($Name, $StartPoint)
+        $newBranch = $repo.Branches.Add($Name, $Revision)
         $checkoutOptions = New-Object LibGit2Sharp.CheckoutOptions
         $repo.Checkout($newBranch, $checkoutOptions)
     }
     catch [LibGit2Sharp.LibGit2SharpException]
     {
-        Write-Error ("Could not create branch '{0}' from invalid starting point: '{1}'" -f $Name, $StartPoint)
+        Write-Error ("Could not create branch '{0}' from invalid starting point: '{1}'" -f $Name, $Revision)
     }
     finally
     {
