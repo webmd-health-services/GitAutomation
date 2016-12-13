@@ -92,7 +92,7 @@ Describe 'New-GitBranch when passing a start point that is not head' {
 
     $branchName = 'newBranch'
     Test-GitBranch -RepoRoot $repo -Name $branchName | Should Be $false
-    New-GitBranch -RepoRoot $repo -Name $branchName -StartPoint 'HEAD~1'
+    New-GitBranch -RepoRoot $repo -Name $branchName -Revision 'HEAD~1'
 
     It 'should create the branch' {
         Test-GitBranch -RepoRoot $repo -Name $branchName | Should Be $true
@@ -118,7 +118,7 @@ Describe 'New-GitBranch when passing an invalid start point'{
     $branchName = 'newBranch'
     $startPoint = 'IDONOTEXIST'
     Test-GitBranch -RepoRoot $repo -Name $branchName | Should Be $false
-    New-GitBranch -RepoRoot $repo -Name $branchName -StartPoint $startPoint -ErrorAction SilentlyContinue
+    New-GitBranch -RepoRoot $repo -Name $branchName -Revision $startPoint -ErrorAction SilentlyContinue
 
     It 'should throw an error'{
         $Global:Error[0] | Should Match 'invalid starting point'

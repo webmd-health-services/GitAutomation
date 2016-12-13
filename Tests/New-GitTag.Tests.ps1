@@ -44,7 +44,7 @@ Describe 'New-GitTag when creating a new unique tag without passing a target' {
     Assert-ThereAreNoErrors
 }
 
-Describe 'New-GitTag when creating a new unique tag and passing a target'{
+Describe 'New-GitTag when creating a new unique tag and passing a revision'{
     Clear-Error
 
     $repo = New-GitTestRepo
@@ -58,7 +58,7 @@ Describe 'New-GitTag when creating a new unique tag and passing a target'{
 
     $tagName = 'aNOTHER---ONNEEE!!!'
     Test-GitTag -RepoRoot $repo -Name $tagName | Should Be $false
-    New-GitTag -RepoRoot $repo -Name $tagName -Target $c1.Sha
+    New-GitTag -RepoRoot $repo -Name $tagName -Revision $c1.Sha
 
     It 'should create the tag' {
         Test-GitTag -RepoRoot $repo -Name $tagName | Should Be $true
@@ -105,10 +105,10 @@ Describe 'New-GitTag when using the -Force switch to overwrite a tag'{
     $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
 
     $tagName = 'tag'
-    New-GitTag -RepoRoot $repo -Name $tagName -Target $c1.Sha
+    New-GitTag -RepoRoot $repo -Name $tagName -Revision $c1.Sha
     Test-GitTag -RepoRoot $repo -Name $tagName | Should Be $true
 
-    New-GitTag -RepoRoot $repo -Name $tagName -Target $c2.Sha -Force
+    New-GitTag -RepoRoot $repo -Name $tagName -Revision $c2.Sha -Force
 
     It 'should update the tag to the new target' {
         Test-GitTag -RepoRoot $repo -Name $tagName | Should Be $true
@@ -118,7 +118,7 @@ Describe 'New-GitTag when using the -Force switch to overwrite a tag'{
     Assert-ThereAreNoErrors
 }
 
-Describe 'New-GitTag when creating a new tag for a target that is already tagged'{
+Describe 'New-GitTag when creating a new tag for a revision that is already tagged'{
     Clear-Error
 
     $repo = New-GitTestRepo
@@ -132,8 +132,8 @@ Describe 'New-GitTag when creating a new tag for a target that is already tagged
 
     $tag1 = 'tag1'
     $tag2 = 'tag2'
-    New-GitTag -RepoRoot $repo -Name $tag1 -Target $c1.Sha
-    New-GitTag -RepoRoot $repo -Name $tag2 -Target $c1.Sha
+    New-GitTag -RepoRoot $repo -Name $tag1 -Revision $c1.Sha
+    New-GitTag -RepoRoot $repo -Name $tag2 -Revision $c1.Sha
 
     It 'should create a new tag pointing at target'{
         Test-GitTag -RepoRoot $repo -Name $tag2 | Should Be $true
@@ -148,7 +148,7 @@ Describe 'New-GitTag when creating a new tag for a target that is already tagged
     Assert-ThereAreNoErrors
 }
 
-Describe 'New-GitTag when passing an invalid target' {
+Describe 'New-GitTag when passing an invalid revision' {
     Clear-Error
 
     $repo = New-GitTestRepo
@@ -156,7 +156,7 @@ Describe 'New-GitTag when passing an invalid target' {
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
     Save-GitChange -RepoRoot $repo -Message 'file1 commit'
 
-    New-GitTag -RepoRoot $repo -Name 'whocares' -Target 'IdoNotExist' -ErrorAction SilentlyContinue
+    New-GitTag -RepoRoot $repo -Name 'whocares' -Revision 'IdoNotExist' -ErrorAction SilentlyContinue
 
     It 'should throw an error'{
         $Global:Error.Count | Should Be 1

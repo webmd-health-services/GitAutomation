@@ -24,8 +24,8 @@ Describe 'Get-GitTag without passing a name' {
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
     $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
 
-    New-GitTag -RepoRoot $repo -Name 'tag1' -Target $c1.Sha
-    New-GitTag -RepoRoot $repo -Name 'tag2' -Target $c2.Sha
+    New-GitTag -RepoRoot $repo -Name 'tag1' -Revision $c1.Sha
+    New-GitTag -RepoRoot $repo -Name 'tag2' -Revision $c2.Sha
     $tags = Get-GitTag -RepoRoot $repo
 
     It 'should get all the tags'{
@@ -51,8 +51,8 @@ Describe 'Get-GitTag when passing a specific name' {
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
     $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
 
-    New-GitTag -RepoRoot $repo -Name 'tag1' -Target $c1.Sha
-    New-GitTag -RepoRoot $repo -Name 'tag2' -Target $c2.Sha
+    New-GitTag -RepoRoot $repo -Name 'tag1' -Revision $c1.Sha
+    New-GitTag -RepoRoot $repo -Name 'tag2' -Revision $c2.Sha
     $tags = Get-GitTag -RepoRoot $repo -Name 'tag1'
 
     It 'should get the specific tag'{
@@ -76,8 +76,8 @@ Describe 'Get-GitTag when passing a name that does not exist' {
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
     $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
 
-    New-GitTag -RepoRoot $repo -Name 'tag1' -Target $c1.Sha
-    New-GitTag -RepoRoot $repo -Name 'tag2' -Target $c2.Sha
+    New-GitTag -RepoRoot $repo -Name 'tag1' -Revision $c1.Sha
+    New-GitTag -RepoRoot $repo -Name 'tag2' -Revision $c2.Sha
     $tags = Get-GitTag -RepoRoot $repo -Name 'tag3'
 
     It 'should get no tags'{
@@ -99,9 +99,9 @@ Describe 'Get-GitTag when passing a name using wildcards' {
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
     $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
 
-    New-GitTag -RepoRoot $repo -Name 'tag1' -Target $c1.Sha
-    New-GitTag -RepoRoot $repo -Name 'tag2' -Target $c2.Sha
-    New-GitTag -RepoRoot $repo -Name 'anotherTag' -Target $c1.Sha
+    New-GitTag -RepoRoot $repo -Name 'tag1' -Revision $c1.Sha
+    New-GitTag -RepoRoot $repo -Name 'tag2' -Revision $c2.Sha
+    New-GitTag -RepoRoot $repo -Name 'anotherTag' -Revision $c1.Sha
     $tags = Get-GitTag -RepoRoot $repo -Name 'tag*'
     
     It 'should get tags that match wildcard'{

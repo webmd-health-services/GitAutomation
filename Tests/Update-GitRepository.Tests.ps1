@@ -24,7 +24,7 @@ Describe 'Update-GitRepository when updating to a specific commit'{
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
     $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
 
-    Update-GitRepository -RepoRoot $repo -Target $c1.Sha
+    Update-GitRepository -RepoRoot $repo -Revision $c1.Sha
 
     It 'should create a detached head state pointing at the commit'{
         $r = Find-GitRepository -Path $repo
@@ -55,10 +55,10 @@ Describe 'Update-GitRespository when updating to a tag'{
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
     $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
 
-    New-GitTag -RepoRoot $repo -Name 'tag1' -Target $c1.Sha
+    New-GitTag -RepoRoot $repo -Name 'tag1' -Revision $c1.Sha
     $tag = Get-GitTag -RepoRoot $repo -Name 'tag1'
 
-    Update-GitRepository -RepoRoot $repo -Target $tag.CanonicalName
+    Update-GitRepository -RepoRoot $repo -Revision $tag.CanonicalName
 
     It 'should create a detached head state pointing at the tag'{
         $r = Find-GitRepository -Path $repo
@@ -93,7 +93,7 @@ Describe 'Update-GitRepository when updating to a remote reference' {
     
     Receive-GitCommit -RepoRoot $localRepoPath -Fetch
 
-    Update-GitRepository -RepoRoot $localRepoPath -Target 'refs/remotes/origin/master'
+    Update-GitRepository -RepoRoot $localRepoPath -Revision 'refs/remotes/origin/master'
 
     It 'should create a detached head pointing at the remote' {
         $r = Find-GitRepository -Path $localRepoPath
@@ -124,11 +124,11 @@ Describe 'Update-GitRepository when updating to the head of a branch' {
     $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
 
     $branch1Name = 'newbranch'
-    New-GitBranch -RepoRoot $repo -Name $branch1Name -StartPoint $c1.Sha
+    New-GitBranch -RepoRoot $repo -Name $branch1Name -Revision $c1.Sha
     $branch1 = Get-GitBranch -RepoRoot $repo -Current
-    New-GitBranch -RepoRoot $repo -Name 'newbranch2' -StartPoint $c2.Sha
+    New-GitBranch -RepoRoot $repo -Name 'newbranch2' -Revision $c2.Sha
 
-    Update-GitRepository -RepoRoot $repo -Target $branch1Name
+    Update-GitRepository -RepoRoot $repo -Revision $branch1Name
 
     It 'should checkout that branch' {
         $r = Find-GitRepository -Path $repo

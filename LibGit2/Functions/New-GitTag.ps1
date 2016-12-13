@@ -76,10 +76,10 @@ function New-GitTag{
             return
         }
 
-        $validTarget = $repo.Lookup($Target)
+        $validTarget = $repo.Lookup($Revision)
         if( -not $validTarget )
         {
-            Write-Error ("No valid git object identified by '{0}' exists in the repository." -f $Target)
+            Write-Error ("No valid git object identified by '{0}' exists in the repository." -f $Revision)
             return
         }
 
@@ -89,7 +89,7 @@ function New-GitTag{
             $allowOverwrite = $true
         }
         
-        $repo.Tags.Add($Name, $Target, $allowOverwrite)
+        $repo.Tags.Add($Name, $Revision, $allowOverwrite)
     }
     finally
     {

@@ -64,7 +64,7 @@ Describe 'Test-GitIncomingCommit with the -All switch' {
     Save-GitChange -RepoRoot $remoteRepo -Message 'file3 on branch-2'
 
     # Switch back to master by setting up local tracking branch
-    New-GitBranch -RepoRoot $localRepoPath -Name 'master' -StartPoint 'remotes/origin/master'
+    New-GitBranch -RepoRoot $localRepoPath -Name 'master' -Revision 'remotes/origin/master'
 
     It 'should return true if there are incoming commits on any branch' {
         Test-GitIncomingCommit -RepoRoot $localRepoPath -All | Should Be $true
