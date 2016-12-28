@@ -57,14 +57,21 @@ function Get-GitTag{
         return
     }
 
-    $repo.Tags | ForEach-Object {
-        New-Object LibGit2.Automation.TagInfo $_
-        } |
-        Where-Object {
-            if( $PSBoundParameters.ContainsKey('Name') )
-            {
-                return $_.Name -like $Name
+    try
+    {
+        $repo.Tags | ForEach-Object {
+            New-Object LibGit2.Automation.TagInfo $_
+            } |
+            Where-Object {
+                if( $PSBoundParameters.ContainsKey('Name') )
+                {
+                    return $_.Name -like $Name
+                }
+                return $true
             }
-            return $true
-        }
+    }
+    finally
+    {
+        $repo.Dispose()
+    }
 }
