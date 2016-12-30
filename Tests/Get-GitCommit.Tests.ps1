@@ -40,6 +40,8 @@ function New-TestRepository
     Save-GitChange -Message '0' -RepoRoot $repoRoot | Out-Null
     for( $idx = 1; $idx -lt $NumCommits; ++$idx )
     {
+        # Git uses second-granularity timestamps
+        Start-Sleep -Seconds 1
         $idx | Set-Content -Path $filePath
         Add-GitItem -Path $filePath -RepoRoot $repoRoot
         Save-GitChange -Message $idx -RepoRoot $repoRoot | Out-Null
@@ -55,7 +57,7 @@ Describe 'Get-GitCommit when run with no parameters' {
 
     It 'should return all commits' {
         $commits.Count | Should Be 10
-        $commits = $commits | Sort-Object -Property Date -Descending
+        $commits = $commits | Sort-Object -Property { $_.Author.When } -Descending
         for( $idx = 0; $idx -lt 10; ++$idx )
         {
             $commits[$idx].MessageShort | Should Be (9 - $idx)
