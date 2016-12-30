@@ -1,22 +1,86 @@
 [
     {
-        "Name":  "Copy-GitRepository",
-        "Tags":  [ "clone" ]
-    },
-    {
         "Name": "Add-GitItem",
         "Tags": [ "add" ]
     },
     {
+        "Name": "Copy-GitRepository",
+        "Tags": [ "clone" ]
+    },
+    {
+        "Name": "Find-GitRepository",
+        "Tags": [ "repository" ]
+    },
+    {
+        "Name": "Get-GitBranch",
+        "Tags": [ "branch" ]
+    },
+    {
+        "Name": "Get-GitCommit",
+        "Tags": [ "log", "commit", "history" ]
+    },
+    {
+        "Name": "Get-GitRepository",
+        "Tags": [ "repository" ]
+    },
+    {
         "Name": "Get-GitRepositoryStatus",
-        "Tags": [ "status" ]
+        "Tags": [ "status", "stage", "working directory" ]
+    },
+    {
+        "Name": "Get-GitTag",
+        "Tags": [ "tag" ]
+    },
+    {
+        "Name": "New-GitBranch",
+        "Tags": [ "branch" ]
     },
     {
         "Name": "New-GitRepository",
         "Tags": [ "init" ]
     },
     {
+        "Name": "New-GitTag",
+        "Tags": [ "tag" ]
+    },
+    {
+        "Name": "Receive-GitCommit",
+        "Tags": [ "pull", "fetch" ]
+    },
+    {
         "Name": "Save-GitChange",
         "Tags": [ "commit" ]
+    },
+    {
+        "Name": "Set-GitConfiguration",
+        "Tags": [ "config" ]
+    },
+    {
+        "Name": "Test-GitBranch",
+        "Tags": [ "branch" ]
+    },
+    {
+        "Name": "Test-GitIncomingCommit",
+        "Tags": [ "pull", "fetch" ]
+    },
+    {
+        "Name": "Test-GitOutgoingCommit",
+        "Tags": [ "push" ]
+    },
+    {
+        "Name": "Test-GitRemoteUri",
+        "Tags": [ "repository", "remote" ]
+    },
+    {
+        "Name": "Test-GitTag",
+        "Tags": [ "tag" ]
+    },
+    {
+        "Name": "Test-GitUncommittedChange",
+        "Tags": [ "status", "stage", "working directory" ]
+    },
+    {
+        "Name": "Update-GitRepository",
+        "Tags": [ "checkout", "repository" ]
     }
 ]
