@@ -15,7 +15,7 @@
 <package>
   <metadata>
     <id>LibGit2.PowerShell</id>
-    <version>0.3.0</version>
+    <version>0.3.1</version>
     <authors>Aaron Jensen</authors>
     <owners>Aaron Jensen</owners>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
@@ -27,19 +27,7 @@
 This module uses the .NET wrapper of [libgit2](https://libgit2.github.com/), "a portable, pure C implementation of... Git", which allows you to call Git via API instead using the Git command line interface.</description>
     <language>en-us</language>
     <releaseNotes>
- * Added `Get-GitCommit` function for getting commits.
- * Added `Test-GitOutgoingCommit` function for checking if there are outgoing changes.
- * Added `Test-GitUncommmittedChange` function for checking if there are any uncommitted changes in a repository.
- * Added `Receive-GitCommit` function for pulling/fetching changes into a repository from a remote repository.
- * Added `Test-GitRemoteUri` function for testing if a URI points to a Git repository.
- * Added `Test-GitIncomingCommit` function for testing if there are incoming/unpulled/unfetched commits.
- * Added `Get-GitBranch` function for getting the branches in a repository.
- * Added `New-GitBranch` function for creating a new branch in a repository.
- * Added `Test-GitBranch` function for testing if a branch exists in a repository.
- * Added `Get-GitTag` function for getting the tags in a repository.
- * Added `New-GitTag` function for creating tags in a repository.
- * Added `Test-GitTag` function for testing if a tag exists in a repository.
- * Added `Update-GitRepository` for updating a repository to a commit, branch, tag, etc, i.e. for checking out a specific commit.
+ * Fixed: `Get-GitTag` leaked memory and didn't clean up after itself properly.
 
 </releaseNotes>
     <copyright>Copyright 2016 Aaron Jensen</copyright>

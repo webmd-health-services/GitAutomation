@@ -1,3 +1,8 @@
+# 0.3.1 (30 December 2016)
+
+ * Fixed: `Get-GitTag` leaked memory and didn't clean up after itself properly.
+
+
 # 0.3.0 (13 December 2016)
 
  * Added `Get-GitCommit` function for getting commits.
