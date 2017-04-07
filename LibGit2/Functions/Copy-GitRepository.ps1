@@ -69,12 +69,19 @@ function Copy-GitRepository
         return -not $cancelClone
     }
 
+    $lastUpdated = Get-Date
     $options.OnTransferProgress = { 
         param(
             [LibGit2Sharp.TransferProgress]
             $TransferProgress
         )
 
+        # Only update progress every 1/10th of a second, otherwise updating the progress takes longer than the clone
+        if( ((Get-Date) - $lastUpdated).TotalMilliseconds -lt 100 )
+        {
+            return $true
+        }
+         
         $numBytes = $TransferProgress.ReceivedBytes
         if( $numBytes -lt 1kb )
         {
@@ -109,6 +116,7 @@ function Copy-GitRepository
         Write-Progress -Activity ('Cloning {0} -> {1}' -f $Source,$DestinationPath) `
                        -Status ('{0}/{1} objects, {2:n0} {3}' -f $TransferProgress.ReceivedObjects,$TransferProgress.TotalObjects, $numBytes,$unit) `
                        -PercentComplete (($TransferProgress.ReceivedObjects / $TransferProgress.TotalObjects) * 100)
+        Set-Variable -Name 'lastUpdated' -Value (Get-Date) -Scope 1
         return (-not $cancelClone)
     }
 
