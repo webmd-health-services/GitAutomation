@@ -31,7 +31,7 @@ Describe 'Get-GitRepositoryStatus when getting status' {
 
     $status = Get-GitRepositoryStatus -RepoRoot $repoRoot
     It 'should show untracked files' {
-        $status | Select-Object -ExpandProperty 'State' | Should Be ([LibGit2Sharp.FileStatus]::NewInWorkdir)
+        $status | Select-Object -ExpandProperty 'State' | ForEach-Object { $_ | Should Be ([LibGit2Sharp.FileStatus]::NewInWorkdir) }
     }
 
     Add-GitItem -Path $modifiedPath -RepoRoot $repoRoot
@@ -41,7 +41,7 @@ Describe 'Get-GitRepositoryStatus when getting status' {
 
     $status = Get-GitRepositoryStatus -RepoRoot $repoRoot
     It 'should show new files' {
-        $status | Where-Object { $_.FilePath -ne 'untracked' } | Select-Object -ExpandProperty 'State' | Should Be ([LibGit2Sharp.FileStatus]::Added)
+        $status | Where-Object { $_.FilePath -ne 'untracked' } | Select-Object -ExpandProperty 'State' | ForEach-Object { $_ |  Should Be ([LibGit2Sharp.FileStatus]::Added) }
     }
 
     Save-GitChange -Message 'testing status' -RepoRoot $repoRoot
