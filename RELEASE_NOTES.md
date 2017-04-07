@@ -1,3 +1,8 @@
+# 0.3.2
+
+ * Fixed: `Copy-GitRepository` intermittently fails when using SSH.
+ 
+
 # 0.3.1 (30 December 2016)
 
  * Fixed: `Get-GitTag` leaked memory and didn't clean up after itself properly.

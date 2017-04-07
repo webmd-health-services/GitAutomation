@@ -13,7 +13,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using LibGit2Sharp;
 
 namespace LibGit2.Automation
@@ -70,16 +69,7 @@ namespace LibGit2.Automation
 			_process.ErrorDataReceived += (sender, e) => Console.WriteLine("{0}", e.Data);
 		}
 
-		private void ThrowSshFailedException(int exitCode)
-		{
-			var buf = new byte[8*1024];
-			_process.StandardError.BaseStream.Read(buf, 0, buf.Length);
-			var errorOutput = string.Format("ssh process terminated unexpectedly with exit code {0}: {1}", exitCode,
-				Encoding.UTF8.GetString(buf));
-			throw new Exception(errorOutput);
-		}
-
-		private void AssertAlive()
+		private bool IsAlive()
 		{
 			if (!_started)
 			{
@@ -87,10 +77,7 @@ namespace LibGit2.Automation
 				_started = true;
 			}
 
-			if (_process.HasExited)
-			{
-				ThrowSshFailedException(_process.ExitCode);
-			}
+			return (_process != null);
 		}
 
 		private void Close()
@@ -98,19 +85,14 @@ namespace LibGit2.Automation
 			try
 			{
 				if (_process == null)
+				{
 					return;
+				}
 
 				if (!_process.HasExited)
 				{
 					_process.Kill();
 					throw new Exception("Closing SSH transport stream before ssh.exe has finished.");
-				}
-
-				var exitCode = _process.ExitCode;
-
-				if (exitCode != 0)
-				{
-					ThrowSshFailedException(exitCode);
 				}
 			}
 			finally
@@ -131,7 +113,10 @@ namespace LibGit2.Automation
 
 		public override int Write(Stream stream, long length)
 		{
-			AssertAlive();
+			if (! IsAlive() && ! _process.HasExited)
+			{
+				return 0;
+			}
 
 			try
 			{
@@ -141,7 +126,6 @@ namespace LibGit2.Automation
 					int toCopy = length > int.MaxValue ? int.MaxValue : (int) length;
 					var buf = new byte[toCopy];
 					stream.Read(buf, 0, toCopy);
-					// Console.WriteLine(Encoding.UTF8.GetString(buf));
 					_process.StandardInput.BaseStream.Write(buf, 0, toCopy);
 					_process.StandardInput.BaseStream.Flush();
 					length -= toCopy;
@@ -158,12 +142,9 @@ namespace LibGit2.Automation
 
 		public override int Read(Stream stream, long length, out long readTotal)
 		{
-			AssertAlive();
-
-			var read = 0;
-			readTotal = 0;
-			if (_process == null)
+			if (! IsAlive())
 			{
+				readTotal = 0;
 				return 0;
 			}
 
@@ -172,8 +153,7 @@ namespace LibGit2.Automation
 				var buf = new byte[Math.Min(length, 8*1024)];
 				var stdOut = _process.StandardOutput;
 				var baseStream = stdOut.BaseStream;
-				read = baseStream.Read(buf, 0, buf.Length);
-				//Console.WriteLine(Encoding.UTF8.GetString(buf));
+				var read = baseStream.Read(buf, 0, buf.Length);
 				stream.Write(buf, 0, read);
 				stream.Flush();
 
@@ -184,12 +164,6 @@ namespace LibGit2.Automation
 			{
 				Console.WriteLine(ex);
 				throw;
-			}
-
-			// If we get EOF, let's make sure the process didn't just die on us
-			if (read == 0)
-			{
-				AssertAlive();
 			}
 
 			return 0;
