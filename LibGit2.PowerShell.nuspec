@@ -15,7 +15,7 @@
 <package>
   <metadata>
     <id>LibGit2.PowerShell</id>
-    <version>0.3.1</version>
+    <version>0.3.2</version>
     <authors>Aaron Jensen</authors>
     <owners>Aaron Jensen</owners>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
