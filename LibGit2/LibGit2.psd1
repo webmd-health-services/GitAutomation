@@ -89,7 +89,8 @@ FunctionsToExport = @(
                         'New-GitBranch',
                         'New-GitRepository',
                         'New-GitTag',
-                        'Receive-GitCommit'
+                        'Receive-GitCommit',
+                        'Remove-GitItem',
                         'Save-GitChange',
                         'Set-GitConfiguration',
                         'Test-GitBranch',
