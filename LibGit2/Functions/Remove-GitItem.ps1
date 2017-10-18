@@ -14,26 +14,30 @@ function Remove-GitItem
 {
     <#
 .SYNOPSIS
-
+Function to Remove files from both working directory and in the repository
 
 .DESCRIPTION
-Long description
+This function will delete the files from your working directory and stage the files to be deleted in the next commit. You can pass multiple filepaths at once.
 
 .EXAMPLE
-An example
+Remove-GitItem -RepoRoot $repoRoot -Path 'file.ps1'
 
-.NOTES
-General notes
+.Example
+Remove-GitItem -Path 'file.ps1'
+
+.Example
+Get-ChildItem '.\LibGit2\Functions','.\Tests' | Remove-GitItem
+
 #>
 
     param(
         [Parameter(Mandatory=$true,ValueFromPipeline=$true)]
         [String[]]
-        # The paths to the files/directories to add to the next commit.
+        # The paths to the files/directories to remove in the next commit.
         $Path,
 
         [string]
-        # The path to the repository where the files should be added. The default is the current directory as returned by Get-Location.
+        # The path to the repository where the files should be removed. The default is the current directory as returned by Get-Location.
         $RepoRoot = (Get-Location).ProviderPath
     )
     Set-StrictMode -Version 'Latest'
@@ -51,5 +55,10 @@ General notes
             $pathItem = Join-Path -Path $repo.Info.WorkingDirectory -ChildPath $pathItem
         }
         $repo.Remove($pathItem, $true, $null)
+    }
+
+    if( ((Test-Path -Path 'variable:repo') -and $repo) )
+    {
+        $repo.Dispose()
     }
 }
