@@ -92,7 +92,7 @@ FunctionsToExport = @(
                         'Receive-GitCommit'
                         'Save-GitChange',
                         'Set-GitConfiguration',
-						'Sync-GitRepository',
+                        'Sync-GitRepository',
                         'Test-GitBranch',
                         'Test-GitIncomingCommit',
                         'Test-GitOutgoingCommit',
