@@ -10,24 +10,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-function Sync-GitRepository
+function Send-GitCommit
 {
     <#
     .SYNOPSIS
-    Synchronizes the current Git repository with its remote source repository.
+    Pushes commits from the current Git repository to its remote source repository.
 
     .DESCRIPTION
-    The `Sync-GitRepository` function synchronizes all commits to the current branch of the local Git repository to its upstream remote repository. If the repository requires authentication, pass the username/password via the `Credential` parameter.
+    The `Send-GitCommit` function sends all commits on the current branch of the local Git repository to its upstream remote repository. If the repository requires authentication, pass the username/password via the `Credential` parameter.
 
-    This function implements the `git push` command.
+    This function implements the `git push` command. A return value of $true indicates commits were successfully pushed to the remote. Otherwise, a warning or error message will be returned.
 
     .EXAMPLE
-    Sync-GitRepository
+    Send-GitCommit
 
     Pushes commits from the repository at the current location to its upstream remote repository
 
     .EXAMPLE
-    Sync-GitRepository -RepoRoot 'C:\Build\TestGitRepo' -Credential $PsCredential
+    Send-GitCommit -RepoRoot 'C:\Build\TestGitRepo' -Credential $PsCredential
 
     Pushes commits from the repository located at 'C:\Build\TestGitRepo' to its remote using authentication
     #>
@@ -46,11 +46,12 @@ function Sync-GitRepository
     Use-CallerPreference -Cmdlet $PSCmdlet -Session $ExecutionContext.SessionState
 
     $repo = Find-GitRepository -Path $RepoRoot -Verify
+    $pushSuccess = $null
     
     $currentBranch = $repo.Branches | Where-Object { $_.IsCurrentRepositoryHead -eq $true }
     if( !$currentBranch.Remote )
     {
-        Write-Error -Message ('No upstream remote is configured for ''{0}'' branch. Aborting synchronization.' -f $currentBranch.Name)
+        Write-Error -Message ('No upstream remote is configured for ''{0}'' branch. Aborting push.' -f $currentBranch.Name)
         return
     }
 
@@ -65,10 +66,24 @@ function Sync-GitRepository
 
     try
     {
-        $repo.Network.Push($currentBranch.Remote, $currentBranch, $pushOptions)
+        if( Test-GitOutgoingCommit -RepoRoot $RepoRoot )
+        {
+            $repo.Network.Push($currentBranch.Remote, $currentBranch, $pushOptions)
+            $pushSuccess = $true
+        }
+        else
+        {
+            Write-Warning -Message 'There are no outgoing commits to push to the remote repository.'
+        }
+    }
+    catch
+    {
+        Write-Error -Message $_.Exception.Message
     }
     finally
     {
         $repo.Dispose()
     }
+
+    return $pushSuccess
 }

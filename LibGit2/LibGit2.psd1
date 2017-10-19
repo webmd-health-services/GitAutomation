@@ -91,8 +91,8 @@ FunctionsToExport = @(
                         'New-GitTag',
                         'Receive-GitCommit'
                         'Save-GitChange',
+                        'Send-GitCommit',
                         'Set-GitConfiguration',
-                        'Sync-GitRepository',
                         'Test-GitBranch',
                         'Test-GitIncomingCommit',
                         'Test-GitOutgoingCommit',
@@ -139,7 +139,7 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
-* Added: `Sync-GitRepository` function for pushing local commits to upstream remote repositories.
+* Added: `Send-GitCommit` function for pushing local commits to upstream remote repositories.
 '@
 
     } # End of PSData hashtable

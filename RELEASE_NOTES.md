@@ -1,6 +1,6 @@
 # 0.4.0 (19 October 2017)
 
- * Added: `Sync-GitRepository` function for pushing local commits to upstream remote repositories.
+ * Added: `Send-GitCommit` function for pushing local commits to upstream remote repositories.
 
 
  # 0.3.2 (6 April 2017)
