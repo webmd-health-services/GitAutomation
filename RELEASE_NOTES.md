@@ -1,4 +1,9 @@
-# 0.3.2
+# 0.4.0 (19 October 2017)
+
+ * Added: `Sync-GitRepository` function for pushing local commits to upstream remote repositories.
+
+
+ # 0.3.2 (6 April 2017)
 
  * Fixed: `Copy-GitRepository` intermittently fails when using SSH.
  * Fixed: `Copy-GitRepository` takes an order of magnitude longer than normal Git because it updates the clone's progress too frequently. It now only updates progress every 1/10th of a second, which has minimal impact on clone speed.
