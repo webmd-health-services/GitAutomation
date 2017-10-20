@@ -68,10 +68,14 @@ function Send-GitCommit
     }
     catch
     {
+        Write-Error -ErrorRecord $_
+        
         switch ( $_.FullyQualifiedErrorId )
         {
             'NonFastForwardException' { return [LibGit2.Automation.PushResult]::Rejected }
             'LibGit2SharpException' { return [LibGit2.Automation.PushResult]::Failed }
+            'BareRepositoryException' { return [LibGit2.Automation.PushResult]::Failed }
+            default { return [LibGit2.Automation.PushResult]::Failed }
         }
     }
     finally
