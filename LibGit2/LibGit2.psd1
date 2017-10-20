@@ -79,6 +79,7 @@ FormatsToProcess = @(
 # Functions to export from this module
 FunctionsToExport = @(
                         'Add-GitItem',
+                        'Compare-GitTree',
                         'Copy-GitRepository',
                         'Find-GitRepository',
                         'Get-GitBranch',

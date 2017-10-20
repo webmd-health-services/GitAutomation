@@ -117,7 +117,7 @@ Describe 'Find-GitRepository when -Verify switch is used and a repository isn''t
     Assert-NoRepositoryReturned -Repository $repo
     It 'should write an error' {
         $Global:Error | Should Match 'not in a Git repository'
-        $Global:ERror | Should Match ([regex]::Escape($env:TEMP))
+        $Global:Error | Should Match ([regex]::Escape($env:TEMP))
     }
 }
 
@@ -130,7 +130,8 @@ Describe 'Find-GitRepository when -Verify switch is used and a repository in cur
         Assert-NoRepositoryReturned -Repository $repo
         It 'should write an error' {
             $Global:Error | Should Match 'not in a Git repository'
-            $Global:ERror | Should Match ([regex]::Escape($env:TEMP))
+            $CurrentLocation = (Get-Location | Select-Object -ExpandProperty 'ProviderPath')
+            $Global:Error | Should Match ([regex]::Escape($CurrentLocation))
         }
     }
     finally
