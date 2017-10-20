@@ -27,6 +27,15 @@ function GivenRepositoryWithFile
     Save-GitChange -RepoRoot $repoRoot -Message 'Commit to add test files'
 }
 
+function GivenIncorrectRepo
+{
+    param(
+        [string]
+        $RepoName
+    )
+    $script:repoRoot = $RepoName
+}
+
 function GivenFileIsDeleted
 {
     param(
@@ -117,6 +126,16 @@ function ThenNoErrorShouldBeThrown
 {
     $Global:Error | Should -BeNullOrEmpty
 }
+function ThenErrorShouldBeThrown
+{
+    param(
+        [String]
+        $ExpectedError
+    )
+    It ('Should throw an error matching ''{0}''' -f $ExpectedError){
+        $Global:Error | Where-Object { $_ -match $ExpectedError } | Should -Not -BeNullOrEmpty
+    }
+}
 
 Describe 'Remove-GitItem.When File is moved from git repository correctly' {
     GivenRepositoryWithFile -Name 'foo.bar'
@@ -169,4 +188,10 @@ Describe 'Remove-GitItem.When File doesnt exist in the repository' {
     GivenFileToStage  -Name 'different.file'
     WhenFileIsStaged
     ThenFileShouldNotBeStaged -Path 'different.file'
+}
+
+Describe 'Remove-GitItem.When invalid repository is passed' {
+    GivenIncorrectRepo -RepoName 'foobar'
+    WhenFileIsStaged
+    ThenErrorShouldBeThrown -ExpectedError 'Could Not Find Repository located at ''foobar'''
 }

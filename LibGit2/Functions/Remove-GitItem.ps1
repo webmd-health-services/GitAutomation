@@ -13,22 +13,22 @@
 function Remove-GitItem
 {
     <#
-.SYNOPSIS
-Function to Remove files from both working directory and in the repository
+    .SYNOPSIS
+    Function to Remove files from both working directory and in the repository
 
-.DESCRIPTION
-This function will delete the files from your working directory and stage the files to be deleted in the next commit. You can pass multiple filepaths at once.
+    .DESCRIPTION
+    This function will delete the files from the working directory and stage the files to be deleted in the next commit. Multiple filepaths can be passed at once.
 
-.EXAMPLE
-Remove-GitItem -RepoRoot $repoRoot -Path 'file.ps1'
+    .EXAMPLE
+    Remove-GitItem -RepoRoot $repoRoot -Path 'file.ps1'
 
-.Example
-Remove-GitItem -Path 'file.ps1'
+    .Example
+    Remove-GitItem -Path 'file.ps1'
 
-.Example
-Get-ChildItem '.\LibGit2\Functions','.\Tests' | Remove-GitItem
+    .Example
+    Get-ChildItem '.\LibGit2\Functions','.\Tests' | Remove-GitItem
 
-#>
+    #>
 
     param(
         [Parameter(Mandatory=$true,ValueFromPipeline=$true)]
@@ -40,11 +40,13 @@ Get-ChildItem '.\LibGit2\Functions','.\Tests' | Remove-GitItem
         # The path to the repository where the files should be removed. The default is the current directory as returned by Get-Location.
         $RepoRoot = (Get-Location).ProviderPath
     )
+    
     Set-StrictMode -Version 'Latest'
     $repo = Find-GitRepository -Path $RepoRoot -Verify
 
     if( -not ((Test-Path -Path 'variable:repo') -and $repo) )
     {
+        Write-Error ('Could Not Find Repository located at ''{0}''' -f $RepoRoot)
         return
     }
 
