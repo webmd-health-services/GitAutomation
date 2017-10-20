@@ -42,9 +42,11 @@ function Remove-GitItem
     )
     
     Set-StrictMode -Version 'Latest'
+    Use-CallerPreference -Cmdlet $PSCmdlet -Session $ExecutionContext.SessionState
+
     $repo = Find-GitRepository -Path $RepoRoot -Verify
 
-    if( -not ((Test-Path -Path 'variable:repo') -and $repo) )
+    if( -not $repo )
     {
         Write-Error ('Could Not Find Repository located at ''{0}''' -f $RepoRoot)
         return
@@ -58,9 +60,5 @@ function Remove-GitItem
         }
         $repo.Remove($pathItem, $true, $null)
     }
-
-    if( ((Test-Path -Path 'variable:repo') -and $repo) )
-    {
-        $repo.Dispose()
-    }
+    $repo.Dispose()
 }

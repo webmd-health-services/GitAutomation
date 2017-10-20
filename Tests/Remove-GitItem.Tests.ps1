@@ -188,6 +188,7 @@ Describe 'Remove-GitItem.When File doesnt exist in the repository' {
     GivenFileToStage  -Name 'different.file'
     WhenFileIsStaged
     ThenFileShouldNotBeStaged -Path 'different.file'
+    ThenNoErrorShouldBeThrown
 }
 
 Describe 'Remove-GitItem.When invalid repository is passed' {
