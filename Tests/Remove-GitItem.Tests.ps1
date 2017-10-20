@@ -60,13 +60,13 @@ function GivenFileToStage
 function WhenFileIsStaged
 {
     $Global:Error.Clear()
-    Remove-GitItem -RepoRoot $repoRoot -Path $filesToStage
+    Remove-GitItem -RepoRoot $repoRoot -Path $filesToStage -ErrorAction SilentlyContinue
 }
 
 function WhenFileIsStagedByPipeline
 {
     $Global:Error.Clear()
-    ,$filesToStage | Remove-GitItem -RepoRoot $repoRoot
+    ,$filesToStage | Remove-GitItem -RepoRoot $repoRoot -ErrorAction SilentlyContinue
 }
 
 function ThenFileShouldBeStaged
