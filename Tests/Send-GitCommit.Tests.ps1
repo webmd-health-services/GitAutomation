@@ -82,9 +82,9 @@ function WhenSendingGitCommits
     )
 
     $Global:Error.Clear()
-    $script:pushSuccess = $null
+    $script:pushResult = $null
     
-    $script:pushSuccess = Send-GitCommit -RepoRoot $localRepoPath -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -WarningVariable script:pushWarnings
+    $script:pushResult = Send-GitCommit -RepoRoot $localRepoPath -ErrorAction SilentlyContinue
 }
 
 function ThenNoErrorsWereThrown
@@ -109,18 +109,6 @@ function ThenErrorWasThrown
     }
 }
 
-function ThenWarningWasWritten
-{
-    param(
-        [string]
-        $WarningMessage
-    )
-
-    It ('should write a warning: ''{0}''' -f $WarningMessage) {
-        $pushWarnings | Should Match $WarningMessage
-    }
-}
-
 function ThenRemoteContainsLocalCommits
 {
     param(
@@ -139,23 +127,14 @@ function ThenRemoteContainsLocalCommits
     }
 }
 
-function ThenFunctionIndicatesSuccessfulPush
+function ThenPushResultIs
 {
     param(
+        $PushStatus
     )
 
-    It '`Send-GitCommit` function indicates a push was successful' {
-        $pushSuccess | Should Be $true
-    }
-}
-
-function ThenFunctionIndicatesPushDidNotOccur
-{
-    param(
-    )
-
-    It '`Send-GitCommit` function indicates a push did not occur' {
-        $pushSuccess | Should BeNullOrEmpty
+    It ('function returned status of ''{0}''' -f $script:pushResult) {
+        $script:pushResult | Should Be $PushStatus
     }
 }
 
@@ -165,7 +144,7 @@ Describe 'Send-GitCommit.when pushing changes to a remote repository' {
     GivenCommittedChangeToPush
     WhenSendingGitCommits
     ThenNoErrorsWereThrown
-    ThenFunctionIndicatesSuccessfulPush
+    ThenPushResultIs ([LibGit2.Automation.PushResult]::Ok)
     ThenRemoteContainsLocalCommits
 }
 
@@ -174,8 +153,7 @@ Describe 'Send-GitCommit.when there are no local changes to push to remote' {
     GivenLocalRepositoryTracksRemote 'LocalRepo'
     WhenSendingGitCommits
     ThenNoErrorsWereThrown
-    ThenWarningWasWritten 'There are no outgoing commits to push to the remote repository.'
-    ThenFunctionIndicatesPushDidNotOccur
+    ThenPushResultIs ([LibGit2.Automation.PushResult]::Ok)
 }
 
 Describe 'Send-GitCommit.when remote repository has changes not contained locally' {
@@ -184,14 +162,14 @@ Describe 'Send-GitCommit.when remote repository has changes not contained locall
     GivenRemoteContainsOtherChanges
     GivenCommittedChangeToPush
     WhenSendingGitCommits
-    ThenErrorWasThrown 'Cannot push because a reference that you are trying to update on the remote contains commits that are not present locally.'
-    ThenFunctionIndicatesPushDidNotOccur
+    ThenErrorWasThrown 'that you are trying to update on the remote contains commits that are not present locally.'
+    ThenPushResultIs ([LibGit2.Automation.PushResult]::Rejected)
 }
 
 Describe 'Send-GitCommit.when no upstream remote is defined' {
     GivenLocalRepositoryWithNoRemote 'LocalRepo'
     GivenCommittedChangeToPush
     WhenSendingGitCommits
-    ThenErrorWasThrown 'No upstream remote is configured for ''master'' branch. Aborting push.'
-    ThenFunctionIndicatesPushDidNotOccur
+    ThenErrorWasThrown 'that you are trying to push does not track an upstream branch.'
+    ThenPushResultIs ([LibGit2.Automation.PushResult]::Failed)
 }

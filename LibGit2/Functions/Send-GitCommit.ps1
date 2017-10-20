@@ -32,6 +32,7 @@ function Send-GitCommit
     Pushes commits from the repository located at 'C:\Build\TestGitRepo' to its remote using authentication
     #>
     [CmdletBinding()]
+    [OutputType([LibGit2.Automation.PushResult])]
     param(
         [string]
         # Specifies the location of the repository to synchronize. Defaults to the current directory.
@@ -46,19 +47,12 @@ function Send-GitCommit
     Use-CallerPreference -Cmdlet $PSCmdlet -Session $ExecutionContext.SessionState
 
     $repo = Find-GitRepository -Path $RepoRoot -Verify
-    $pushSuccess = $null
-    
     $currentBranch = $repo.Branches | Where-Object { $_.IsCurrentRepositoryHead -eq $true }
-    if( !$currentBranch.Remote )
-    {
-        Write-Error -Message ('No upstream remote is configured for ''{0}'' branch. Aborting push.' -f $currentBranch.Name)
-        return
-    }
-
-    $pushOptions = New-Object 'LibGit2Sharp.PushOptions'
+    
+    $pushOptions = New-Object -TypeName 'LibGit2Sharp.PushOptions'
     if( $Credential )
     {
-        $gitCredential = New-Object 'LibGit2Sharp.SecureUsernamePasswordCredentials'
+        $gitCredential = New-Object -TypeName 'LibGit2Sharp.SecureUsernamePasswordCredentials'
         $gitCredential.Username = $Credential.UserName
         $gitCredential.Password = $Credential.Password
         $pushOptions.CredentialsProvider = { return $gitCredential }
@@ -68,22 +62,20 @@ function Send-GitCommit
     {
         if( Test-GitOutgoingCommit -RepoRoot $RepoRoot )
         {
-            $repo.Network.Push($currentBranch.Remote, $currentBranch, $pushOptions)
-            $pushSuccess = $true
+            $repo.Network.Push($currentBranch, $pushOptions)
         }
-        else
-        {
-            Write-Warning -Message 'There are no outgoing commits to push to the remote repository.'
-        }
+        return [LibGit2.Automation.PushResult]::Ok
     }
     catch
     {
-        Write-Error -Message $_.Exception.Message
+        switch ( $_.FullyQualifiedErrorId )
+        {
+            'NonFastForwardException' { return [LibGit2.Automation.PushResult]::Rejected }
+            'LibGit2SharpException' { return [LibGit2.Automation.PushResult]::Failed }
+        }
     }
     finally
     {
         $repo.Dispose()
     }
-
-    return $pushSuccess
 }
