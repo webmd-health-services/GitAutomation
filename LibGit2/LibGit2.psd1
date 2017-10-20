@@ -140,6 +140,7 @@ PrivateData = @{
         # ReleaseNotes of this module
         ReleaseNotes = @'
 * Fixed: `Get-GitTag` leaked memory and didn't clean up after itself properly.
+* Added: `Remove-GitItem` removes specified files from workstation and repository
 '@
 
     } # End of PSData hashtable

@@ -48,7 +48,6 @@ function Remove-GitItem
 
     if( -not $repo )
     {
-        Write-Error ('Could Not Find Repository located at ''{0}''' -f $RepoRoot)
         return
     }
 

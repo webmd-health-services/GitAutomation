@@ -194,5 +194,5 @@ Describe 'Remove-GitItem.When File doesnt exist in the repository' {
 Describe 'Remove-GitItem.When invalid repository is passed' {
     GivenIncorrectRepo -RepoName 'foobar'
     WhenFileIsStaged
-    ThenErrorShouldBeThrown -ExpectedError 'Could Not Find Repository located at ''foobar'''
+    ThenErrorShouldBeThrown -ExpectedError 'Can''t find a repository in ''foobar'''
 }
