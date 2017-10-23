@@ -15,7 +15,7 @@
 <package>
   <metadata>
     <id>LibGit2.PowerShell</id>
-    <version>0.4.0</version>
+    <version>0.5.0</version>
     <authors>Aaron Jensen</authors>
     <owners>Aaron Jensen</owners>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
@@ -27,7 +27,7 @@
 This module uses the .NET wrapper of [libgit2](https://libgit2.github.com/), "a portable, pure C implementation of... Git", which allows you to call Git via API instead using the Git command line interface.</description>
     <language>en-us</language>
     <releaseNotes>
- * Added: `Send-GitCommit` function for pushing local commits to upstream remote repositories.
+* Added: `Compare-GitTree` function for getting a `[LibGit2Sharp.TreeChanges]` object representing changes to the repository file tree between two commits.
     </releaseNotes>
     <copyright>Copyright 2016 Aaron Jensen</copyright>
     <tags>git vcs rcs automation github gitlab libgit2</tags>
