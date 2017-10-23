@@ -16,7 +16,7 @@
 RootModule = 'LibGit2.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.3.2'
+ModuleVersion = '0.4.0'
 
 # ID used to uniquely identify this module
 GUID = '119a2511-62d9-4626-9728-0c8ec7068c57'
@@ -92,6 +92,7 @@ FunctionsToExport = @(
                         'Receive-GitCommit',
                         'Remove-GitItem',
                         'Save-GitChange',
+                        'Send-GitCommit',
                         'Set-GitConfiguration',
                         'Test-GitBranch',
                         'Test-GitIncomingCommit',
@@ -141,6 +142,7 @@ PrivateData = @{
         ReleaseNotes = @'
 * Fixed: `Get-GitTag` leaked memory and didn't clean up after itself properly.
 * Added: `Remove-GitItem` removes specified files from workstation and repository.
+* Added: `Send-GitCommit` function for pushing local commits to upstream remote repositories.
 '@
 
     } # End of PSData hashtable
