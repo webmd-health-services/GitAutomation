@@ -89,7 +89,8 @@ FunctionsToExport = @(
                         'New-GitBranch',
                         'New-GitRepository',
                         'New-GitTag',
-                        'Receive-GitCommit'
+                        'Receive-GitCommit',
+                        'Remove-GitItem',
                         'Save-GitChange',
                         'Send-GitCommit',
                         'Set-GitConfiguration',
@@ -139,6 +140,8 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
+* Fixed: `Get-GitTag` leaked memory and didn't clean up after itself properly.
+* Added: `Remove-GitItem` removes specified files from workstation and repository.
 * Added: `Send-GitCommit` function for pushing local commits to upstream remote repositories.
 '@
 
