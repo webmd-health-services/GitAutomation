@@ -33,9 +33,23 @@ function Get-GitCommit
         [Parameter(Mandatory=$true,ParameterSetName='Lookup')]
         [string]
         # A named revision to get, e.g. `HEAD`, a branch name, tag name, etc.
-        #
         # To get the commit of the current checkout, pass `HEAD`.
         $Revision,
+
+        [Parameter(ParameterSetName='CommitFilter')]
+        [string]
+        # The starting commit from which to generate a list of commits. Defaults to `HEAD`.
+        $Since = 'HEAD',
+
+        [Parameter(Mandatory=$true,ParameterSetName='CommitFilter')]
+        [string]
+        # The commit and its ancestors which will be excluded from the returned commit list which starts at `Since`.
+        $Until,
+
+        [Parameter(ParameterSetName='CommitFilter')]
+        [switch]
+        # Do not include any merge commits in the generated commit list.
+        $NoMerges,
 
         [string]
         # The path to the repository. Defaults to the current directory.
@@ -58,20 +72,56 @@ function Get-GitCommit
             $repo.Commits | ForEach-Object { New-Object -TypeName 'LibGit2.Automation.CommitInfo' -ArgumentList $_ }
             return
         }
-
-        $change = $repo.Lookup($Revision)
-        if( $change )
+        elseif( $PSCmdlet.ParameterSetName -eq 'Lookup' )
         {
-            return New-Object -TypeName 'LibGit2.Automation.CommitInfo' -ArgumentList $change
+            $change = $repo.Lookup($Revision)
+            if( $change )
+            {
+                return New-Object -TypeName 'LibGit2.Automation.CommitInfo' -ArgumentList $change
+            }
+            else
+            {
+                Write-Error -Message ('Commit ''{0}'' not found in repository ''{1}''.' -f $Revision,$repo.Info.WorkingDirectory) -ErrorAction $ErrorActionPreference
+                return
+            }
         }
-        else
+        elseif( $PSCmdlet.ParameterSetName -eq 'CommitFilter')
         {
-            Write-Error -Message ('Commit ''{0}'' not found in repository ''{1}''.' -f $Revision,$repo.Info.WorkingDirectory) -ErrorAction $ErrorActionPreference
+            $IncludeFromCommit = $repo.Lookup($Since)
+            $ExcludeFromCommit = $repo.Lookup($Until)
+
+            if (-not $IncludeFromCommit)
+            {
+                Write-Error -Message ('Commit ''{0}'' not found in repository ''{1}''.' -f $Since,$repo.Info.WorkingDirectory) -ErrorAction $ErrorActionPreference
+                return
+            }
+            elseif (-not $ExcludeFromCommit)
+            {
+                Write-Error -Message ('Commit ''{0}'' not found in repository ''{1}''.' -f $Until,$repo.Info.WorkingDirectory) -ErrorAction $ErrorActionPreference
+                return
+            }
+            elseif ($IncludeFromCommit.Sha -eq $ExcludeFromCommit.Sha)
+            {
+                Write-Error -Message ('Commit reference ''{0}'' and ''{1}'' refer to the same commit with hash ''{2}''.' -f $Since,$Until,$IncludeFromCommit.Sha)
+                return
+            }
+
+            $CommitFilter = New-Object -TypeName LibGit2Sharp.CommitFilter
+            $CommitFilter.IncludeReachableFrom = $IncludeFromCommit.Sha
+            $CommitFilter.ExcludeReachableFrom = $ExcludeFromCommit.Sha
+
+            $filteredCommits = $repo.Commits.QueryBy($CommitFilter)
+
+            if ($NoMerges)
+            {
+                $filteredCommits = $filteredCommits | Where-Object { $_.Parents.Count -le 1 }
+            }
+
+            $filteredCommits | ForEach-Object { New-Object -TypeName 'LibGit2.Automation.CommitInfo' -ArgumentList $_ }
         }
     }
     finally
     {
         $repo.Dispose()
     }
-
 }

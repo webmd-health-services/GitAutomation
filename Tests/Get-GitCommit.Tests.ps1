@@ -43,6 +43,40 @@ function AddCommit
     }
 }
 
+function AddMerge
+{
+    try
+    {
+        # Temporary until we get merge functionality in this module
+        $repo = Find-GitRepository -Path $repoRoot
+
+        $testBranch = 'GitCommitTestBranch'
+        New-GitBranch -RepoRoot $repoRoot -Name $testBranch
+
+        AddCommit -NumberOfCommits 1
+        $repo.Checkout('master', (New-Object LibGit2Sharp.CheckoutOptions))
+
+        $mergeOptions = New-Object LibGit2Sharp.MergeOptions
+        $mergeOptions.FastForwardStrategy = 'NoFastForward'
+        $mergeSignature = New-Object LibGit2Sharp.Signature -ArgumentList 'test','email@example.com',([System.DateTimeOffset]::Now)
+
+        $repo.Merge($testBranch, $mergeSignature, $mergeOptions)
+    }
+    finally
+    {
+        $repo.Dispose()
+    }
+}
+
+function AddTag
+{
+    param(
+        $Tag
+    )
+
+    New-GitTag -RepoRoot $repoRoot -Name $Tag
+}
+
 function WhenGettingCommit
 {
     [CmdletBinding(DefaultParameterSetName='Default')]
@@ -53,7 +87,19 @@ function WhenGettingCommit
 
         [Parameter(ParameterSetName='Lookup')]
         [string]
-        $Revision
+        $Revision,
+
+        [Parameter(ParameterSetName='CommitFilter')]
+        [string]
+        $Since = 'HEAD',
+
+        [Parameter(ParameterSetName='CommitFilter')]
+        [string]
+        $Until,
+
+        [Parameter(ParameterSetName='CommitFilter')]
+        [switch]
+        $NoMerges
     )
 
     if ($PSCmdlet.ParameterSetName -eq 'All')
@@ -63,6 +109,10 @@ function WhenGettingCommit
     elseif ($PSCmdlet.ParameterSetName -eq 'Lookup')
     {
         $Script:commitOutput = Get-GitCommit -RepoRoot $repoRoot -Revision $Revision
+    }
+    elseif ($PSCmdlet.ParameterSetName -eq 'CommitFilter')
+    {
+        $Script:commitOutput = Get-GitCommit -RepoRoot $repoRoot -Since $Since -Until $Until -NoMerges:$NoMerges
     }
     else
     {
@@ -92,8 +142,9 @@ function ThenNumberCommitsReturnedIs
         $NumberOfCommits
         )
 
+        $commitsReturned = $commitOutput | Measure-Object | Select-Object -ExpandProperty 'Count'
         It 'should return the correct number of commits' {
-            $commitOutput.Count | Should -Be $NumberOfCommits
+            $commitsReturned | Should -Be $NumberOfCommits
         }
 }
 
@@ -177,4 +228,65 @@ Describe 'Get-GitCommit.when getting a commit that does not exist' {
     WhenGettingCommit -Revision 'nonexistentcommit' -ErrorAction SilentlyContinue
     ThenReturned -Nothing
     ThenErrorMessage 'Commit ''nonexistentcommit'' not found in repository'
+}
+
+Describe 'Get-GitCommit.when getting commit list with an invalid commit' {
+    Init
+    GivenARepository
+    AddCommit -NumberOfCommits 1
+    WhenGettingCommit -Since 'HEAD' -Until 'nonexistentcommit' -ErrorAction SilentlyContinue
+    ThenReturned -Nothing
+    ThenErrorMessage 'Commit ''nonexistentcommit'' not found in repository'
+}
+
+Describe 'Get-GitCommit.when Since and Until are the same commit' {
+    Init
+    GivenARepository
+    AddCommit -NumberOfCommits 1
+    AddTag '1.0'
+    WhenGettingCommit -Since 'HEAD' -Until '1.0' -ErrorAction SilentlyContinue
+    ThenReturned -Nothing
+    ThenErrorMessage 'Commit reference ''HEAD'' and ''1.0'' refer to the same commit'
+}
+
+Describe 'Get-GitCommit.when getting all commits until a specific commit' {
+    Init
+    GivenARepository
+    AddCommit -NumberOfCommits 1
+    AddTag '1.0'
+    AddCommit -NumberOfCommits 3
+    WhenGettingCommit -Until '1.0'
+    ThenReturned -Type [LibGit2.Automation.CommitInfo]
+    ThenNumberCommitsReturnedIs 3
+    ThenNoErrorMessages
+}
+
+Describe 'Get-GitCommit.when getting list of commits between two specific commits' {
+    Init
+    GivenARepository
+    AddCommit -NumberOfCommits 1
+    AddTag '1.0'
+    AddCommit -NumberOfCommits 2
+    AddMerge # Adds 2 commits (regular + merge commit)
+    AddTag '2.0'
+    AddCommit -NumberOfCommits 1
+    WhenGettingCommit -Since '2.0' -Until '1.0'
+    ThenReturned -Type [LibGit2.Automation.CommitInfo]
+    ThenNumberCommitsReturnedIs 4
+    ThenNoErrorMessages
+}
+
+Describe 'Get-GitCommit.when getting list of commits with excluding merge commits' {
+    Init
+    GivenARepository
+    AddCommit -NumberOfCommits 1
+    AddTag '1.0'
+    AddCommit -NumberOfCommits 2
+    AddMerge # Adds 2 commits (regular + merge commit)
+    AddTag '2.0'
+    AddCommit -NumberOfCommits 1
+    WhenGettingCommit -Since '2.0' -Until '1.0' -NoMerges
+    ThenReturned -Type [LibGit2.Automation.CommitInfo]
+    ThenNumberCommitsReturnedIs 3
+    ThenNoErrorMessages
 }
