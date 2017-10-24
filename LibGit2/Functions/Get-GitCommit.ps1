@@ -25,6 +25,11 @@ function Get-GitCommit
     #>
     [CmdletBinding(DefaultParameterSetName='All')]
     param(
+        [Parameter(ParameterSetName='All')]
+        [switch]
+        # Get all the commits in the repository.
+        $All,
+
         [Parameter(Mandatory=$true,ParameterSetName='Lookup')]
         [string]
         # A named revision to get, e.g. `HEAD`, a branch name, tag name, etc.
@@ -38,6 +43,7 @@ function Get-GitCommit
     )
 
     Set-StrictMode -Version 'Latest'
+    Use-CallerPreference -Cmdlet $PSCmdlet -Session $ExecutionContext.SessionState
 
     $repo = Find-GitRepository -Path $RepoRoot
     if( -not $repo )

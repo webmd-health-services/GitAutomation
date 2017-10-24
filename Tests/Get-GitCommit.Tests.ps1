@@ -12,109 +12,169 @@
     
 & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
 
-function Assert-IsHeadCommit
+$commitOutput = $null
+$repoRoot = $null
+
+function Init
 {
-    param(
-        $Commit,
-        $RepoRoot
-    )
-    It 'should get the current HEAD' {
-        $Commit.Sha | Should Be (Get-Content -Path (Join-Path -Path $RepoRoot -ChildPath '.git\refs\heads\master'))
-    }
+    $Global:Error.Clear()
+    $Script:commitOutput = $null
+    $Script:repoRoot = $null
 }
 
-function New-TestRepository
+function GivenARepository
+{
+    $Script:repoRoot = Join-Path -Path $TestDrive.FullName -ChildPath 'repo'
+    New-GitRepository -Path $repoRoot | Out-Null
+}
+
+function AddCommit
 {
     param(
         [int]
-        $NumCommits = 1
+        $NumberOfCommits = 1
+    )
+    
+    1..$NumberOfCommits | ForEach-Object {
+        $filePath = Join-Path -Path $repoRoot -ChildPath ([System.IO.Path]::GetRandomFileName())
+        [Guid]::NewGuid() | Set-Content -Path $filePath -Force
+        Add-GitItem -Path $filePath -RepoRoot $repoRoot | Out-Null
+        Save-GitChange -Message 'Get-GitCommit Tests' -RepoRoot $repoRoot | Out-Null
+    }
+}
+
+function WhenGettingCommit
+{
+    [CmdletBinding(DefaultParameterSetName='Default')]
+    param(
+        [Parameter(ParameterSetName='All')]
+        [switch]
+        $All,
+
+        [Parameter(ParameterSetName='Lookup')]
+        [string]
+        $Revision
     )
 
-    $repoRoot = (Get-Item -Path 'TestDrive:').FullName
-
-    New-GitRepository -Path $repoRoot | Out-Null
-
-    $filePath = Join-Path -Path $repoRoot -ChildPath 'file'
-    '0' | Set-Content -Path $filePath
-    Add-GitItem -Path $filePath -RepoRoot $repoRoot | Out-Null
-    Save-GitChange -Message '0' -RepoRoot $repoRoot | Out-Null
-    for( $idx = 1; $idx -lt $NumCommits; ++$idx )
+    if ($PSCmdlet.ParameterSetName -eq 'All')
     {
-        # Git uses second-granularity timestamps
-        Start-Sleep -Seconds 1
-        $idx | Set-Content -Path $filePath
-        Add-GitItem -Path $filePath -RepoRoot $repoRoot
-        Save-GitChange -Message $idx -RepoRoot $repoRoot | Out-Null
+        $Script:commitOutput = Get-GitCommit -RepoRoot $repoRoot -All
     }
-
-    $repoRoot
-}
-
-Describe 'Get-GitCommit when run with no parameters' {
-    $repoRoot = New-TestRepository -NumCommits 10
-
-    $commits = Get-GitCommit -RepoRoot $repoRoot
-
-    It 'should return all commits' {
-        $commits.Count | Should Be 10
-        $commits = $commits | Sort-Object -Property { $_.Author.When } -Descending
-        for( $idx = 0; $idx -lt 10; ++$idx )
+    elseif ($PSCmdlet.ParameterSetName -eq 'Lookup')
+    {
+        $Script:commitOutput = Get-GitCommit -RepoRoot $repoRoot -Revision $Revision
+    }
+    else
+    {
+        Push-Location $repoRoot
+        try
         {
-            $commits[$idx].MessageShort | Should Be (9 - $idx)
+            $Script:commitOutput = Get-GitCommit
+        }
+        finally
+        {
+            Pop-Location
         }
     }
-
 }
 
-Describe 'Get-GitCommit when asking for a specific revision' {
-    $repoRoot = New-TestRepository 
-
-    $commit = Get-GitCommit -Revision 'HEAD' -RepoRoot $repoRoot
-
-    Assert-IsHeadCommit -Commit $commit -RepoRoot $repoRoot
-}
-
-Describe 'Get-GitCommit when named revision doesn''t exist' {
-    $repoRoot = New-TestRepository 
-    $Global:Error.Clear()
-
-    $commit = Get-GitCommit -Revision 'FUBARSNAFU' -RepoRoot $repoRoot -ErrorAction SilentlyContinue
-    It 'should return nothing' {
-        $commit | Should BeNullOrEmpty
-    }
-    It 'should write an error' {
-        $Global:Error | Should Match 'not\ found'
+function ThenCommitIsHeadCommit
+{
+    It 'should return the current HEAD commit' {
+        $commitOutput.Sha | Should -Be (Get-Content -Path (Join-Path -Path $repoRoot -ChildPath '.git\refs\heads\master'))
     }
 }
 
+function ThenNumberCommitsReturnedIs
+{
+    param(
+        [int]
+        $NumberOfCommits
+        )
 
-Describe 'Get-GitCommit when ignoring errors and a commit does not exist' {
-    $repoRoot = New-TestRepository 
-    $commit = Get-GitCommit -Revision 'FUBARSNAFU' -RepoRoot $repoRoot -ErrorAction Ignore
-    $Global:Error.Clear()
-    It 'should return nothing' {
-        $commit | Should BeNullOrEmpty
-    }
-    It 'should write an error' {
-        $Global:Error.Count | Should Be 0
-    }
-}
-
-Describe 'Get-GitCommit when using default repository' {
-    $repoRoot = New-TestRepository 
-    Push-Location -Path $repoRoot
-    try
-    {
-        $commit = Get-GitCommit -Revision 'HEAD'
-
-        It 'should return a commit' {
-            $commit | Should Not BeNullOrEmpty
+        It 'should return the correct number of commits' {
+            $commitOutput.Count | Should -Be $NumberOfCommits
         }
+}
 
-        Assert-IsHeadCommit -Commit $commit -RepoRoot $repoRoot
-    }
-    finally
+function ThenReturned
+{
+    param(
+        [Parameter(Mandatory=$true,ParameterSetName='Type')]
+        $Type,
+        [Parameter(Mandatory=$true,ParameterSetName='Nothing')]
+        [switch]
+        $Nothing
+        )
+
+    if ($Nothing)
     {
-        Pop-Location
-    }    
+        It 'should not return anything' {
+            $commitOutput | Should -BeNullOrEmpty
+        }
+    }
+    else
+    {
+        It 'should return the correct object type' {
+            $commitOutput | Should -BeOfType $Type
+        }
+    }
+}
+
+function ThenErrorMessage
+{
+    param(
+        $Message
+    )
+
+    It ('should write error /{0}/' -f $Message) {
+        $Global:Error[0] | Should -Match $Message
+    }
+}
+
+function ThenNoErrorMessages
+{
+    It 'should not write any errors' {
+        $Global:Error | Should -BeNullOrEmpty
+    }
+}
+
+Describe 'Get-GitCommit.when no parameters specified' {
+    Init
+    GivenARepository
+    AddCommit -NumberOfCommits 2
+    WhenGettingCommit
+    ThenReturned -Type [LibGit2.Automation.CommitInfo]
+    ThenNumberCommitsReturnedIs 2
+    ThenNoErrorMessages
+}
+
+Describe 'Get-GitCommit.when getting all commits' {
+    Init
+    GivenARepository
+    AddCommit -NumberOfCommits 5
+    WhenGettingCommit -All
+    ThenReturned -Type [LibGit2.Automation.CommitInfo]
+    ThenNumberCommitsReturnedIs 5
+    ThenNoErrorMessages
+}
+
+Describe 'Get-GitCommit.when getting specifically the current HEAD commit' {
+    Init
+    GivenARepository
+    AddCommit -NumberOfCommits 3
+    WhenGettingCommit -Revision 'HEAD'
+    ThenReturned -Type [LibGit2.Automation.CommitInfo]
+    ThenNumberCommitsReturnedIs 1
+    ThenCommitIsHeadCommit
+    ThenNoErrorMessages
+}
+
+Describe 'Get-GitCommit.when getting a commit that does not exist' {
+    Init
+    GivenARepository
+    AddCommit -NumberOfCommits 1
+    WhenGettingCommit -Revision 'nonexistentcommit' -ErrorAction SilentlyContinue
+    ThenReturned -Nothing
+    ThenErrorMessage 'Commit ''nonexistentcommit'' not found in repository'
 }
