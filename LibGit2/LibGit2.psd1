@@ -16,7 +16,7 @@
 RootModule = 'LibGit2.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.4.0'
+ModuleVersion = '0.5.0'
 
 # ID used to uniquely identify this module
 GUID = '119a2511-62d9-4626-9728-0c8ec7068c57'
@@ -79,6 +79,7 @@ FormatsToProcess = @(
 # Functions to export from this module
 FunctionsToExport = @(
                         'Add-GitItem',
+                        'Compare-GitTree',
                         'Copy-GitRepository',
                         'Find-GitRepository',
                         'Get-GitBranch',
@@ -140,9 +141,7 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
-* Fixed: `Get-GitTag` leaked memory and didn't clean up after itself properly.
-* Added: `Remove-GitItem` removes specified files from workstation and repository.
-* Added: `Send-GitCommit` function for pushing local commits to upstream remote repositories.
+* Added: `Compare-GitTree` function for getting a `[LibGit2Sharp.TreeChanges]` object representing changes to the repository file tree between two commits.
 '@
 
     } # End of PSData hashtable

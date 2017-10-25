@@ -1,3 +1,7 @@
+# 0.5.0 (23 October 2017)
+
+ * Added: `Compare-GitTree` function for getting a `[LibGit2Sharp.TreeChanges]` object representing changes to the repository file tree between two commits.
+
 # 0.4.0 (19 October 2017)
 
  * Added: `Send-GitCommit` function for pushing local commits to upstream remote repositories.
