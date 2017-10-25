@@ -1,3 +1,7 @@
+# 0.6.0 (25 October 2017)
+
+ * Added functionality to `Get-GitCommit` for getting a list of commits between two specified commits.
+
 # 0.5.0 (23 October 2017)
 
  * Added: `Compare-GitTree` function for getting a `[LibGit2Sharp.TreeChanges]` object representing changes to the repository file tree between two commits.
