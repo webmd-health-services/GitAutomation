@@ -65,10 +65,21 @@ function GivenTag
 
 function WhenGettingDiff
 {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName='Default')]
     param(
+        [Parameter(ParameterSetName='RepositoryRoot')]
+        [switch]
+        $GivenRepositoryRoot,
+
+        [Parameter(ParameterSetName='RepositoryObject')]
+        [switch]
+        $GivenRepositoryObject,
+
         [Parameter(Mandatory=$true)]
+        [string]
         $ReferenceCommit,
+
+        [string]
         $DifferenceCommit
     )
 
@@ -78,7 +89,42 @@ function WhenGettingDiff
         $DifferenceCommitParam['DifferenceCommit'] = $DifferenceCommit
     }
 
-    $script:diffOutput = Compare-GitTree -RepoRoot $repoRoot -ReferenceCommit $ReferenceCommit @DifferenceCommitParam
+    if ($GivenRepositoryRoot)
+    {
+        $script:diffOutput = Compare-GitTree -RepositoryRoot $repoRoot -ReferenceCommit $ReferenceCommit @DifferenceCommitParam
+    }
+    elseif ($GivenRepositoryObject)
+    {
+        Mock -CommandName 'Invoke-Command' -ModuleName 'LibGit2' -ParameterFilter { $ScriptBlock.ToString() -match 'Dispose' }
+        $repoObject = Get-GitRepository -RepoRoot $repoRoot
+        try
+        {
+            $script:diffOutput = Compare-GitTree -RepositoryObject $repoObject -ReferenceCommit $ReferenceCommit @DifferenceCommitParam
+        }
+        finally
+        {
+            $repoObject.Dispose()
+        }
+    }
+    else
+    {
+        Push-Location -Path $repoRoot
+        try
+        {
+            $script:diffOutput = Compare-GitTree -ReferenceCommit $ReferenceCommit @DifferenceCommitParam
+        }
+        finally
+        {
+            Pop-Location
+        }
+    }
+}
+
+function ThenDidNotDisposeRepoObject
+{
+    It 'should not dispose the repository object' {
+        Assert-MockCalled -CommandName 'Invoke-Command' -ModuleName 'LibGit2' -ParameterFilter { $ScriptBlock.ToString() -match 'Dispose' } -Times 0
+    }
 }
 
 function ThenDiffCount
@@ -152,13 +198,34 @@ Describe 'Compare-GitTree.when when a commit does not exist' {
     ThenErrorMessage 'Commit ''nonexistentcommit'' not found in repository'
 }
 
-Describe 'Compare-GitTree.when getting diff between HEAD and its parent commit' {
+Describe 'Compare-GitTree.when getting diff between HEAD and its parent commit in the current directory repository' {
     Init
     GivenARepository
     GivenACommit -ThatAdds 'file1.txt'
     WhenGettingDiff -ReferenceCommit 'HEAD^'
     ThenReturned -Type [LibGit2Sharp.TreeChanges]
     ThenDiffCount -Added 1
+    ThenNoErrorMessages
+}
+
+Describe 'Compare-GitTree.when getting diff between HEAD and its parent commit for the given repository path' {
+    Init
+    GivenARepository
+    GivenACommit -ThatAdds 'file1.txt'
+    WhenGettingDiff -GivenRepositoryRoot -ReferenceCommit 'HEAD^'
+    ThenReturned -Type [LibGit2Sharp.TreeChanges]
+    ThenDiffCount -Added 1
+    ThenNoErrorMessages
+}
+
+Describe 'Compare-GitTree.when getting diff between HEAD and its parent commit for the given repository Object' {
+    Init
+    GivenARepository
+    GivenACommit -ThatAdds 'file1.txt'
+    WhenGettingDiff -GivenRepositoryObject -ReferenceCommit 'HEAD^'
+    ThenReturned -Type [LibGit2Sharp.TreeChanges]
+    ThenDiffCount -Added 1
+    ThenDidNotDisposeRepoObject
     ThenNoErrorMessages
 }
 

@@ -1,3 +1,7 @@
+# 0.7.0 (27 October 2017)
+
+ * `Compare-GitTree` now accepts either a path to the repository with the `RepositoryRoot` parameter or a repository object with the `RepositoryObject` parameter.
+
 # 0.6.0 (25 October 2017)
 
  * Added functionality to `Get-GitCommit` for getting a list of commits between two specified commits.
