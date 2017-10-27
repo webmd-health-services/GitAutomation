@@ -35,12 +35,18 @@ function Compare-GitTree
 
     Demonstrates how to get the diff between the commit tagged with `2.0` and the older commit tagged with `1.0` in the repository located at `C:\build\repo`.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName='RepositoryRoot')]
     [OutputType([LibGit2Sharp.TreeChanges])]
     param(
+        [Parameter(ParameterSetName='RepositoryRoot')]
+        [Alias('RepoRoot')]
         [string]
         # The root path to the repository. Defaults to the current directory.
-        $RepoRoot = (Get-Location).ProviderPath,
+        $RepositoryRoot = (Get-Location).ProviderPath,
+
+        [Parameter(Mandatory=$true, ParameterSetName='RepositoryObject')]
+        [LibGit2Sharp.Repository]
+        $RepositoryObject,
 
         [Parameter(Mandatory=$true)]
         [string]
@@ -55,11 +61,18 @@ function Compare-GitTree
     Set-StrictMode -Version 'Latest'
     Use-CallerPreference -Cmdlet $PSCmdlet -Session $ExecutionContext.SessionState
 
-    $repo = Find-GitRepository -Path $RepoRoot -Verify
-    if (-not $repo)
+    if ($RepositoryObject)
     {
-        Write-Error -Message ('Unable to get diff between ''{0}'' and ''{1}''. See previous errors for more details.' -f $ReferenceCommit, $DifferenceCommit)
-        return
+        $repo = $RepositoryObject
+    }
+    else
+    {
+        $repo = Find-GitRepository -Path $RepositoryRoot -Verify
+        if (-not $repo)
+        {
+            Write-Error -Message ('Unable to get diff between ''{0}'' and ''{1}''. See previous errors for more details.' -f $ReferenceCommit, $DifferenceCommit)
+            return
+        }
     }
 
     try
@@ -82,6 +95,11 @@ function Compare-GitTree
     }
     finally
     {
-        $repo.Dispose()
+        if (-not $RepositoryObject)
+        {
+            Invoke-Command -NoNewScope -ScriptBlock {
+                $repo.Dispose()
+            }
+        }
     }
 }
