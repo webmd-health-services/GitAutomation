@@ -60,10 +60,20 @@ function Update-GitRepository
         $validTarget = $repo.Lookup($Revision)
         if( -not $validTarget )
         {
-            Write-Error ("No valid git object identified by '{0}' exists in the repository." -f $Revision)
-            return
+            $remoteRevision = ('origin/{0}' -f $Revision)
+            $remoteTarget = $repo.Lookup($remoteRevision)
+            if( -not $remoteTarget )
+            {
+                Write-Error ("No valid git object identified by '{0}' exists in the repository." -f $Revision)
+                return
+            }
+            
+            $localBranch = New-GitBranch -RepoRoot $RepoRoot -Name $Revision -Revision $remoteRevision
+            $remoteBranch = Get-GitBranch -RepoRoot $RepoRoot | Where-Object { $_.Name -eq $remoteRevision }
+            $updateRemote = [scriptblock]::Create('param($Branch) $Branch.TrackedBranch = ''{0}''' -f $remoteBranch.CanonicalName)
+            $localBranch = $repo.Branches.Update($localBranch, @($updateRemote))
         }
-
+        
         $options = New-Object LibGit2Sharp.CheckoutOptions
         $repo.Checkout($Revision, $options)
     }
