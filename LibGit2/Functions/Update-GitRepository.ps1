@@ -69,8 +69,8 @@ function Update-GitRepository
             }
             
             $localBranch = New-GitBranch -RepoRoot $RepoRoot -Name $Revision -Revision $remoteRevision
-            $remoteBranch = Get-GitBranch -RepoRoot $RepoRoot | Where-Object { $_.Name -eq $remoteRevision } | Select-Object -ExpandProperty 'CanonicalName'
-            $updateRemote = [scriptblock]::Create('param($Branch) $Branch.TrackedBranch = ''{0}''' -f $remoteBranch)
+            $remoteBranch = Get-GitBranch -RepoRoot $RepoRoot | Where-Object { $_.Name -eq $remoteRevision }
+            $updateRemote = [scriptblock]::Create('param($Branch) $Branch.TrackedBranch = ''{0}''' -f $remoteBranch.CanonicalName)
             $localBranch = $repo.Branches.Update($localBranch, @($updateRemote))
         }
         
