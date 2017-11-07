@@ -16,7 +16,7 @@
 RootModule = 'LibGit2.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.7.0'
+ModuleVersion = '0.8.0'
 
 # ID used to uniquely identify this module
 GUID = '119a2511-62d9-4626-9728-0c8ec7068c57'
@@ -141,7 +141,7 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
-* `Compare-GitTree` now accepts either a path to the repository with the `RepositoryRoot` parameter or a repository object with the `RepositoryObject` parameter.
+* `Update-GitRepository` now supports checking out branches that exist at the remote origin, but don't yet exist locally.
 '@
 
     } # End of PSData hashtable
