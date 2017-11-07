@@ -146,6 +146,41 @@ Describe 'Update-GitRepository when updating to the head of a branch' {
     Assert-ThereAreNoErrors
 }
 
+Describe 'Update-GitRepository when updating to a branch that only exists at the remote origin' {
+    Clear-Error
+    
+    $remoteRepo = New-GitTestRepo
+    Add-GitTestFile -RepoRoot $remoteRepo -Path 'file1'
+    Add-GitItem -Path (Join-Path -Path $remoteRepo -ChildPath 'file1') -RepoRoot $remoteRepo
+    $c1 = Save-GitChange -RepoRoot $remoteRepo -Message 'file1 commit'
+    New-GitBranch -RepoRoot $remoteRepo -Name 'develop' -Revision 'master'
+    Update-GitRepository -RepoRoot $remoteRepo -Revision 'master'
+
+    $localRepoPath = Join-Path -Path (Resolve-TestDrivePath) -ChildPath 'LocalRepo'
+    Copy-GitRepository -Source $remoteRepo -DestinationPath $localRepoPath
+    
+    Update-GitRepository -RepoRoot $localRepoPath -Revision 'develop'
+    
+    It 'should create a local branch to track the remote branch' {
+        $r = Find-GitRepository -Path $localRepoPath
+        try
+        {
+            $originBranch = $r.Branches | Where-Object { $_.Name -eq 'origin/develop' }
+            $localBranch = $r.Branches | Where-Object { $_.Name -eq 'develop' }
+            
+            $originBranch.IsRemote | Should Be $true
+            $localBranch.IsTracking | Should Be $true
+            $originBranch.CanonicalName | Should Match $localBranch.TrackedBranch
+        }
+        finally
+        {
+            $r.Dispose()
+        }
+    }
+    
+    Assert-ThereAreNoErrors
+}
+
 Describe 'Update-GitRepository when run with no parameters' {
     Clear-Error
 
