@@ -1,3 +1,7 @@
+# 0.8.0 (7 November 2017)
+
+ * `Update-GitRepository` now supports checking out branches that exist at the remote origin, but don't yet exist locally.
+
 # 0.7.0 (27 October 2017)
 
  * `Compare-GitTree` now accepts either a path to the repository with the `RepositoryRoot` parameter or a repository object with the `RepositoryObject` parameter.
