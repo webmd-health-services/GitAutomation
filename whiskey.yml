@@ -12,6 +12,7 @@ BuildTasks:
     Path: Source\LibGit2.Automation.sln
 
 - Exec: 
+    OnlyDuring: Build
     Path: robocopy 
     Argument:
     - Source\LibGit2.Automation\bin\$(WHISKEY_MSBUILD_CONFIGURATION)
