@@ -71,7 +71,7 @@ function Get-GitCommit
         if( $PSCmdlet.ParameterSetName -eq 'All' )
         {
             $filter = New-Object -TypeName 'LibGit2Sharp.CommitFilter'
-            $filter.Since = $repo.Refs
+            $filter.IncludeReachableFrom = $repo.Refs
             $repo.Commits.QueryBy($filter) | ForEach-Object { New-Object -TypeName 'LibGit2.Automation.CommitInfo' -ArgumentList $_ }
             return
         }
