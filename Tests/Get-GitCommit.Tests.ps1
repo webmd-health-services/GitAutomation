@@ -22,13 +22,22 @@ function Init
     $Script:repoRoot = $null
 }
 
-function GivenARepository
+function GivenRepository
 {
     $Script:repoRoot = Join-Path -Path $TestDrive.FullName -ChildPath 'repo'
     New-GitRepository -Path $repoRoot | Out-Null
 }
 
-function AddCommit
+function GivenBranch
+{
+    param(
+        $Name
+    )
+
+    New-GitBranch -RepoRoot $repoRoot -Name $Name
+}
+
+function GivenCommit
 {
     param(
         [int]
@@ -43,6 +52,15 @@ function AddCommit
     }
 }
 
+function GivenHeadIs
+{
+    param(
+        $Revision
+    )
+
+    Update-GitRepository -RepoRoot $repoRoot -Revision $Revision
+}
+
 function AddMerge
 {
     try
@@ -53,7 +71,7 @@ function AddMerge
         $testBranch = 'GitCommitTestBranch'
         New-GitBranch -RepoRoot $repoRoot -Name $testBranch
 
-        AddCommit -NumberOfCommits 1
+        GivenCommit -NumberOfCommits 1
         $repo.Checkout('master', (New-Object LibGit2Sharp.CheckoutOptions))
 
         $mergeOptions = New-Object LibGit2Sharp.MergeOptions
@@ -192,8 +210,8 @@ function ThenNoErrorMessages
 
 Describe 'Get-GitCommit.when no parameters specified' {
     Init
-    GivenARepository
-    AddCommit -NumberOfCommits 2
+    GivenRepository
+    GivenCommit -NumberOfCommits 2
     WhenGettingCommit
     ThenReturned -Type [LibGit2.Automation.CommitInfo]
     ThenNumberCommitsReturnedIs 2
@@ -202,18 +220,24 @@ Describe 'Get-GitCommit.when no parameters specified' {
 
 Describe 'Get-GitCommit.when getting all commits' {
     Init
-    GivenARepository
-    AddCommit -NumberOfCommits 5
+    GivenRepository
+    GivenCommit -NumberOfCommits 5
+    GivenHeadIs 'master'
+    GivenBranch 'somebranch'
+    GivenCommit -NumberOfCommits 5
+    GivenHeadIs 'master'
+    GivenBranch 'someotherbranch'
+    GivenCommit -NumberOfCommits 5
     WhenGettingCommit -All
     ThenReturned -Type [LibGit2.Automation.CommitInfo]
-    ThenNumberCommitsReturnedIs 5
+    ThenNumberCommitsReturnedIs 15
     ThenNoErrorMessages
 }
 
 Describe 'Get-GitCommit.when getting specifically the current HEAD commit' {
     Init
-    GivenARepository
-    AddCommit -NumberOfCommits 3
+    GivenRepository
+    GivenCommit -NumberOfCommits 3
     WhenGettingCommit -Revision 'HEAD'
     ThenReturned -Type [LibGit2.Automation.CommitInfo]
     ThenNumberCommitsReturnedIs 1
@@ -223,8 +247,8 @@ Describe 'Get-GitCommit.when getting specifically the current HEAD commit' {
 
 Describe 'Get-GitCommit.when getting a commit that does not exist' {
     Init
-    GivenARepository
-    AddCommit -NumberOfCommits 1
+    GivenRepository
+    GivenCommit -NumberOfCommits 1
     WhenGettingCommit -Revision 'nonexistentcommit' -ErrorAction SilentlyContinue
     ThenReturned -Nothing
     ThenErrorMessage 'Commit ''nonexistentcommit'' not found in repository'
@@ -232,8 +256,8 @@ Describe 'Get-GitCommit.when getting a commit that does not exist' {
 
 Describe 'Get-GitCommit.when getting commit list with an invalid commit' {
     Init
-    GivenARepository
-    AddCommit -NumberOfCommits 1
+    GivenRepository
+    GivenCommit -NumberOfCommits 1
     WhenGettingCommit -Since 'HEAD' -Until 'nonexistentcommit' -ErrorAction SilentlyContinue
     ThenReturned -Nothing
     ThenErrorMessage 'Commit ''nonexistentcommit'' not found in repository'
@@ -241,8 +265,8 @@ Describe 'Get-GitCommit.when getting commit list with an invalid commit' {
 
 Describe 'Get-GitCommit.when Since and Until are the same commit' {
     Init
-    GivenARepository
-    AddCommit -NumberOfCommits 1
+    GivenRepository
+    GivenCommit -NumberOfCommits 1
     AddTag '1.0'
     WhenGettingCommit -Since 'HEAD' -Until '1.0' -ErrorAction SilentlyContinue
     ThenReturned -Nothing
@@ -251,10 +275,10 @@ Describe 'Get-GitCommit.when Since and Until are the same commit' {
 
 Describe 'Get-GitCommit.when getting all commits until a specific commit' {
     Init
-    GivenARepository
-    AddCommit -NumberOfCommits 1
+    GivenRepository
+    GivenCommit -NumberOfCommits 1
     AddTag '1.0'
-    AddCommit -NumberOfCommits 3
+    GivenCommit -NumberOfCommits 3
     WhenGettingCommit -Until '1.0'
     ThenReturned -Type [LibGit2.Automation.CommitInfo]
     ThenNumberCommitsReturnedIs 3
@@ -263,13 +287,13 @@ Describe 'Get-GitCommit.when getting all commits until a specific commit' {
 
 Describe 'Get-GitCommit.when getting list of commits between two specific commits' {
     Init
-    GivenARepository
-    AddCommit -NumberOfCommits 1
+    GivenRepository
+    GivenCommit -NumberOfCommits 1
     AddTag '1.0'
-    AddCommit -NumberOfCommits 2
+    GivenCommit -NumberOfCommits 2
     AddMerge # Adds 2 commits (regular + merge commit)
     AddTag '2.0'
-    AddCommit -NumberOfCommits 1
+    GivenCommit -NumberOfCommits 1
     WhenGettingCommit -Since '2.0' -Until '1.0'
     ThenReturned -Type [LibGit2.Automation.CommitInfo]
     ThenNumberCommitsReturnedIs 4
@@ -278,13 +302,13 @@ Describe 'Get-GitCommit.when getting list of commits between two specific commit
 
 Describe 'Get-GitCommit.when getting list of commits with excluding merge commits' {
     Init
-    GivenARepository
-    AddCommit -NumberOfCommits 1
+    GivenRepository
+    GivenCommit -NumberOfCommits 1
     AddTag '1.0'
-    AddCommit -NumberOfCommits 2
+    GivenCommit -NumberOfCommits 2
     AddMerge # Adds 2 commits (regular + merge commit)
     AddTag '2.0'
-    AddCommit -NumberOfCommits 1
+    GivenCommit -NumberOfCommits 1
     WhenGettingCommit -Since '2.0' -Until '1.0' -NoMerges
     ThenReturned -Type [LibGit2.Automation.CommitInfo]
     ThenNumberCommitsReturnedIs 3

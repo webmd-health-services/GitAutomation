@@ -24,6 +24,7 @@ function Get-GitCommit
     To get the commit of the current checkout, pass `HEAD` to the `Revision` parameter.
     #>
     [CmdletBinding(DefaultParameterSetName='All')]
+    [OutputType([LibGit2.Automation.CommitInfo])]
     param(
         [Parameter(ParameterSetName='All')]
         [switch]
@@ -69,7 +70,9 @@ function Get-GitCommit
     {
         if( $PSCmdlet.ParameterSetName -eq 'All' )
         {
-            $repo.Commits | ForEach-Object { New-Object -TypeName 'LibGit2.Automation.CommitInfo' -ArgumentList $_ }
+            $filter = New-Object -TypeName 'LibGit2Sharp.CommitFilter'
+            $filter.Since = $repo.Refs
+            $repo.Commits.QueryBy($filter) | ForEach-Object { New-Object -TypeName 'LibGit2.Automation.CommitInfo' -ArgumentList $_ }
             return
         }
         elseif( $PSCmdlet.ParameterSetName -eq 'Lookup' )
