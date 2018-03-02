@@ -87,6 +87,7 @@ FunctionsToExport = @(
                         'Get-GitRepository',
                         'Get-GitRepositoryStatus',
                         'Get-GitTag',
+                        'Merge-GitCommit',
                         'New-GitBranch',
                         'New-GitRepository',
                         'New-GitTag',

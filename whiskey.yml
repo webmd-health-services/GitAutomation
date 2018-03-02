@@ -1,0 +1,37 @@
+PublishOn:
+- master
+
+BuildTasks:
+# The Version task sets the current build's version number. You should almost always 
+# have one of these.
+- Version:
+    Path: LibGit2\LibGit2.psd1
+    Build: $(WHISKEY_BUILD_NUMBER).$(WHISKEY_SCM_BRANCH).$(WHISKEY_SCM_COMMIT_ID)
+
+- MSBuild:
+    Path: Source\LibGit2.Automation.sln
+
+- Exec: 
+    Path: robocopy 
+    Argument:
+    - Source\LibGit2.Automation\bin\$(WHISKEY_MSBUILD_CONFIGURATION)
+    - LibGit2\bin
+    - /MIR 
+    - /NJH 
+    - /NJS 
+    - /NP 
+    - /NDL 
+    - /R:0
+    SuccessExitCode: <8
+
+- Pester4:
+    OnlyBy: BuildServer
+    Path: Tests\*.Tests.ps1
+
+- PowerShell:
+    OnlyBy: BuildServer
+    Path: New-Package.ps1
+    Argument:
+        Version: $(WHISKEY_VERSION)
+        BuildMetadata: $(WHISKEY_SEMVER2.Build)
+
