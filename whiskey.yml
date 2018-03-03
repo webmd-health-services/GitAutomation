@@ -23,6 +23,8 @@ BuildTasks:
     - /NP 
     - /NDL 
     - /R:0
+    - /XF
+    - $(WHISKEY_BUILD_ROOT)\LibGit2\bin\.gitignore
     SuccessExitCode: <8
 
 - Pester4:

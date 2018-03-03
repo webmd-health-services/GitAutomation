@@ -90,6 +90,7 @@ FunctionsToExport = @(
                         'Merge-GitCommit',
                         'New-GitBranch',
                         'New-GitRepository',
+                        'New-GitSignature',
                         'New-GitTag',
                         'Receive-GitCommit',
                         'Remove-GitItem',
@@ -144,6 +145,7 @@ PrivateData = @{
         ReleaseNotes = @'
 * Fixed: "Get-GitCommit" doesn't return all commits when using the "-All" switch; it only returns commits reachable from the current HEAD.
 * Added "Merge-GitCommit" function for merging branches, tags, commits, etc.
+* Added "New-GitSignature" function for creating author signatures, which are used when committing to record the commit's author.
 '@
 
     } # End of PSData hashtable
