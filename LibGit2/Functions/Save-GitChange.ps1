@@ -49,7 +49,14 @@ function Save-GitChange
 
         [string]
         # The repository where to commit staged changes. Defaults to the current directory.
-        $RepoRoot
+        $RepoRoot,
+
+        [LibGit2Sharp.Signature]
+        # Author metadata. If not provided, it is pulled from configuration. To create an author/signature object, 
+        #
+        #     New-Object -TypeName 'LibGit2Sharp.Signature' -ArgumentList 'NAME','email@example.com',(Get-Date)
+        #
+        $Signature
     )
 
     Set-StrictMode -Version 'Latest'
@@ -64,8 +71,20 @@ function Save-GitChange
     {
         $commitOptions = New-Object 'LibGit2Sharp.CommitOptions'
         $commitOptions.AllowEmptyCommit = $false
-        $author = $repo.Config.BuildSignature((Get-Date))
-        $repo.Commit( $Message, $author, $author, $commitOptions ) |
+        if( -not $Signature )
+        {
+            $Signature = $repo.Config.BuildSignature((Get-Date))
+            if( -not $Signature )
+            {
+                Write-Error -Message ('Failed to build commit author signature from Git configuration files. Please pass a custom author signature to the "Signature" parameter or set them for the current user by running these commands:
+ 
+    git config --global user.name "GIVEN_NAME SURNAME"
+    git config --global user.email "email@example.com"
+ ')
+                return
+            }
+        }
+        $repo.Commit( $Message, $Signature, $Signature, $commitOptions ) |
             ForEach-Object { New-Object 'LibGit2.Automation.CommitInfo' $_ } 
     }
     catch [LibGit2Sharp.EmptyCommitException]
