@@ -146,6 +146,7 @@
     * Fixed: "Get-GitCommit" doesn't return all commits when using the "-All" switch; it only returns commits reachable from the current HEAD.
     * Added "Merge-GitCommit" function for merging branches, tags, commits, etc.
     * Added "New-GitSignature" function for creating author signatures, which are used when committing to record the commit's author.
+    * Added "Signature" parameter to "Save-GitChange" so you can customize the author information for a commit. By default, "Save-GitChange" reads author information from Git's global configuration files.
 '@
 
         } # End of PSData hashtable
