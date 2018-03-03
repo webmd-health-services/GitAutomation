@@ -143,6 +143,7 @@ PrivateData = @{
         # ReleaseNotes of this module
         ReleaseNotes = @'
 * Fixed: "Get-GitCommit" doesn't return all commits when using the "-All" switch; it only returns commits reachable from the current HEAD.
+* Added "Merge-GitCommit" for merging branches, tags, commits, etc.
 '@
 
     } # End of PSData hashtable
