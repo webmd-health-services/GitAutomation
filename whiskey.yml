@@ -27,6 +27,24 @@ BuildTasks:
     - $(WHISKEY_BUILD_ROOT)\LibGit2\bin\.gitignore
     SuccessExitCode: <8
 
+- Exec:
+    OnlyBy: BuildServer
+    Path: git
+    Argument:
+    - config 
+    - --global 
+    - user.name 
+    - AppVeyor
+
+- Exec:
+    OnlyBy: BuildServer
+    Path: git
+    Argument:
+    - config 
+    - --global 
+    - user.email 
+    - appveyor@example.com
+
 - Pester4:
     OnlyBy: BuildServer
     Path: Tests\*.Tests.ps1
