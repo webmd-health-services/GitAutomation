@@ -86,8 +86,8 @@ function Save-GitChange
     git config --global user.name "GIVEN_NAME SURNAME"
     git config --global user.email "email@example.com"
  ')
+                return
             }
-            return
         }
 
         $repo.Commit( $Message, $Signature, $Signature, $commitOptions ) |
