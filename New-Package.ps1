@@ -80,7 +80,7 @@ Set-ModuleManifestMetadata -ManifestPath $manifestPath -Tag $tags -ReleaseNotesP
 
 Set-ModuleNuspec -ManifestPath $manifestPath -NuspecPath $nuspecPath -ReleaseNotesPath $releaseNotesPath -Tags $tags
 
-$outputDirectory = Join-Path -Path $PSScriptRoot -ChildPath 'Output'
+$outputDirectory = Join-Path -Path $PSScriptRoot -ChildPath '.output'
 if( (Test-Path -Path $outputDirectory -PathType Container) )
 {
     Get-ChildItem -Path $outputDirectory | Remove-Item -Recurse
