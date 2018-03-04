@@ -49,6 +49,9 @@ BuildTasks:
     OnlyBy: BuildServer
     Path: Tests\*.Tests.ps1
 
+- GetPowerShellModule:
+    Name: Silk
+
 - PowerShell:
     OnlyBy: BuildServer
     Path: New-Package.ps1
