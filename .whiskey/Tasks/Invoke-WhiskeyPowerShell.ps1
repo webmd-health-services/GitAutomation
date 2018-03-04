@@ -135,7 +135,7 @@ function Invoke-WhiskeyPowerShell
 
             Invoke-Command -ScriptBlock { 
                                             $VerbosePreference = 'SilentlyContinue';
-                                            Import-Module -Name $moduleRoot
+                                            & (Join-Path -Path $moduleRoot -ChildPath 'Import-Whiskey.ps1' -Resolve)
                                         }
 
             $VerbosePreference = $using:VerbosePreference
