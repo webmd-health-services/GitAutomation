@@ -78,13 +78,14 @@ function GivenRemoteContainsOtherChanges
 
 function WhenSendingGitCommits
 {
+    [CmdletBinding()]
     param(
     )
 
     $Global:Error.Clear()
     $script:pushResult = $null
     
-    $script:pushResult = Send-GitCommit -RepoRoot $localRepoPath -ErrorAction SilentlyContinue
+    $script:pushResult = Send-GitCommit -RepoRoot $localRepoPath #-ErrorAction SilentlyContinue
 }
 
 function ThenNoErrorsWereThrown
@@ -161,7 +162,7 @@ Describe 'Send-GitCommit.when remote repository has changes not contained locall
     GivenLocalRepositoryTracksRemote 'LocalRepo'
     GivenRemoteContainsOtherChanges
     GivenCommittedChangeToPush
-    WhenSendingGitCommits
+    WhenSendingGitCommits -ErrorAction SilentlyContinue
     ThenErrorWasThrown 'that you are trying to update on the remote contains commits that are not present locally.'
     ThenPushResultIs ([LibGit2.Automation.PushResult]::Rejected)
 }
@@ -169,7 +170,7 @@ Describe 'Send-GitCommit.when remote repository has changes not contained locall
 Describe 'Send-GitCommit.when no upstream remote is defined' {
     GivenLocalRepositoryWithNoRemote 'LocalRepo'
     GivenCommittedChangeToPush
-    WhenSendingGitCommits
+    WhenSendingGitCommits -ErrorAction SilentlyContinue
     ThenErrorWasThrown 'that you are trying to push does not track an upstream branch.'
     ThenPushResultIs ([LibGit2.Automation.PushResult]::Failed)
 }

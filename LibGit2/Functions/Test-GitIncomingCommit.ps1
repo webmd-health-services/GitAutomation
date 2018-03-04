@@ -43,6 +43,7 @@ function Test-GitIncomingCommit
     )
 
     Set-StrictMode -Version 'Latest'
+    Use-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
    
     $repo = Find-GitRepository -Path $RepoRoot -Verify
     if( -not $repo )
@@ -57,10 +58,10 @@ function Test-GitIncomingCommit
         # fetch any remote commits
         Receive-GitCommit -RepoRoot $RepoRoot -Fetch
 
-        $currentBranch = $repo.Head.Name
-        $filter = New-Object LibGit2Sharp.CommitFilter
-        $filter.Until = $repo.Branches[$currentBranch]
-        $filter.Since = $repo.Branches["remotes/origin/$currentBranch"]
+        $currentBranch = $repo.Head.FriendlyName
+        $filter = New-Object -TypeName 'LibGit2Sharp.CommitFilter'
+        $filter.ExcludeReachableFrom = $repo.Branches[$currentBranch]
+        $filter.IncludeReachableFrom = $repo.Branches["remotes/origin/$currentBranch"]
 
         $numIn = $repo.Commits.QueryBy($filter) | Measure-Object | Select-Object -ExpandProperty Count    
         if( $numIn -gt 0 )
@@ -71,10 +72,10 @@ function Test-GitIncomingCommit
         if( $All )
         {
             $repo.Branches | Where-Object { -not $_.IsRemote -and -not $_.IsCurrentRepositoryHead } | ForEach-Object {
-                $branchName = $_.Name
-                $filter = New-Object LibGit2Sharp.CommitFilter
-                $filter.Until = $_
-                $filter.Since = $repo.Branches["remotes/origin/$branchName"]
+                $branchName = $_.FriendlyName
+                $filter = New-Object -TypeName 'LibGit2Sharp.CommitFilter'
+                $filter.ExcludeReachableFrom = $_
+                $filter.IncludeReachableFrom = $repo.Branches["remotes/origin/$branchName"]
 
                 $numIn += $repo.Commits.QueryBy($filter) | Measure-Object | Select-Object -ExpandProperty Count
                 if( $numIn -gt 0 )

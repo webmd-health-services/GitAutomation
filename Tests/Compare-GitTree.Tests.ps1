@@ -12,7 +12,7 @@
 
 & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
 
-$diffOutput = $null
+[LibGit2Sharp.TreeChanges]$diffOutput = $null
 $repoRoot= $null
 
 function Init
@@ -111,7 +111,11 @@ function WhenGettingDiff
         Push-Location -Path $repoRoot
         try
         {
-            $script:diffOutput = Compare-GitTree -ReferenceCommit $ReferenceCommit @DifferenceCommitParam
+            $result = Compare-GitTree -ReferenceCommit $ReferenceCommit @DifferenceCommitParam
+            if( $result )
+            {
+                $script:diffOutput = $result
+            }
         }
         finally
         {
@@ -141,10 +145,10 @@ function ThenDiffCount
     )
 
     It 'diff object should represent the correct amount of changes' {
-        $diffOutput.Added.Count    | Should -Be $Added
-        $diffOutput.Deleted.Count  | Should -Be $Deleted
-        $diffOutput.Modified.Count | Should -Be $Modified
-        $diffOutput.Renamed.Count  | Should -Be $Renamed
+        ($diffOutput.Added | Measure-Object).Count | Should -Be $Added
+        ($diffOutput.Deleted | Measure-Object).Count  | Should -Be $Deleted
+        ($diffOutput.Modified | Measure-Object).Count | Should -Be $Modified
+        ($diffOutput.Renamed | Measure-Object).Count  | Should -Be $Renamed
     }
 }
 

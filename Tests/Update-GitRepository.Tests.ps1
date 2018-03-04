@@ -165,8 +165,8 @@ Describe 'Update-GitRepository when updating to a branch that only exists at the
         $r = Find-GitRepository -Path $localRepoPath
         try
         {
-            $originBranch = $r.Branches | Where-Object { $_.Name -eq 'origin/develop' }
-            $localBranch = $r.Branches | Where-Object { $_.Name -eq 'develop' }
+            $originBranch = $r.Branches | Where-Object { $_.FriendlyName -eq 'origin/develop' }
+            $localBranch = $r.Branches | Where-Object { $_.FriendlyName -eq 'develop' }
             
             $originBranch.IsRemote | Should Be $true
             $localBranch.IsTracking | Should Be $true

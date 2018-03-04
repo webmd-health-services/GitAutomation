@@ -142,11 +142,18 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
+
             ReleaseNotes = @'
-    * Fixed: "Get-GitCommit" doesn't return all commits when using the "-All" switch; it only returns commits reachable from the current HEAD.
-    * Added "Merge-GitCommit" function for merging branches, tags, commits, etc.
-    * Added "New-GitSignature" function for creating author signatures, which are used when committing to record the commit's author.
-    * Added "Signature" parameter to "Save-GitChange" so you can customize the author information for a commit. By default, "Save-GitChange" reads author information from Git's global configuration files.
+* Upgraded to LibGit2 0.24.0. This is a potential breaking change. We noticed the following changes:
+  * The "LibGit2Sharp.TreeChanges" object returned by "Compare-GitTree" returns new objects types for its "Added", "Deleted", "Modified", "TypeChanged", "Renamed", "Copied", "Unmodified", and "Conflicted" properties. They used to be "List" objects, but now they are strictly "IEnumerable".
+  * The "LibGit2Sharp.FileStatus" no longer has "Added", "Staged", "Removed", "StagedTypeChange", "Untracked", "Modified", "Missing", or "TypeChanged" values. This affects the object returned by "Get-GitRepositoryStatus".
+  * The "Since" property on "LibGit2Sharp.CommitFilter" is gone, replaced with "IncludeReachableFrom".
+  * The "Until" property on "LibGit2Sharp.CommitFilter" is gone, replaced with "ExcludeReachableFrom".
+  * The "Name" property on "LibGit2Sharp.Branch" is gone, replaced with "FriendlyName".
+* Fixed: "Get-GitCommit" doesn't return all commits when using the "-All" switch; it only returns commits reachable from the current HEAD.
+* Added "Merge-GitCommit" function for merging branches, tags, commits, etc.
+* Added "New-GitSignature" function for creating author signatures, which are used when committing to record the commit's author.
+* Added "Signature" parameter to "Save-GitChange" so you can customize the author information for a commit. By default, "Save-GitChange" reads author information from Git's global configuration files.
 '@
 
         } # End of PSData hashtable
