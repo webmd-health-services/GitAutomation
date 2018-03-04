@@ -54,17 +54,6 @@ Set-ModuleVersion -ManifestPath $manifestPath `
                   -SolutionPath (Join-Path -Path $PSScriptRoot -ChildPath 'Source\LibGit2.Automation.sln' -Resolve) `
                   -AssemblyInfoPath (Join-Path -Path $PSScriptRoot -ChildPath 'Source\LibGit2.Automation\Properties\AssemblyInfo.cs' -Resolve)
 
-if( (Test-Path -Path 'env:APPVEYOR') )
-{
-    Get-ChildItem -Path 'env:' | Format-List
-
-    & (Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2\Import-LibGit2.ps1' -Resolve)
-    Set-GitConfiguration -Scope Global -Name 'user.name' -Value $env:USERNAME
-    Set-GitConfiguration -Scope Global -Name 'user.email' -Value ('{0}@get-libgit2.org' -f $env:USERNAME)
-}
-
-Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'Modules\Pester' -Resolve)
-
 $valid = Assert-ModuleVersion -ManifestPath $manifestPath -ReleaseNotesPath $releaseNotesPath -NuspecPath $nuspecPath -ExcludeAssembly 'LibGit2Sharp.dll'
 if( -not $valid )
 {

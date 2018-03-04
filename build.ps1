@@ -30,5 +30,10 @@ if( $Initialize )
     $optionalArgs['Initialize'] = $true
 }
 
+if( (Test-Path -Path 'env:APPVEYOR') )
+{
+    Get-ChildItem -Path 'env:'
+}
+
 $context = New-WhiskeyContext -Environment 'Dev' -ConfigurationPath $configPath
 Invoke-WhiskeyBuild -Context $context @optionalArgs
