@@ -104,5 +104,10 @@ New-ChocolateyPackage -OutputDirectory (Join-Path -Path $outputDirectory -ChildP
 $source = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2'
 $destination = Join-Path -Path $outputDirectory -ChildPath 'LibGit2'
 robocopy.exe $source $destination /MIR /NJH /NJS /NP /NDL /XD /XF '*.pdb'
+if( $LASTEXITCODE -lt 8 )
+{
+    $LASTEXITCODE = 0
+}
 
 Get-ChildItem -Path 'RELEASE_NOTES.md','LICENSE','NOTICE' | Copy-Item -Destination $destination
+
