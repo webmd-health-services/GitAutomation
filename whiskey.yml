@@ -11,6 +11,11 @@ BuildTasks:
 - MSBuild:
     Path: Source\LibGit2.Automation.sln
 
+- Delete:
+    OnlyBy: BuildServer
+    Path: 
+    - LibGit2\bin\*.pdb
+
 - Exec: 
     OnlyDuring: Build
     Path: robocopy 
@@ -59,3 +64,7 @@ BuildTasks:
         Version: $(WHISKEY_VERSION)
         BuildMetadata: $(WHISKEY_SEMVER2.Build)
 
+PublishTasks:
+
+- PowerShell:
+    Path: Publish-LibGit2.ps1
