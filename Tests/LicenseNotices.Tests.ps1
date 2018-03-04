@@ -64,8 +64,15 @@ Describe 'License Notices' {
                         'libgit2_filename.txt',
                         'libgit2_hash.txt'
                     )
+    $exclude = @(
+                    'packages',
+                    '.output',
+                    '.whiskey',
+                    'build.ps1',
+                    'whiskey.yml'
+                )
     
-    [object[]]$filesMissingLicense = Get-ChildItem -Path $projectRoot -Exclude 'packages' |
+    [object[]]$filesMissingLicense = Get-ChildItem -Path $projectRoot -Exclude $exclude |
         Get-ChildItem -Recurse -File -Exclude $filesToSkip |
         Where-Object { $_.FullName -notlike '*\obj\*' -and $_.FullName -notmatch '\\(packages|Carbon|Pester|Silk)\\' } |
         Where-Object { $name = $_.Name; -not ($filesToSkip | Where-Object { $name -like $_ }) } |
