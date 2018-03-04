@@ -35,7 +35,7 @@ function GivenFile
         $Content = ''
     )
 
-    $Content | Set-Content -Path (Join-Path -Path (Get-RepoRoot) -ChildPath $Name)
+    [IO.File]::WriteAllText((Join-Path -Path (Get-RepoRoot) -ChildPath $Name), $Content)
     Add-GitItem -Path $Name -RepoRoot (Get-RepoRoot)
     Save-GitChange -Message $Name -RepoRoot (Get-RepoRoot)
 }
@@ -309,7 +309,7 @@ Describe 'Merge-GitCommit.when there are conflicts' {
     GivenFile 'conflict' 'master'
     WhenMerging 'develop' 
     ThenMergeStatus -Is ([LibGit2Sharp.MergeStatus]::Conflicts)
-    ThenFileContentIs 'conflict' ("<<<<<<< HEAD`nmaster`r`n=======`ndevelop`r`n>>>>>>> {0}`n" -f (Get-GitCommit -RepoRoot (Get-RepoRoot) -Revision 'develop').Sha)
+    ThenFileContentIs 'conflict' ("<<<<<<< HEAD`nmaster`n=======`ndevelop`n>>>>>>> {0}`n" -f (Get-GitCommit -RepoRoot (Get-RepoRoot) -Revision 'develop').Sha)
     ThenCommitCountIs 3
 }
 
@@ -322,7 +322,7 @@ Describe 'Merge-GitCommit.when there are conflicts and merging non-interactively
     GivenFile 'conflict' 'master'
     WhenMerging 'develop' -NonInteractive
     ThenMergeStatus -Is ([LibGit2Sharp.MergeStatus]::Conflicts)
-    ThenFileContentIs 'conflict' "master`r`n"
+    ThenFileContentIs 'conflict' "master"
     ThenCommitCountIs 3
 }
 
