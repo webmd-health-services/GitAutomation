@@ -111,3 +111,4 @@ if( $LASTEXITCODE -lt 8 )
 
 Get-ChildItem -Path 'RELEASE_NOTES.md','LICENSE','NOTICE' | Copy-Item -Destination $destination
 
+exit 0
