@@ -201,7 +201,7 @@ function ThenNotMerged
 
     $repoRoot = Get-RepoRoot
     It ('should not merge') {
-        (Get-GitCommit -RepoRoot $repoRoot -Revision $Revision1).Sha | Should -Not -Be (Get-GitCommit -RepoRoot $repoRoot -Revision $Revision2)
+        (Get-GitCommit -RepoRoot $repoRoot -Revision $Revision1).Sha | Should -Not -Be (Get-GitCommit -RepoRoot $repoRoot -Revision $Revision2).Sha
     }
 }
 
@@ -349,23 +349,25 @@ Describe 'Merge-GitCommit.when merging a tag' {
     GivenFile 'develop'
     GivenTag 'fubar'
     GivenCurrentHead 'master'
+    GivenFile 'master.2'
     WhenMerging 'fubar'
-    ThenMergeStatus -Is ([LibGit2Sharp.MergeStatus]::FastForward)
+    ThenMergeStatus -Is ([LibGit2Sharp.MergeStatus]::NonFastForward)
     ThenFileExists 'develop'
-    ThenFastForwarded 'master' 'fubar'
+    ThenCreatedMergeCommit -Parent1Revision 'HEAD~1' -Parent2Revision 'fubar'
     ThenNotMerged 'master' 'develop'
 }
 
-Describe 'Merge-GitCommit.when merging a tag' {
+Describe 'Merge-GitCommit.when merging a specific commit' {
     Init
     GivenGitRepository
     GivenGitBranch 'develop'
     GivenFile 'develop'
     GivenCurrentHead 'master'
+    GivenFile 'master.2'
     $commit = Get-GitCommit -RepoRoot (Get-RepoRoot) -Revision 'develop'
     WhenMerging $commit.Sha
-    ThenMergeStatus -Is ([LibGit2Sharp.MergeStatus]::FastForward)
+    ThenMergeStatus -Is ([LibGit2Sharp.MergeStatus]::NonFastForward)
     ThenFileExists 'develop'
-    ThenFastForwarded 'master' $commit.Sha
+    ThenCreatedMergeCommit 'HEAD^1' $commit.Sha
     ThenNotMerged 'master' 'develop'
 }
