@@ -44,7 +44,7 @@ function Merge-GitCommit
 
         [Parameter(Mandatory=$true)]
         [string]
-        # The revision the tag should point to/reference. A revision can be a specific commit ID/sha (short or long), branch name, tag name, etc. Run git help gitrevisions or go to https://git-scm.com/docs/gitrevisions for full documentation on Git's revision syntax.
+        # The revision to merge into the current commit (i.e. HEAD). A revision can be a specific commit ID/sha (short or long), branch name, tag name, etc. Run git help gitrevisions or go to https://git-scm.com/docs/gitrevisions for full documentation on Git's revision syntax.
         $Revision = "HEAD",
 
         [string]
