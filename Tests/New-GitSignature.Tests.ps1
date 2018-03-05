@@ -135,7 +135,7 @@ Describe 'New-GitSignature.when reading configuration from repository' {
     ThenSignatureIs 'Repo Repo' 'repo@example.com'
 }
 
-Describe 'New-GitSignature.when reading configuration from repository' {
+Describe 'New-GitSignature.when configuration is missing' {
     $blankGitConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\LibGit2\bin\.gitconfig'
     $config = [LibGit2Sharp.Configuration]::BuildFrom($blankGitConfigPath)
     $name = $config | Where-Object { $_.Key -eq 'user.name' } | Select-Object -ExpandProperty 'Value'
