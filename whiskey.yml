@@ -67,14 +67,15 @@ BuildTasks:
 
 PublishTasks:
 
-#- NuGetPush:
-#    Uri: https://nuget.org/api/v2/package
-#    ApiKeyID: nuget.org
-#    Version: 4.1.0
-#    Path: .output\nuget.org\*.nupkg
+- NuGetPush:
+    Uri: https://nuget.org/api/v2/package
+    ApiKeyID: nuget.org
+    Version: 4.1.0
+    Path: .output\nuget.org\*.nupkg
+    SkipUploadedCheck: true
 
-# - PowerShell:
-#     Path: Publish-LibGit2.ps1
+- PowerShell:
+    Path: Publish-LibGit2.ps1
 
 - PublishPowerShellModule:
     RepositoryName: PSGallery

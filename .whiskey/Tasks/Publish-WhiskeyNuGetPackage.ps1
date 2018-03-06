@@ -135,14 +135,18 @@ Use the `Add-WhiskeyApiKey` function to add the API key to the build.
 
         # Publish package and symbols to NuGet
         Invoke-WhiskeyNuGetPush -Path $path -Uri $source -ApiKey $apiKey -NuGetPath $nuGetPath
-            
-        try
+        
+        $skipUploadedCheck = $TaskParameter['SkipUploadedCheck'] | ConvertFrom-WhiskeyYamlScalar
+        if( -not $skipUploadedCheck )
         {
-            Invoke-WebRequest -Uri $packageUri -UseBasicParsing | Out-Null
-        }
-        catch [Net.WebException]
-        {
-            Stop-WhiskeyTask -TaskContext $TaskContext -Message ('Failed to publish NuGet package {0} {1} to {2}. When we checked if that package existed, we got a {3} HTTP status code. Please see build output for more information.' -f $projectName,$packageVersion,$packageUri,$_.Exception.Response.StatusCode)
+            try
+            {
+                Invoke-WebRequest -Uri $packageUri -UseBasicParsing | Out-Null
+            }
+            catch [Net.WebException]
+            {
+                Stop-WhiskeyTask -TaskContext $TaskContext -Message ('Failed to publish NuGet package {0} {1} to {2}. When we checked if that package existed, we got a {3} HTTP status code. Please see build output for more information.' -f $projectName,$packageVersion,$packageUri,$_.Exception.Response.StatusCode)
+            }
         }
     }
 } 

@@ -16,7 +16,7 @@
     RootModule = 'LibGit2.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.9.0'
+    ModuleVersion = '0.9.1'
 
     # ID used to uniquely identify this module
     GUID = '119a2511-62d9-4626-9728-0c8ec7068c57'
@@ -144,6 +144,13 @@
             # ReleaseNotes of this module
 
             ReleaseNotes = @'
+# 0.9.1
+
+* Fixed: publishing to nuget.org fails.
+* Fixed: Chocolatey package is missing VERIFICATION.txt.
+
+# 0.9.0
+
 * Upgraded to LibGit2 0.24.0. This is a potential breaking change. We noticed the following changes:
   * The "LibGit2Sharp.TreeChanges" object returned by "Compare-GitTree" returns new objects types for its "Added", "Deleted", "Modified", "TypeChanged", "Renamed", "Copied", "Unmodified", and "Conflicted" properties. They used to be "List" objects, but now they are strictly "IEnumerable".
   * The "LibGit2Sharp.FileStatus" no longer has "Added", "Staged", "Removed", "StagedTypeChange", "Untracked", "Modified", "Missing", or "TypeChanged" values. This affects the object returned by "Get-GitRepositoryStatus".
