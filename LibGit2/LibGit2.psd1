@@ -16,19 +16,19 @@
     RootModule = 'LibGit2.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.9.1'
+    ModuleVersion = '0.9.2'
 
     # ID used to uniquely identify this module
     GUID = '119a2511-62d9-4626-9728-0c8ec7068c57'
 
     # Author of this module
-    Author = 'Aaron Jensen'
+    Author = 'WebMD Health Services'
 
     # Company or vendor of this module
     CompanyName = ''
 
     # Copyright statement for this module
-    Copyright = 'Copyright 2016 Aaron Jensen'
+    Copyright = 'Copyright 2016 - 2018 WebMD Health Services'
 
     # Description of the functionality provided by this module
     Description = @'
@@ -144,6 +144,11 @@
             # ReleaseNotes of this module
 
             ReleaseNotes = @'
+# 0.9.2
+
+* Automated publishing works.
+* Changed author and copyright metadata.
+
 # 0.9.1
 
 * Fixed: publishing to nuget.org fails.
