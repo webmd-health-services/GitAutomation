@@ -3,9 +3,11 @@ packages/
 Carbon/
 Silk/
 Pester/
+Modules
 get-libgit2.org/
 *.suo
 **/bin/**
 **/obj/**
 Output/
 **/*.user
+.output

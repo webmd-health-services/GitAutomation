@@ -32,7 +32,7 @@ Set-StrictMode -Version Latest
 
 & (Join-Path -Path $PSScriptRoot -ChildPath 'Silk\Import-Silk.ps1' -Resolve)
 
-$libGitRoot = Join-Path -Path $PSScriptRoot -ChildPath 'Output\LibGit2'
+$libGitRoot = Join-Path -Path $PSScriptRoot -ChildPath '.output\LibGit2'
 $releaseNotesPath = Join-Path -Path $libGitRoot -ChildPath 'RELEASE_NOTES.md' -Resolve
 
 $manifestPath = Join-Path -Path $libGitRoot -ChildPath 'LibGit2.psd1'
@@ -43,11 +43,11 @@ if( -not $manifest )
 }
 
 $nupkgPath = Join-Path -Path $PSScriptRoot `
-                       -ChildPath ('Output\nuget.org\LibGit2.PowerShell.{0}.nupkg' -f $manifest.Version)
+                       -ChildPath ('.output\nuget.org\LibGit2.PowerShell.{0}.nupkg' -f $manifest.Version)
 Publish-NuGetPackage -NupkgPath $nupkgPath
 
 $nupkgPath = Join-Path -Path $PSScriptRoot `
-                       -ChildPath ('Output\chocolatey.org\LibGit2.PowerShell.{0}.nupkg' -f $manifest.Version)
+                       -ChildPath ('.output\chocolatey.org\LibGit2.PowerShell.{0}.nupkg' -f $manifest.Version)
 Publish-ChocolateyPackage -NupkgPath $nupkgPath
 
 $tags = @( 'git', 'vcs', 'rcs', 'automation', 'github', 'gitlab', 'libgit2' )

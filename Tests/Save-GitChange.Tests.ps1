@@ -12,11 +12,31 @@
 
 & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
 
+$repoRoot = $null
+[LibGit2Sharp.Signature]$signature = $null
+
+function GivenRepository
+{
+    $script:repoRoot = New-GitTestRepo
+}
+
+function GivenSignature
+{
+    $script:signature = New-GitSignature -Name 'Fubar Snafu' -EmailAddress 'fizzbuzz@example.com'
+}
+
+function Init
+{
+    $script:repoRoot = $null
+    $script:signature = $null
+}
+
 Describe 'Save-GitChange when committing changes' {
-    $repoRoot = New-GitTestRepo
+    GivenRepository
+    GivenSignature
     Add-GitTestFile -Path 'file1' -RepoRoot $repoRoot
     Add-GitItem -Path 'file1' -RepoRoot $repoRoot
-    $commit = Save-GitChange -Message 'fubar' -RepoRoot $repoRoot
+    $commit = Save-GitChange -Message 'fubar' -RepoRoot $repoRoot -Signature $signature
     It 'should return a commit object' {
         $commit.pstypenames | Where-Object { $_ -eq 'LibGit2.Automation.CommitInfo' } | Should Not BeNullOrEmpty
     }
@@ -27,6 +47,8 @@ Describe 'Save-GitChange when committing changes' {
     Context 'the commit object returned' {
         It 'should have an author' {
             $commit.Author | Should Not BeNullOrEmpty
+            $commit.Author.Email | Should -Be $signature.Email
+            $commit.Author.Name | Should -Be $signature.Name
             $commit.Committer | Should Not BeNullOrEmpty
             $commit.Committer | Should Be $commit.Author
         }
@@ -50,15 +72,11 @@ Describe 'Save-GitChange when committing changes' {
 }
 
 Describe 'Save-GitChange when nothing to commit' {
-    $repoRoot = New-GitTestRepo
-    # First commit can be empty.
-    Save-GitChange -Message 'fubar' -RepoRoot $repoRoot
-    $commit = Save-GitChange -Message 'fubar' -RepoRoot $repoRoot -WarningVariable 'warnings'
+    GivenRepository
+    GivenSignature
+    Save-GitChange -Message 'fubar' -RepoRoot $repoRoot -Signature $signature
+    $commit = Save-GitChange -Message 'fubar' -RepoRoot $repoRoot 
     It 'should commit nothing' {
         $commit | Should BeNullOrEmpty
-    }
-    It 'should write a warning' {
-        $warnings | Should Not BeNullOrEmpty
-        $warnings | Should Match 'nothing to commit'
     }
 }

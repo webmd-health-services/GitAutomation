@@ -41,7 +41,7 @@ Describe 'Get-GitRepositoryStatus when getting status' {
 
     $status = Get-GitRepositoryStatus -RepoRoot $repoRoot
     It 'should show new files' {
-        $status | Where-Object { $_.FilePath -ne 'untracked' } | Select-Object -ExpandProperty 'State' | ForEach-Object { $_ |  Should Be ([LibGit2Sharp.FileStatus]::Added) }
+        $status | Where-Object { $_.FilePath -ne 'untracked' } | Select-Object -ExpandProperty 'State' | ForEach-Object { $_ |  Should Be ([LibGit2Sharp.FileStatus]::NewInIndex) }
     }
 
     Save-GitChange -Message 'testing status' -RepoRoot $repoRoot
@@ -49,22 +49,22 @@ Describe 'Get-GitRepositoryStatus when getting status' {
     'modified' | Set-Content -Path $modifiedPath
 
     It 'should show files modified in the working directory' {
-        Get-GitRepositoryStatus -RepoRoot $repoRoot | Where-Object { $_.FilePath -eq 'modified' } | Select-Object -ExpandProperty 'State' | Should Be ([LibGit2Sharp.FileStatus]::Modified)
+        Get-GitRepositoryStatus -RepoRoot $repoRoot | Where-Object { $_.FilePath -eq 'modified' } | Select-Object -ExpandProperty 'State' | Should Be ([LibGit2Sharp.FileStatus]::ModifiedInWorkdir)
     }
 
     Add-GitItem -Path $modifiedPath -RepoRoot $repoRoot
     It 'should show staged files' {
-        Get-GitRepositoryStatus -RepoRoot $repoRoot | Where-Object { $_.FilePath -eq 'modified' } | Select-Object -ExpandProperty 'State' | Should Be ([LibGit2Sharp.FileStatus]::Staged)
+        Get-GitRepositoryStatus -RepoRoot $repoRoot | Where-Object { $_.FilePath -eq 'modified' } | Select-Object -ExpandProperty 'State' | Should Be ([LibGit2Sharp.FileStatus]::ModifiedInIndex)
     }
 
     git -C $repoRoot rm $removedPath
     It 'should show removed files' {
-        Get-GitRepositoryStatus -RepoRoot $repoRoot | Where-Object { $_.FilePath -eq 'removed' } | Select-Object -ExpandProperty 'State' | Should Be ([LibGit2Sharp.FileStatus]::Removed)
+        Get-GitRepositoryStatus -RepoRoot $repoRoot | Where-Object { $_.FilePath -eq 'removed' } | Select-Object -ExpandProperty 'State' | Should Be ([LibGit2Sharp.FileStatus]::DeletedFromIndex)
     }
 
     Remove-Item -Path $missingPath
     It 'should show missing files' {
-        Get-GitRepositoryStatus -RepoRoot $repoRoot | Where-Object { $_.FilePath -eq 'missing' } | Select-Object -ExpandProperty 'State' | Should Be ([LibGit2Sharp.FileStatus]::Missing)
+        Get-GitRepositoryStatus -RepoRoot $repoRoot | Where-Object { $_.FilePath -eq 'missing' } | Select-Object -ExpandProperty 'State' | Should Be ([LibGit2Sharp.FileStatus]::DeletedFromWorkdir)
     }
 
     git -C $repoRoot mv $renamedPath (Join-Path -Path $repoRoot -ChildPath 'renamed2')
