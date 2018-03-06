@@ -30,7 +30,7 @@ param(
 #Requires -Version 4
 Set-StrictMode -Version Latest
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Silk\Import-Silk.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Modules\Silk\Import-Silk.ps1' -Resolve)
 
 $libGitRoot = Join-Path -Path $PSScriptRoot -ChildPath '.output\LibGit2'
 $releaseNotesPath = Join-Path -Path $libGitRoot -ChildPath 'RELEASE_NOTES.md' -Resolve

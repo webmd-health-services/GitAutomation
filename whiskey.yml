@@ -1,5 +1,6 @@
 PublishOn:
 - master
+- feature/merge-gitcommit
 
 BuildTasks:
 # The Version task sets the current build's version number. You should almost always 
