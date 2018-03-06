@@ -43,14 +43,12 @@ if( -not $manifest )
 }
 
 $nupkgPath = Join-Path -Path $PSScriptRoot `
-                       -ChildPath ('.output\nuget.org\LibGit2.PowerShell.{0}.nupkg' -f $manifest.Version)
-Publish-NuGetPackage -NupkgPath $nupkgPath -ApiKey $env:NUGET_ORG_API_KEY
-
-$nupkgPath = Join-Path -Path $PSScriptRoot `
                        -ChildPath ('.output\chocolatey.org\LibGit2.PowerShell.{0}.nupkg' -f $manifest.Version)
 Publish-ChocolateyPackage -NupkgPath $nupkgPath -ApiKey $env:CHOCOLATEY_ORG_API_KEY
 
 $tags = @( 'git', 'vcs', 'rcs', 'automation', 'github', 'gitlab', 'libgit2' )
+
+Import-Module 'PowerShellGet' -Force
 
 Publish-PowerShellGalleryModule -ManifestPath $manifestPath `
                                 -ModulePath $libGitRoot `

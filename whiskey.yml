@@ -67,5 +67,11 @@ BuildTasks:
 
 PublishTasks:
 
+- NuGetPush:
+    Uri: https://nuget.org/api/v2/package
+    ApiKeyID: nuget.org
+    Version: 4.1.0
+    Path: .output\nuget.org\*.nupkg
+
 - PowerShell:
     Path: Publish-LibGit2.ps1

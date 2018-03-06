@@ -37,4 +37,8 @@ if( (Test-Path -Path 'env:APPVEYOR') )
 }
 
 $context = New-WhiskeyContext -Environment 'Dev' -ConfigurationPath $configPath
+if( (Test-Path -Path 'env:NUGET_ORG_API_KEY') )
+{
+    Add-WhiskeyApiKey -Context $context -ID 'nuget.org' -Value $env:NUGET_ORG_API_KEY
+}
 Invoke-WhiskeyBuild -Context $context @optionalArgs
