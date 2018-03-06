@@ -32,7 +32,8 @@ if( $Initialize )
 
 if( (Test-Path -Path 'env:APPVEYOR') )
 {
-    Get-ChildItem -Path 'env:'
+    Get-ChildItem -Path 'env:' | 
+        Where-Object { $_.Name -notlike '*API*' }
 }
 
 $context = New-WhiskeyContext -Environment 'Dev' -ConfigurationPath $configPath
