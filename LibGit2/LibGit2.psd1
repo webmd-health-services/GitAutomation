@@ -16,7 +16,7 @@
     RootModule = 'LibGit2.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.9.2'
+    ModuleVersion = '0.10.0'
 
     # ID used to uniquely identify this module
     GUID = '119a2511-62d9-4626-9728-0c8ec7068c57'
@@ -98,6 +98,7 @@
                             'Send-GitCommit',
                             'Set-GitConfiguration',
                             'Test-GitBranch',
+                            'Test-GitCommit',
                             'Test-GitIncomingCommit',
                             'Test-GitOutgoingCommit',
                             'Test-GitRemoteUri',
@@ -144,28 +145,7 @@
             # ReleaseNotes of this module
 
             ReleaseNotes = @'
-# 0.9.2
-
-* Automated publishing works.
-* Changed author and copyright metadata.
-
-# 0.9.1
-
-* Fixed: publishing to nuget.org fails.
-* Fixed: Chocolatey package is missing VERIFICATION.txt.
-
-# 0.9.0
-
-* Upgraded to LibGit2 0.24.0. This is a potential breaking change. We noticed the following changes:
-  * The "LibGit2Sharp.TreeChanges" object returned by "Compare-GitTree" returns new objects types for its "Added", "Deleted", "Modified", "TypeChanged", "Renamed", "Copied", "Unmodified", and "Conflicted" properties. They used to be "List" objects, but now they are strictly "IEnumerable".
-  * The "LibGit2Sharp.FileStatus" no longer has "Added", "Staged", "Removed", "StagedTypeChange", "Untracked", "Modified", "Missing", or "TypeChanged" values. This affects the object returned by "Get-GitRepositoryStatus".
-  * The "Since" property on "LibGit2Sharp.CommitFilter" is gone, replaced with "IncludeReachableFrom".
-  * The "Until" property on "LibGit2Sharp.CommitFilter" is gone, replaced with "ExcludeReachableFrom".
-  * The "Name" property on "LibGit2Sharp.Branch" is gone, replaced with "FriendlyName".
-* Fixed: "Get-GitCommit" doesn't return all commits when using the "-All" switch; it only returns commits reachable from the current HEAD.
-* Added "Merge-GitCommit" function for merging branches, tags, commits, etc.
-* Added "New-GitSignature" function for creating author signatures, which are used when committing to record the commit's author.
-* Added "Signature" parameter to "Save-GitChange" so you can customize the author information for a commit. By default, "Save-GitChange" reads author information from Git's global configuration files.
+* Added `Test-GitCommit` function for testing if a commit exists.
 '@
 
         } # End of PSData hashtable
