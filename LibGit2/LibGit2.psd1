@@ -136,7 +136,7 @@
             LicenseUri = 'http://www.apache.org/licenses/LICENSE-2.0'
 
             # A URL to the main website for this project.
-            ProjectUri = 'https://github.com/splatteredbits/LibGit2.PowerShell/wiki'
+            ProjectUri = 'https://github.com/webmd-health-services/LibGit2.PowerShell'
 
             # A URL to an icon representing this module.
             # IconUri = ''

@@ -73,5 +73,11 @@ PublishTasks:
 #    Version: 4.1.0
 #    Path: .output\nuget.org\*.nupkg
 
-- PowerShell:
-    Path: Publish-LibGit2.ps1
+# - PowerShell:
+#     Path: Publish-LibGit2.ps1
+
+- PublishPowerShellModule:
+    RepositoryName: PSGallery
+    RepositoryUri: https://www.powershellgallery.com/api/v2/
+    ApiKeyID: powershellgallery.com
+    Path: LibGit2
