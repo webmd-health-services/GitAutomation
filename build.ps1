@@ -32,8 +32,17 @@ if( $Initialize )
 
 if( (Test-Path -Path 'env:APPVEYOR') )
 {
-    Get-ChildItem -Path 'env:'
+    Get-ChildItem -Path 'env:' | 
+        Where-Object { $_.Name -notlike '*API*' }
 }
 
 $context = New-WhiskeyContext -Environment 'Dev' -ConfigurationPath $configPath
+if( (Test-Path -Path 'env:NUGET_ORG_API_KEY') )
+{
+    Add-WhiskeyApiKey -Context $context -ID 'nuget.org' -Value $env:NUGET_ORG_API_KEY
+}
+if( (Test-Path -Path 'env:POWERSHELLGALLERY_COM_API_KEY') )
+{
+    Add-WhiskeyApiKey -Context $context -ID 'powershellgallery.com' -Value $env:POWERSHELLGALLERY_COM_API_KEY
+}
 Invoke-WhiskeyBuild -Context $context @optionalArgs

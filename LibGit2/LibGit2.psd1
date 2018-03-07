@@ -16,19 +16,19 @@
     RootModule = 'LibGit2.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.9.0'
+    ModuleVersion = '0.9.2'
 
     # ID used to uniquely identify this module
     GUID = '119a2511-62d9-4626-9728-0c8ec7068c57'
 
     # Author of this module
-    Author = 'Aaron Jensen'
+    Author = 'WebMD Health Services'
 
     # Company or vendor of this module
     CompanyName = ''
 
     # Copyright statement for this module
-    Copyright = 'Copyright 2016 Aaron Jensen'
+    Copyright = 'Copyright 2016 - 2018 WebMD Health Services'
 
     # Description of the functionality provided by this module
     Description = @'
@@ -136,7 +136,7 @@
             LicenseUri = 'http://www.apache.org/licenses/LICENSE-2.0'
 
             # A URL to the main website for this project.
-            ProjectUri = 'https://github.com/splatteredbits/LibGit2.PowerShell/wiki'
+            ProjectUri = 'https://github.com/webmd-health-services/LibGit2.PowerShell'
 
             # A URL to an icon representing this module.
             # IconUri = ''
@@ -144,6 +144,18 @@
             # ReleaseNotes of this module
 
             ReleaseNotes = @'
+# 0.9.2
+
+* Automated publishing works.
+* Changed author and copyright metadata.
+
+# 0.9.1
+
+* Fixed: publishing to nuget.org fails.
+* Fixed: Chocolatey package is missing VERIFICATION.txt.
+
+# 0.9.0
+
 * Upgraded to LibGit2 0.24.0. This is a potential breaking change. We noticed the following changes:
   * The "LibGit2Sharp.TreeChanges" object returned by "Compare-GitTree" returns new objects types for its "Added", "Deleted", "Modified", "TypeChanged", "Renamed", "Copied", "Unmodified", and "Conflicted" properties. They used to be "List" objects, but now they are strictly "IEnumerable".
   * The "LibGit2Sharp.FileStatus" no longer has "Added", "Staged", "Removed", "StagedTypeChange", "Untracked", "Modified", "Missing", or "TypeChanged" values. This affects the object returned by "Get-GitRepositoryStatus".

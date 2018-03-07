@@ -30,7 +30,7 @@ param(
 #Requires -Version 4
 Set-StrictMode -Version Latest
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Silk\Import-Silk.ps1' -Resolve)
+Import-Module (Join-Path -Path $PSScriptRoot -ChildPath 'Modules\Silk' -Resolve)
 
 $libGitRoot = Join-Path -Path $PSScriptRoot -ChildPath '.output\LibGit2'
 $releaseNotesPath = Join-Path -Path $libGitRoot -ChildPath 'RELEASE_NOTES.md' -Resolve
@@ -43,18 +43,5 @@ if( -not $manifest )
 }
 
 $nupkgPath = Join-Path -Path $PSScriptRoot `
-                       -ChildPath ('.output\nuget.org\LibGit2.PowerShell.{0}.nupkg' -f $manifest.Version)
-Publish-NuGetPackage -NupkgPath $nupkgPath
-
-$nupkgPath = Join-Path -Path $PSScriptRoot `
                        -ChildPath ('.output\chocolatey.org\LibGit2.PowerShell.{0}.nupkg' -f $manifest.Version)
-Publish-ChocolateyPackage -NupkgPath $nupkgPath
-
-$tags = @( 'git', 'vcs', 'rcs', 'automation', 'github', 'gitlab', 'libgit2' )
-
-Publish-PowerShellGalleryModule -ManifestPath $manifestPath `
-                                -ModulePath $libGitRoot `
-                                -ReleaseNotesPath $releaseNotesPath `
-                                -LicenseUri 'http://www.apache.org/licenses/LICENSE-2.0' `
-                                -ProjectUri 'https://github.com/splatteredbits/LibGit2.PowerShell/wiki' `
-                                -Tags $tags
+Publish-ChocolateyPackage -NupkgPath $nupkgPath -ApiKey $env:CHOCOLATEY_ORG_API_KEY
