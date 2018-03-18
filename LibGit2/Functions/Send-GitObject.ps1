@@ -22,26 +22,36 @@ function Send-GitObject
     This command implements the `git push` command.
 
     .EXAMPLE
-    Send-GitObject -Revision master
+    Send-GitObject -Revision 'refs/heads/master'
 
     Demonstrates how to push the commits on a specific branch to the default remote repository.
 
     .EXAMPLE
-    Send-GitObject -Revision 'refs/tags/*'
+    Send-GitObject -Revision 'refs/heads/master' -RemoteName 'upstream'
 
-    Demonstrates how to push specific refs all tags to the default remote repository. To push a specific tag, you could also use the tag's name.
+    Demonstrates how to push an object (in this case, the master branch) to a specific remote repository, in this case the remote named "upstream".
+
+    .EXAMPLE
+    Send-GitObject -Revision 'refs/tags/4.45.6'
+
+    Demonstrates how to push a tag to the default remote repository.
 
     .EXAMPLE
     Send-GitObject -Tags
 
-    Demon
+    Demonstrates how to push all tags to the default remote repository.
     #>
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$true)]
-        [string]
+        [Parameter(Mandatory=$true,ParameterSetName='ByRefSpec')]
+        [string[]]
         # The refs that should be pushed to the remote repository.
         $RefSpec,
+
+        [Parameter(Mandatory=$true,ParameterSetname='Tags')]
+        [Switch]
+        # Push all tags to the remote repository.
+        $Tags,
 
         [string]
         # The name of the remote repository to send the changes to. The default is `origin`.
@@ -75,6 +85,11 @@ function Send-GitObject
     {
         Write-Error -Message ('A remote named "{0}" does not exist.' -f $RemoteName)
         return [LibGit2.Automation.PushResult]::Failed
+    }
+
+    if( $Tags )
+    {
+        $RefSpec = $repo.Tags | ForEach-Object { $_.CanonicalName }
     }
 
     try
