@@ -54,6 +54,15 @@ function GivenLocalRepositoryWithNoRemote
     New-GitRepository -Path $localRepoPath | Out-Null
 }
 
+function GivenTag
+{
+    param(
+        $Name
+    )
+
+    New-GitTag -RepoRoot $localRepoPath -Name $Name
+}
+
 function GivenCommittedChangeToPush
 {
     param(
@@ -74,18 +83,6 @@ function GivenRemoteContainsOtherChanges
     Add-GitItem -RepoRoot $remoteRepoPath -Path 'RemoteTestFile.txt'
     Save-GitChange -RepoRoot $remoteRepoPath -Message 'Adding remote test file to remote repo'
     Set-GitConfiguration -Name 'core.bare' -Value 'true' -RepoRoot $remoteRepoPath
-}
-
-function WhenSendingGitCommits
-{
-    [CmdletBinding()]
-    param(
-    )
-
-    $Global:Error.Clear()
-    $script:pushResult = $null
-    
-    $script:pushResult = Send-GitCommit -RepoRoot $localRepoPath #-ErrorAction SilentlyContinue
 }
 
 function ThenNoErrorsWereThrown
@@ -128,6 +125,17 @@ function ThenRemoteContainsLocalCommits
     }
 }
 
+function ThenRemoteHasRevision
+{
+    param(
+        $Revision
+    )
+
+    It ('should push refspec to remote') {
+        Test-GitCommit -RepoRoot $remoteRepoPath -Revision $Revision | Should -Be $true
+    }
+}
+
 function ThenPushResultIs
 {
     param(
@@ -139,38 +147,67 @@ function ThenPushResultIs
     }
 }
 
-Describe 'Send-GitCommit.when pushing changes to a remote repository' {
+function WhenSendingObject
+{
+    [CmdletBinding()]
+    param(
+        $RefSpec
+    )
+
+    $Global:Error.Clear()
+    $script:pushResult = $null
+    
+    $script:pushResult = Send-GitObject -RepoRoot $localRepoPath -RefSpec $RefSpec
+}
+
+Describe 'Send-GitObject.when pushing changes to a remote repository' {
     GivenRemoteRepository 'RemoteRepo'
     GivenLocalRepositoryTracksRemote 'LocalRepo'
     GivenCommittedChangeToPush
-    WhenSendingGitCommits
+    WhenSendingObject 'refs/heads/master'
     ThenNoErrorsWereThrown
     ThenPushResultIs ([LibGit2.Automation.PushResult]::Ok)
     ThenRemoteContainsLocalCommits
 }
 
-Describe 'Send-GitCommit.when there are no local changes to push to remote' {
+Describe 'Send-GitObject.when there are no local changes to push to remote' {
     GivenRemoteRepository 'RemoteRepo'
     GivenLocalRepositoryTracksRemote 'LocalRepo'
-    WhenSendingGitCommits
+    WhenSendingObject 'refs/heads/master'
     ThenNoErrorsWereThrown
     ThenPushResultIs ([LibGit2.Automation.PushResult]::Ok)
 }
 
-Describe 'Send-GitCommit.when remote repository has changes not contained locally' {
+Describe 'Send-GitObject.when remote repository has changes not contained locally' {
     GivenRemoteRepository 'RemoteRepo'
     GivenLocalRepositoryTracksRemote 'LocalRepo'
     GivenRemoteContainsOtherChanges
     GivenCommittedChangeToPush
-    WhenSendingGitCommits -ErrorAction SilentlyContinue
+    WhenSendingObject 'refs/heads/master' -ErrorAction SilentlyContinue
     ThenErrorWasThrown 'that you are trying to update on the remote contains commits that are not present locally.'
     ThenPushResultIs ([LibGit2.Automation.PushResult]::Rejected)
 }
 
-Describe 'Send-GitCommit.when no upstream remote is defined' {
+Describe 'Send-GitObject.when no upstream remote is defined' {
     GivenLocalRepositoryWithNoRemote 'LocalRepo'
     GivenCommittedChangeToPush
-    WhenSendingGitCommits -ErrorAction SilentlyContinue
+    WhenSendingObject 'refs/heads/master' -ErrorAction SilentlyContinue
     ThenErrorWasThrown 'A\ remote\ named\ "origin"\ does\ not\ exist\.'
     ThenPushResultIs ([LibGit2.Automation.PushResult]::Failed)
+}
+
+Describe 'Send-GitObject.when refspec doesn''t exist' {
+    GivenRemoteRepository 'RemoteRepo'
+    GivenLocalRepositoryTracksRemote 'LocalRepo'
+    WhenSendingObject 'refs/heads/dsfsdaf' -ErrorAction SilentlyContinue
+    ThenErrorWasThrown 'does\ not\ match\ any\ existing\ object'
+    ThenPushResultIs ([LibGit2.Automation.PushResult]::Failed)
+}
+
+Describe 'Send-GitObject.when pushing tags' {
+    GivenRemoteRepository 'RemoteRepo'
+    GivenLocalRepositoryTracksRemote 'LocalRepo'
+    GivenTag 'tag1'
+    WhenSendingObject 'refs/tags/tag1'
+    ThenRemoteHasRevision 'tag1'
 }

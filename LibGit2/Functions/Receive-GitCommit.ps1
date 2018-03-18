@@ -50,6 +50,8 @@ function Receive-GitCommit
         return
     }
 
+    # $originalSecurityProtocol = [Net.ServicePointManager]::SecurityProtocol
+    # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     try
     {
         if( $Fetch )
@@ -58,7 +60,6 @@ function Receive-GitCommit
             {
                 $repo.Network.Fetch($remote)
             } 
-
         }
         else
         {
@@ -72,6 +73,7 @@ function Receive-GitCommit
     }
     finally
     {
+        # [Net.ServicePointManager]::SecurityProtocol = $originalSecurityProtocol
         $repo.Dispose()
     }
 

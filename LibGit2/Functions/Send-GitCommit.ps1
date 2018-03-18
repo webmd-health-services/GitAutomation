@@ -47,36 +47,16 @@ function Send-GitCommit
     Use-CallerPreference -Cmdlet $PSCmdlet -Session $ExecutionContext.SessionState
 
     $repo = Find-GitRepository -Path $RepoRoot -Verify
-    $currentBranch = $repo.Branches | Where-Object { $_.IsCurrentRepositoryHead -eq $true }
     
-    $pushOptions = New-Object -TypeName 'LibGit2Sharp.PushOptions'
-    if( $Credential )
-    {
-        $gitCredential = New-Object -TypeName 'LibGit2Sharp.SecureUsernamePasswordCredentials'
-        $gitCredential.Username = $Credential.UserName
-        $gitCredential.Password = $Credential.Password
-        $pushOptions.CredentialsProvider = { return $gitCredential }
-    }
-
     try
     {
-        if( Test-GitOutgoingCommit -RepoRoot $RepoRoot )
+        [LibGit2Sharp.Branch]$currentBranch = $repo.Branches | Where-Object { $_.IsCurrentRepositoryHead -eq $true }
+        if( -not (Test-GitOutgoingCommit -RepoRoot $RepoRoot) )
         {
-            $repo.Network.Push($currentBranch, $pushOptions)
+            return [LibGit2.Automation.PushResult]::Ok
         }
-        return [LibGit2.Automation.PushResult]::Ok
-    }
-    catch
-    {
-        Write-Error -ErrorRecord $_
-        
-        switch ( $_.FullyQualifiedErrorId )
-        {
-            'NonFastForwardException' { return [LibGit2.Automation.PushResult]::Rejected }
-            'LibGit2SharpException' { return [LibGit2.Automation.PushResult]::Failed }
-            'BareRepositoryException' { return [LibGit2.Automation.PushResult]::Failed }
-            default { return [LibGit2.Automation.PushResult]::Failed }
-        }
+
+        Send-GitObject -RefSpec $currentBranch.CanonicalName -RepoRoot $RepoRoot -Credential $Credential
     }
     finally
     {
