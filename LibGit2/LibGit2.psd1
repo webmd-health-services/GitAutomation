@@ -150,6 +150,7 @@
 
 * Added `Test-GitCommit` function for testing if a commit exists.
 * Added `Send-GitObject` function for sending local objects to remote repositories.
+* `New-GitRepository` can now create bare repositories. Use the new `Bare` switch.
 '@
 
         } # End of PSData hashtable
