@@ -16,7 +16,7 @@
     RootModule = 'LibGit2.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.11.0'
+    ModuleVersion = '0.10.0'
 
     # ID used to uniquely identify this module
     GUID = '119a2511-62d9-4626-9728-0c8ec7068c57'
@@ -151,6 +151,7 @@
 * Added `Test-GitCommit` function for testing if a commit exists.
 * Added `Send-GitObject` function for sending local objects to remote repositories.
 * `New-GitRepository` can now create bare repositories. Use the new `Bare` switch.
+* `Send-GitCommit` can now setup tracking information so that remote branches are setup to track new local branches. Use the `SetUpstream` switch.
 '@
 
         } # End of PSData hashtable

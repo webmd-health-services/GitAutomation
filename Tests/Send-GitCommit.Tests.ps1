@@ -18,22 +18,74 @@ $remoteRepoRoot = $null
 $remoteWorkingRoot = $null
 $localRoot = $null
 
-function Init
+function GivenBranch
 {
     param(
+        [string]
+        $Name,
+
+        [Switch]
+        $InRemote,
+
+        [Switch]
+        $InLocal
+    )
+
+    if( $InRemote )
+    {
+        $repoRoot = $remoteWorkingRoot
+    }
+    else
+    {
+        $repoRoot = $localRoot
+    }
+
+    New-GitBranch -RepoRoot $repoRoot -Name $Name | Out-Null
+
+    if( $InRemote )
+    {
+        Send-GitCommit -RepoRoot $repoRoot
+    }
+}
+
+function GivenCommit
+{
+    param(
+        [Switch]
+        $InRemote,
+
+        [Switch]
+        $InLocal,
+
+        [string]
+        $OnBranch
     )
     
-    $script:remoteRepoRoot = Join-Path -Path $TestDrive -ChildPath 'Remote.Bare'
-    New-GitRepository -Path $remoteRepoRoot -Bare
+    if( $InRemote )
+    {
+        $repoRoot = $remoteWorkingRoot
+        $prefix = 'remote'
+    }
+    else
+    {
+        $repoRoot = $localRoot
+        $prefix = 'local'
+    }
 
-    $script:remoteWorkingRoot = Join-Path -Path $TestDrive.FullName -ChildPath 'Remote.Working'
-    Copy-GitRepository -Source $remoteRepoRoot -DestinationPath $remoteWorkingRoot
+    if( $OnBranch )
+    {
+        Update-GitRepository -RepoRoot $repoRoot -Revision $OnBranch | Out-Null
+    }
+        
+    $filename = '{0}-{1}' -f $prefix,[IO.Path]::GetRandomFileName()
+    Add-GitTestFile -RepoRoot $repoRoot -Path $filename | Out-Null
+    Add-GitItem -RepoRoot $repoRoot -Path $filename
+    Save-GitChange -RepoRoot $repoRoot -Message $filename
 
-    Add-GitTestFile -RepoRoot $remoteWorkingRoot -Path 'InitialCommit.txt'
-    Add-GitItem -RepoRoot $remoteWorkingRoot -Path 'InitialCommit.txt'
-    Save-GitChange -RepoRoot $remoteWorkingRoot -Message 'Initial Commit'
-    Send-GitCommit -RepoRoot $remoteWorkingRoot
-
+    if( $InRemote )
+    {
+        Send-GitCommit -RepoRoot $remoteWorkingRoot | Out-Null
+    }
 }
 
 function GivenLocalRepoIs
@@ -57,48 +109,22 @@ function GivenLocalRepoIs
     }
 }
 
-function GivenCommit
+function Init
 {
     param(
-        [Switch]
-        $InRemote,
-
-        [Switch]
-        $InLocal
     )
     
-    if( $InRemote )
-    {
-        $repoRoot = $remoteWorkingRoot
-        $prefix = 'remote'
-    }
-    else
-    {
-        $repoRoot = $localRoot
-        $prefix = 'local'
-    }
-        
-    $filename = '{0}-{1}' -f $prefix,[IO.Path]::GetRandomFileName()
-    Add-GitTestFile -RepoRoot $repoRoot -Path $filename | Out-Null
-    Add-GitItem -RepoRoot $repoRoot -Path $filename
-    Save-GitChange -RepoRoot $repoRoot -Message $filename
+    $script:remoteRepoRoot = Join-Path -Path $TestDrive -ChildPath 'Remote.Bare'
+    New-GitRepository -Path $remoteRepoRoot -Bare
 
-    if( $InRemote )
-    {
-        Send-GitCommit -RepoRoot $remoteWorkingRoot | Out-Null
-    }
-}
+    $script:remoteWorkingRoot = Join-Path -Path $TestDrive.FullName -ChildPath 'Remote.Working'
+    Copy-GitRepository -Source $remoteRepoRoot -DestinationPath $remoteWorkingRoot
 
-function WhenSendingCommits
-{
-    [CmdletBinding()]
-    param(
-    )
+    Add-GitTestFile -RepoRoot $remoteWorkingRoot -Path 'InitialCommit.txt'
+    Add-GitItem -RepoRoot $remoteWorkingRoot -Path 'InitialCommit.txt'
+    Save-GitChange -RepoRoot $remoteWorkingRoot -Message 'Initial Commit'
+    Send-GitCommit -RepoRoot $remoteWorkingRoot
 
-    $Global:Error.Clear()
-    $script:pushResult = $null
-    
-    $script:pushResult = Send-GitCommit -RepoRoot $localRoot #-ErrorAction SilentlyContinue
 }
 
 function ThenNoErrorsWereThrown
@@ -123,15 +149,54 @@ function ThenErrorWasThrown
     }
 }
 
-function ThenRemoteContains
+function ThenLocalHead
+{
+    param(
+        $CanonicalName,
+        $Tracks
+    )
+
+    $repo = Get-GitRepository -RepoRoot $localRoot
+    try
+    {
+        [LibGit2Sharp.Branch]$localHead = $repo.Branches | Where-Object { $_.CanonicalName -eq $CanonicalName }
+        It ('should setup correct tracking branches') {
+            $localHead | Should -Not -BeNullOrEmpty
+            $localHead.IsTracking | Should -Be $true
+            $localHead.TrackedBranch.CanonicalName | Should -Be $Tracks
+        }
+    }
+    finally
+    {
+        $repo.Dispose()
+    }
+}
+
+function ThenRemoteRevision
 {
     param(
         [string]
-        $Revision
+        $Revision,
+
+        [Switch]
+        $Exists,
+
+        [Switch]
+        $DoesNotExist
     )
 
-    It ('should push branch to remote') {
-        Test-GitCommit -RepoRoot $remoteRepoRoot -Revision $Revision | Should -BeTrue
+    $commitExists = Test-GitCommit -RepoRoot $remoteRepoRoot -Revision $Revision
+    if( $Exists )
+    {
+        It ('should push branch to remote') {
+             $commitExists | Should -BeTrue
+        }
+    }
+    else
+    {
+        It ('should not push other branches') {
+            $commitExists | Should -BeFalse
+        }
     }
 }
 
@@ -146,6 +211,20 @@ function ThenPushResultIs
     }
 }
 
+function WhenSendingCommits
+{
+    [CmdletBinding()]
+    param(
+        [Switch]
+        $SetUpstream
+    )
+
+    $Global:Error.Clear()
+    $script:pushResult = $null
+    
+    $script:pushResult = Send-GitCommit -RepoRoot $localRoot -SetUpstream:$SetUpstream #-ErrorAction SilentlyContinue
+}
+
 Describe 'Send-GitCommit.when pushing changes to a remote repository' {
     Init
     GivenLocalRepoIs -ClonedFromRemote
@@ -153,7 +232,7 @@ Describe 'Send-GitCommit.when pushing changes to a remote repository' {
     WhenSendingCommits
     ThenNoErrorsWereThrown
     ThenPushResultIs ([LibGit2.Automation.PushResult]::Ok)
-    ThenRemoteContains $commit.Sha
+    ThenRemoteRevision $commit.Sha -Exists
 }
 
 Describe 'Send-GitCommit.when there are no local changes to push to remote' {
@@ -183,3 +262,38 @@ Describe 'Send-GitCommit.when no upstream remote is defined' {
     ThenPushResultIs ([LibGit2.Automation.PushResult]::Failed)
 }
 
+Describe 'Send-GitCommit.when changes on other branches' {
+    Init
+    GivenBranch 'develop' -InRemote
+    GivenCommit -InRemote -OnBranch 'develop'
+    GivenLocalRepoIs -ClonedFromRemote
+    $masterCommit = GivenCommit -InLocal -OnBranch 'master'
+    $developCommit = GivenCommit -InLocal -OnBranch 'develop'
+    WhenSendingCommits
+    ThenRemoteRevision $masterCommit.Sha -DoesNotExist
+    ThenRemoteRevision $developCommit.Sha -Exists
+}
+
+Describe 'Send-GitCommit.when pushing a new branch' {
+    Init
+    GivenLocalRepoIs -ClonedFromRemote
+    GivenBranch 'develop' -InLocal
+    $commit = GivenCommit -InLocal
+    WhenSendingCommits -SetUpstream
+    ThenPushResultIs ([LibGit2.Automation.PushResult]::Ok)
+    ThenRemoteRevision $commit.Sha -Exists
+    ThenRemoteRevision 'develop' -Exists
+    ThenLocalHead 'refs/heads/develop' -Tracks 'refs/remotes/origin/develop'
+}
+
+Describe 'Send-GitCommit.when pushing new commits on a branch' {
+    Init
+    GivenBranch 'develop' -InRemote
+    GivenCommit -InRemote -OnBranch 'develop'
+    GivenLocalRepoIs -ClonedFromRemote
+    $commit = GivenCommit -InLocal -OnBranch 'develop'
+    WhenSendingCommits
+    ThenPushResultIs ([LibGit2.Automation.PushResult]::Ok)
+    ThenRemoteRevision $commit.Sha -Exists
+    ThenRemoteRevision 'develop' -Exists
+}
