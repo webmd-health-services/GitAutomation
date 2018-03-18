@@ -14,69 +14,82 @@ Set-StrictMode -Version 'Latest'
 
 & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
 
-function GivenRemoteRepository
-{
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]
-        $Path
-    )
-    
-    $script:remoteRepoPath = (Join-Path -Path $TestDrive -ChildPath $Path)
-    New-GitRepository -Path $remoteRepoPath | Out-Null
-    Add-GitTestFile -RepoRoot $remoteRepoPath -Path 'InitialCommit.txt'
-    Add-GitItem -RepoRoot $remoteRepoPath -Path 'InitialCommit.txt'
-    Save-GitChange -RepoRoot $remoteRepoPath -Message 'Initial Commit'
-    Set-GitConfiguration -Name 'core.bare' -Value 'true' -RepoRoot $remoteRepoPath
-}
+$remoteRepoRoot = $null
+$remoteWorkingRoot = $null
+$localRoot = $null
 
-function GivenLocalRepositoryTracksRemote
-{
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]
-        $Path
-    )
-    
-    $script:localRepoPath = (Join-Path -Path $TestDrive -ChildPath $Path)
-    Copy-GitRepository -Source $remoteRepoPath -DestinationPath $localRepoPath
-}
-
-function GivenLocalRepositoryWithNoRemote
-{
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]
-        $Path
-    )
-    
-    $script:localRepoPath = (Join-Path -Path $TestDrive -ChildPath $Path)
-    New-GitRepository -Path $localRepoPath | Out-Null
-}
-
-function GivenCommittedChangeToPush
+function Init
 {
     param(
     )
     
-    Add-GitTestFile -RepoRoot $localRepoPath -Path 'LocalTestFile.txt'
-    Add-GitItem -RepoRoot $localRepoPath -Path 'LocalTestFile.txt'
-    Save-GitChange -RepoRoot $localRepoPath -Message 'Adding local test file to local repo'
+    $script:remoteRepoRoot = Join-Path -Path $TestDrive -ChildPath 'Remote.Bare'
+    New-GitRepository -Path $remoteRepoRoot -Bare
+
+    $script:remoteWorkingRoot = Join-Path -Path $TestDrive.FullName -ChildPath 'Remote.Working'
+    Copy-GitRepository -Source $remoteRepoRoot -DestinationPath $remoteWorkingRoot
+
+    Add-GitTestFile -RepoRoot $remoteWorkingRoot -Path 'InitialCommit.txt'
+    Add-GitItem -RepoRoot $remoteWorkingRoot -Path 'InitialCommit.txt'
+    Save-GitChange -RepoRoot $remoteWorkingRoot -Message 'Initial Commit'
+    Send-GitCommit -RepoRoot $remoteWorkingRoot
+
 }
 
-function GivenRemoteContainsOtherChanges
+function GivenLocalRepoIs
 {
     param(
+        [Switch]
+        $ClonedFromRemote,
+
+        [Switch]
+        $Standalone
     )
     
-    Set-GitConfiguration -Name 'core.bare' -Value 'false' -RepoRoot $remoteRepoPath
-    Add-GitTestFile -RepoRoot $remoteRepoPath -Path 'RemoteTestFile.txt'
-    Add-GitItem -RepoRoot $remoteRepoPath -Path 'RemoteTestFile.txt'
-    Save-GitChange -RepoRoot $remoteRepoPath -Message 'Adding remote test file to remote repo'
-    Set-GitConfiguration -Name 'core.bare' -Value 'true' -RepoRoot $remoteRepoPath
+    $script:localRoot = Join-Path -Path $TestDrive -ChildPath ('Local.{0}' -f [IO.Path]::GetRandomFileName())
+    if( $ClonedFromRemote )
+    {
+        Copy-GitRepository -Source $remoteRepoRoot -DestinationPath $localRoot
+    }
+    else
+    {
+        New-GitRepository -Path $localRoot
+    }
 }
 
-function WhenSendingGitCommits
+function GivenCommit
+{
+    param(
+        [Switch]
+        $InRemote,
+
+        [Switch]
+        $InLocal
+    )
+    
+    if( $InRemote )
+    {
+        $repoRoot = $remoteWorkingRoot
+        $prefix = 'remote'
+    }
+    else
+    {
+        $repoRoot = $localRoot
+        $prefix = 'local'
+    }
+        
+    $filename = '{0}-{1}' -f $prefix,[IO.Path]::GetRandomFileName()
+    Add-GitTestFile -RepoRoot $repoRoot -Path $filename | Out-Null
+    Add-GitItem -RepoRoot $repoRoot -Path $filename
+    Save-GitChange -RepoRoot $repoRoot -Message $filename
+
+    if( $InRemote )
+    {
+        Send-GitCommit -RepoRoot $remoteWorkingRoot | Out-Null
+    }
+}
+
+function WhenSendingCommits
 {
     [CmdletBinding()]
     param(
@@ -85,7 +98,7 @@ function WhenSendingGitCommits
     $Global:Error.Clear()
     $script:pushResult = $null
     
-    $script:pushResult = Send-GitCommit -RepoRoot $localRepoPath #-ErrorAction SilentlyContinue
+    $script:pushResult = Send-GitCommit -RepoRoot $localRoot #-ErrorAction SilentlyContinue
 }
 
 function ThenNoErrorsWereThrown
@@ -110,21 +123,15 @@ function ThenErrorWasThrown
     }
 }
 
-function ThenRemoteContainsLocalCommits
+function ThenRemoteContains
 {
     param(
+        [string]
+        $Revision
     )
 
-    It 'local repository should not have any unstaged changes' {
-        Test-GitUncommittedChange -RepoRoot $localRepoPath | Should Be $false
-    }
-    
-    It 'local repository should not have any outgoing commits' {
-        Test-GitOutgoingCommit -RepoRoot $localRepoPath | Should Be $false
-    }
-
-    It 'the HEAD commit of the local repository should match the remote repository' {
-        (Get-GitCommit -RepoRoot $remoteRepoPath -Revision HEAD).Sha | Should Be (Get-GitCommit -RepoRoot $localRepoPath -Revision HEAD).Sha
+    It ('should push branch to remote') {
+        Test-GitCommit -RepoRoot $remoteRepoRoot -Revision $Revision | Should -BeTrue
     }
 }
 
@@ -140,37 +147,39 @@ function ThenPushResultIs
 }
 
 Describe 'Send-GitCommit.when pushing changes to a remote repository' {
-    GivenRemoteRepository 'RemoteRepo'
-    GivenLocalRepositoryTracksRemote 'LocalRepo'
-    GivenCommittedChangeToPush
-    WhenSendingGitCommits
+    Init
+    GivenLocalRepoIs -ClonedFromRemote
+    $commit = GivenCommit -InLocal
+    WhenSendingCommits
     ThenNoErrorsWereThrown
     ThenPushResultIs ([LibGit2.Automation.PushResult]::Ok)
-    ThenRemoteContainsLocalCommits
+    ThenRemoteContains $commit.Sha
 }
 
 Describe 'Send-GitCommit.when there are no local changes to push to remote' {
-    GivenRemoteRepository 'RemoteRepo'
-    GivenLocalRepositoryTracksRemote 'LocalRepo'
-    WhenSendingGitCommits
+    Init
+    GivenLocalRepoIs -ClonedFromRemote
+    WhenSendingCommits
     ThenNoErrorsWereThrown
     ThenPushResultIs ([LibGit2.Automation.PushResult]::Ok)
 }
 
 Describe 'Send-GitCommit.when remote repository has changes not contained locally' {
-    GivenRemoteRepository 'RemoteRepo'
-    GivenLocalRepositoryTracksRemote 'LocalRepo'
-    GivenRemoteContainsOtherChanges
-    GivenCommittedChangeToPush
-    WhenSendingGitCommits -ErrorAction SilentlyContinue
+    Init
+    GivenLocalRepoIs -ClonedFromRemote
+    GivenCommit -InRemote
+    GivenCommit -InLocal
+    WhenSendingCommits -ErrorAction SilentlyContinue
     ThenErrorWasThrown 'that you are trying to update on the remote contains commits that are not present locally.'
     ThenPushResultIs ([LibGit2.Automation.PushResult]::Rejected)
 }
 
 Describe 'Send-GitCommit.when no upstream remote is defined' {
-    GivenLocalRepositoryWithNoRemote 'LocalRepo'
-    GivenCommittedChangeToPush
-    WhenSendingGitCommits -ErrorAction SilentlyContinue
+    Init
+    GivenLocalRepoIs -Standalone
+    GivenCommit -InLocal
+    WhenSendingCommits -ErrorAction SilentlyContinue
     ThenErrorWasThrown 'A\ remote\ named\ "origin"\ does\ not\ exist\.'
     ThenPushResultIs ([LibGit2.Automation.PushResult]::Failed)
 }
+
