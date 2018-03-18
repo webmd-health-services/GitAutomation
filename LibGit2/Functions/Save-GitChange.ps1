@@ -54,7 +54,7 @@ function Save-GitChange
 
         [string]
         # The repository where to commit staged changes. Defaults to the current directory.
-        $RepoRoot,
+        $RepoRoot = (Get-Location).ProviderPath,
 
         [LibGit2Sharp.Signature]
         # Author metadata. If not provided, it is pulled from configuration. To create an author/signature object, 

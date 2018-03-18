@@ -152,6 +152,7 @@
 * Added `Send-GitObject` function for sending local objects to remote repositories.
 * `New-GitRepository` can now create bare repositories. Use the new `Bare` switch.
 * `Send-GitCommit` can now setup tracking information so that remote branches are setup to track new local branches. Use the `SetUpstream` switch.
+* Fixed: `Save-GitChange` fails when `RepoRoot` parameter is empty and committer information is read from Git's configuration files.
 '@
 
         } # End of PSData hashtable
