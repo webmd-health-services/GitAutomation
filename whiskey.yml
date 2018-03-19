@@ -57,6 +57,10 @@ BuildTasks:
 - GetPowerShellModule:
     Name: Silk
 
+- Exec: git status
+
+- Exec: git checkout LibGit2\bin\.gitignore
+
 - PowerShell:
     OnlyBy: BuildServer
     Path: New-Package.ps1
