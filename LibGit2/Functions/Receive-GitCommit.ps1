@@ -41,8 +41,8 @@ function Receive-GitCommit
         $Fetch
     )
 
-
     Set-StrictMode -Version 'Latest'
+    Use-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
 
     $repo = Find-GitRepository -Path $RepoRoot -Verify
     if( -not $repo )
@@ -58,7 +58,6 @@ function Receive-GitCommit
             {
                 $repo.Network.Fetch($remote)
             } 
-
         }
         else
         {
@@ -67,7 +66,7 @@ function Receive-GitCommit
             $mergeOptions.FastForwardStrategy = [LibGit2Sharp.FastForwardStrategy]::FastForwardOnly
             $pullOptions.MergeOptions = $mergeOptions
             $signature = $repo.Config.BuildSignature((Get-Date))
-            $repo.Network.Pull($signature, $pullOptions)
+            [LibGit2Sharp.Commands]::Pull($repo, $signature, $pullOptions)
         }
     }
     finally

@@ -80,3 +80,21 @@ Describe 'Save-GitChange when nothing to commit' {
         $commit | Should BeNullOrEmpty
     }
 }
+
+Describe 'Save-GitChange.when committing in the current directory' {
+    GivenRepository
+    Push-Location $repoRoot
+    try
+    {
+        $commit = Save-GitChange -Message 'fubar'
+        It ('should commit') {
+            $commit | Should -Not -BeNullOrEmpty
+        }
+
+        $commit.Sha | Should -Be (Get-GitCommit -Revision $commit.Sha -RepoRoot $repoRoot).Sha
+    }
+    finally
+    {
+        Pop-Location
+    }
+}

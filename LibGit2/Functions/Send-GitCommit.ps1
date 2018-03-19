@@ -17,9 +17,17 @@ function Send-GitCommit
     Pushes commits from the current Git repository to its remote source repository.
 
     .DESCRIPTION
-    The `Send-GitCommit` function sends all commits on the current branch of the local Git repository to its upstream remote repository. If the repository requires authentication, pass the username/password via the `Credential` parameter.
+    The `Send-GitCommit` function sends all commits on the current branch of the local Git repository to its upstream remote repository. If you are pushing a new branch, use the `SetUpstream` switch to ensure Git tracks the new remote branch as a copy of the local branch.
+    
+    If the repository requires authentication, pass the username/password via the `Credential` parameter.
 
-    This function implements the `git push` command. A return value of $true indicates commits were successfully pushed to the remote. Otherwise, a warning or error message will be returned.
+    Returns a `LibGit2.Automation.PushResult` that represents the result of the push. One of:
+
+    * `Ok`: the push succeeded
+    * `Failed`: the push failed.
+    * `Rejected`: the push failed because there are changes on the branch that aren't present in the local repository. They should get pulled into the local repository and the push attempted again.
+
+    This function implements the `git push` command. 
 
     .EXAMPLE
     Send-GitCommit
@@ -40,43 +48,45 @@ function Send-GitCommit
         
         [pscredential]
         # The credentials to use to connect to the source repository.
-        $Credential
+        $Credential,
+
+        [Switch]
+        # Add tracking information for any new branches pushed so Git sees the local branch and remote branch as the same.
+        $SetUpstream
     )
     
     Set-StrictMode -Version 'Latest'
     Use-CallerPreference -Cmdlet $PSCmdlet -Session $ExecutionContext.SessionState
 
     $repo = Find-GitRepository -Path $RepoRoot -Verify
-    $currentBranch = $repo.Branches | Where-Object { $_.IsCurrentRepositoryHead -eq $true }
     
-    $pushOptions = New-Object -TypeName 'LibGit2Sharp.PushOptions'
-    if( $Credential )
-    {
-        $gitCredential = New-Object -TypeName 'LibGit2Sharp.SecureUsernamePasswordCredentials'
-        $gitCredential.Username = $Credential.UserName
-        $gitCredential.Password = $Credential.Password
-        $pushOptions.CredentialsProvider = { return $gitCredential }
-    }
-
     try
     {
-        if( Test-GitOutgoingCommit -RepoRoot $RepoRoot )
+        [LibGit2Sharp.Branch]$currentBranch = $repo.Branches | Where-Object { $_.IsCurrentRepositoryHead -eq $true }
+        if( -not (Test-GitOutgoingCommit -RepoRoot $RepoRoot) )
         {
-            $repo.Network.Push($currentBranch, $pushOptions)
+            return [LibGit2.Automation.PushResult]::Ok
         }
-        return [LibGit2.Automation.PushResult]::Ok
-    }
-    catch
-    {
-        Write-Error -ErrorRecord $_
+
+        $result = Send-GitObject -RefSpec $currentBranch.CanonicalName -RepoRoot $RepoRoot -Credential $Credential
+
+        if( -not $SetUpstream -or $result -ne [LibGit2.Automation.PushResult]::Ok )
+        {
+            return $result
+        }
+
+        # Setup tracking with the new remote branch.
+        [void]$repo.Branches.Update($currentBranch, {
+            param(
+                [LibGit2Sharp.BranchUpdater]
+                $Updater
+            )
+
+            $updater.Remote = 'origin'
+            $updater.UpstreamBranch = $currentBranch.CanonicalName
+        });
         
-        switch ( $_.FullyQualifiedErrorId )
-        {
-            'NonFastForwardException' { return [LibGit2.Automation.PushResult]::Rejected }
-            'LibGit2SharpException' { return [LibGit2.Automation.PushResult]::Failed }
-            'BareRepositoryException' { return [LibGit2.Automation.PushResult]::Failed }
-            default { return [LibGit2.Automation.PushResult]::Failed }
-        }
+        return $result
     }
     finally
     {

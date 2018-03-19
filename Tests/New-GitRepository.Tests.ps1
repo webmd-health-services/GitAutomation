@@ -26,16 +26,71 @@ function Assert-Repository
         $Repository.WorkingDirectory | Should Be $CreatedAt
         $Repository.Path | Should Be (Join-Path -Path $CreatedAt -ChildPath '.git\')
     }
+}
 
+function ThenDirectory
+{
+    param(
+        $Path,
+        [Switch]
+        $Exists,
+        [Switch]
+        $DoesNotExist
+    )
+
+    $fullPath = Join-Path -Path $TestDrive.Fullname -ChildPath $Path
+    if( $Exists )
+    {
+        It ('should have a "{0}" directory' -f $Path) {
+            $fullPath | Should -Exist
+        }
+    }
+    else
+    {
+        It ('should not have a "{0}" directory' -f $Path) {
+            $fullPath | Should -Not -Exist
+        }
+    }
+}
+
+function ThenFile
+{
+    param(
+        $Path,
+        $Matches
+    )
+
+    $fullPath = Join-Path -Path $TestDrive.FullName -ChildPath $Path
+    
+    It ('should have a "{0}" file that matches /{1}/' -f $Path,$Matches) {
+        Get-Content -Raw -Path $fullPath | Should -Match $Matches
+    }
+}
+
+function Init
+{
+    $Global:Error.Clear()
+}
+
+function WhenCreatingRepo
+{
+    param(
+        [Switch]
+        $Bare
+    )
+
+    New-GitRepository -Path $TestDrive.FullName -Bare:$Bare
 }
 
 Describe 'New-GitRepository when path does not exist' {
+    Init
     $repoRoot = Join-Path -Path (Resolve-TestDrivePath) -ChildPath 'parent\reporoot\'
     $repo = New-GitRepository -Path $repoRoot
     Assert-Repository $repo -CreatedAt $repoRoot
 }
 
 Describe 'New-GitRepository when path is relative' {
+    Init
     $repoRoot = 'parent\reporoot\'
     Push-Location -Path (Resolve-TestDrivePath)
     try
@@ -50,12 +105,14 @@ Describe 'New-GitRepository when path is relative' {
 }
 
 Describe 'New-GitRepository when path exists' {
+    Init
     $repoRoot = Resolve-TestDrivePath
     $repo = New-GitRepository -Path $repoRoot
     Assert-Repository $repo -CreatedAt $repoRoot
 }
 
 Describe 'New-GitRepository when path is already a repository' {
+    Init
     $repoRoot = Resolve-TestDrivePath
     $repo = New-GitRepository -Path $repoRoot
     Assert-Repository $repo -CreatedAt $repoRoot
@@ -64,7 +121,7 @@ Describe 'New-GitRepository when path is already a repository' {
 }
 
 Describe 'New-GitRepository when -WhatIf switch is passed' {
-    Clear-Error
+    Init
     $repoRoot = Resolve-TestDrivePath
     $repo = New-GitRepository -Path $repoRoot -WhatIf
     It 'should not create a repository' {
@@ -72,4 +129,12 @@ Describe 'New-GitRepository when -WhatIf switch is passed' {
         Get-ChildItem -Path $repoRoot | Should BeNullOrEmpty
     }
     Assert-ThereAreNoErrors
+}
+
+Describe 'New-GitRepository.when creating bare repository' {
+    Init
+    WhenCreatingRepo -Bare
+    ThenDirectory '.git' -DoesNotExist
+    ThenDirectory 'refs' -Exists
+    ThenFile 'config' -Matches 'bare\ =\ true'
 }
