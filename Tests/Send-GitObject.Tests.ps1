@@ -65,9 +65,6 @@ function GivenTag
 
 function GivenCommit
 {
-    param(
-    )
-    
     $fileName = [IO.Path]::GetRandomFileName()
     Add-GitTestFile -RepoRoot $localRepoPath -Path $fileName | Out-Null
     Add-GitItem -RepoRoot $localRepoPath -Path $fileName
@@ -76,9 +73,6 @@ function GivenCommit
 
 function GivenRemoteContainsOtherChanges
 {
-    param(
-    )
-    
     Set-GitConfiguration -Name 'core.bare' -Value 'false' -RepoRoot $remoteRepoPath
     Add-GitTestFile -RepoRoot $remoteRepoPath -Path 'RemoteTestFile.txt'
     Add-GitItem -RepoRoot $remoteRepoPath -Path 'RemoteTestFile.txt'
@@ -88,11 +82,8 @@ function GivenRemoteContainsOtherChanges
 
 function ThenNoErrorsWereThrown
 {
-    param(
-    )
-
     It 'should not throw any errors' {
-        $Global:Error | Should BeNullOrEmpty
+        $Global:Error | Should -BeNullOrEmpty
     }
 }
 
@@ -104,25 +95,22 @@ function ThenErrorWasThrown
     )
 
     It ('should throw an error: ''{0}''' -f $ErrorMessage) {
-        $Global:Error | Should Match $ErrorMessage
+        $Global:Error | Should -Match $ErrorMessage
     }
 }
 
 function ThenRemoteContainsLocalCommits
 {
-    param(
-    )
-
     It 'local repository should not have any unstaged changes' {
-        Test-GitUncommittedChange -RepoRoot $localRepoPath | Should Be $false
+        Test-GitUncommittedChange -RepoRoot $localRepoPath | Should -BeFalse
     }
     
     It 'local repository should not have any outgoing commits' {
-        Test-GitOutgoingCommit -RepoRoot $localRepoPath | Should Be $false
+        Test-GitOutgoingCommit -RepoRoot $localRepoPath | Should -BeFalse
     }
 
     It 'the HEAD commit of the local repository should match the remote repository' {
-        (Get-GitCommit -RepoRoot $remoteRepoPath -Revision HEAD).Sha | Should Be (Get-GitCommit -RepoRoot $localRepoPath -Revision HEAD).Sha
+        (Get-GitCommit -RepoRoot $remoteRepoPath -Revision HEAD).Sha | Should -Be (Get-GitCommit -RepoRoot $localRepoPath -Revision HEAD).Sha
     }
 }
 
@@ -145,7 +133,7 @@ function ThenRemoteRevision
     if( $Exists )
     {
         It ('should push refspec to remote') {
-            $commitExists | Should -Be $true
+            $commitExists | Should -BeTrue
             if( $HasSha )
             {
                 $commit = Get-GitCommit -RepoRoot $remoteRepoPath -Revision $Revision
@@ -168,7 +156,7 @@ function ThenPushResultIs
     )
 
     It ('function returned status of ''{0}''' -f $script:pushResult) {
-        $script:pushResult | Should Be $PushStatus
+        $script:pushResult | Should -Be $PushStatus
     }
 }
 

@@ -29,9 +29,8 @@ function GivenBranch
 function GivenRepository
 {
     New-GitRepository -Path $repoRoot
-    $file = Join-Path -Path $repoRoot -ChildPath 'first'
-    '' | Set-Content -Path $file
-    Add-GitItem -Path $file -RepoRoot $repoRoot
+    Add-GitTestFile -RepoRoot $repoRoot -Path 'first'
+    Add-GitItem -Path 'first' -RepoRoot $repoRoot
     Save-GitChange -Message 'first' -RepoRoot $repoRoot
 }
 
@@ -46,7 +45,6 @@ function GivenTag
 
 function Init
 {
-    $script:repoRoot = $null
     $script:repoRoot = $TestDrive.FullName
     $script:result = $null
 }
@@ -75,11 +73,19 @@ function ThenReturnedTrue
 function WhenTestingRevision
 {
     param(
-        $Revision
+        $Revision,
+        [Switch]
+        $NoRepoRootParameter
     )
 
+    $repoRootParam = @{ 'RepoRoot' = $repoRoot }
+    if( $NoRepoRootParameter )
+    {
+        $repoRootParam = @{ }
+    }
+
     $Global:Error.Clear()
-    $script:result = Test-GitCommit -Revision $Revision -RepoRoot $repoRoot
+    $script:result = Test-GitCommit -Revision $Revision @repoRootParam
 }
 
 Describe 'Test-GitCommit.when revision doesn''t exist' {
@@ -122,4 +128,21 @@ Describe 'Test-GitCommit.when using branch' {
     WhenTestingRevision 'some-branch'
     ThenReturnedTrue
     ThenNoErrors
+}
+
+Describe 'Test-GitCommit.when working in current directory' {
+    Init
+    GivenRepository
+    GivenBranch 'some-branch'
+    Push-Location -Path $repoRoot
+    try
+    {
+        WhenTestingRevision 'some-branch' -NoRepoRootParameter
+        ThenReturnedTrue
+        ThenNoErrors
+    }
+    finally
+    {
+        Pop-Location
+    }
 }
