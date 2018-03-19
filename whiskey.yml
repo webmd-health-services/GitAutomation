@@ -59,7 +59,7 @@ BuildTasks:
 
 - Exec: git status
 
-- Exec: git checkout LibGit2\bin\.gitignore
+- Exec: git checkout LibGit2\bin\.gitconfig
 
 - PowerShell:
     OnlyBy: BuildServer
