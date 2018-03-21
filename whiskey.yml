@@ -29,7 +29,7 @@ BuildTasks:
     - /NDL 
     - /R:0
     - /XF
-    - $(WHISKEY_BUILD_ROOT)\LibGit2\bin\.gitconfig
+    - $(WHISKEY_BUILD_ROOT)\LibGit2\bin\gitconfig
     SuccessExitCode: <8
 
 - Exec:
@@ -56,10 +56,6 @@ BuildTasks:
 
 - GetPowerShellModule:
     Name: Silk
-
-- Exec: git status
-
-- Exec: git checkout LibGit2\bin\.gitconfig
 
 - PowerShell:
     OnlyBy: BuildServer

@@ -87,7 +87,7 @@ Describe 'New-GitSignature.when passing author information' {
 }
 
 Describe 'New-GitSignature.when reading configuration from global files' {
-    $blankGitConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\LibGit2\bin\.gitconfig'
+    $blankGitConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\LibGit2\bin\gitconfig'
     $config = [LibGit2Sharp.Configuration]::BuildFrom($blankGitConfigPath)
     $name = $config | Where-Object { $_.Key -eq 'user.name' } | Select-Object -ExpandProperty 'Value'
     $clearName = $false
@@ -136,7 +136,7 @@ Describe 'New-GitSignature.when reading configuration from repository' {
 }
 
 Describe 'New-GitSignature.when configuration is missing' {
-    $blankGitConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\LibGit2\bin\.gitconfig'
+    $blankGitConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\LibGit2\bin\gitconfig'
     $config = [LibGit2Sharp.Configuration]::BuildFrom($blankGitConfigPath)
     $name = $config | Where-Object { $_.Key -eq 'user.name' } | Select-Object -ExpandProperty 'Value'
     $email = $config | Where-Object { $_.Key -eq 'user.email' } | Select-Object -ExpandProperty 'Value'
