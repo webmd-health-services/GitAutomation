@@ -63,8 +63,8 @@ Describe 'License Notices' {
                         'libgit2.license.txt',
                         'libgit2_filename.txt',
                         'libgit2_hash.txt',
-                        'VERIFICATION.txt'
-
+                        'VERIFICATION.txt',
+                        'gitconfig'
                     )
     $exclude = @(
                     'packages',
