@@ -146,6 +146,11 @@
             # ReleaseNotes of this module
 
             ReleaseNotes = @'
+# 0.10.1
+
+* Fixed: File missing from package on the PowerShell Gallery.
+
+
 # 0.10.0
 
 * Added `Test-GitCommit` function for testing if a commit exists.

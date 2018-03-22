@@ -29,7 +29,7 @@ BuildTasks:
     - /NDL 
     - /R:0
     - /XF
-    - $(WHISKEY_BUILD_ROOT)\LibGit2\bin\.gitconfig
+    - $(WHISKEY_BUILD_ROOT)\LibGit2\bin\gitconfig
     SuccessExitCode: <8
 
 - Exec:
