@@ -16,7 +16,7 @@
     RootModule = 'LibGit2.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.10.1'
+    ModuleVersion = '0.11.0'
 
     # ID used to uniquely identify this module
     GUID = '119a2511-62d9-4626-9728-0c8ec7068c57'
@@ -146,6 +146,11 @@
             # ReleaseNotes of this module
 
             ReleaseNotes = @'
+# 0.11.0
+
+* Added `Force` switch to `Update-GitRepository` to overwrite any uncomitted changes when checking out/updating to a specific revision.
+
+
 # 0.10.1
 
 * Fixed: File missing from package on the PowerShell Gallery.

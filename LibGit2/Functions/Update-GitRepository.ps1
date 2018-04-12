@@ -19,21 +19,28 @@ function Update-GitRepository
     .DESCRIPTION
     The `Update-GitRepository` function updates a Git repository to a specific commit, i.e. it checks out a specific commit.
 
-    The default target is "HEAD". Use the `Target` parameter to specifiy a different target
+    The default target is "HEAD". Use the `Revision` parameter to specifiy a different branch, tag, commit, etc. If you specify a branch name, and there isn't a local branch by that name, but there is a remote branch, this function creates a new local branch that tracks the remote branch.
 
     It defaults to the current repository. Use the `RepoRoot` parameter to specify an explicit path to another repo.
+
+    Use the `Force` switch to remove any uncommitted/unstaged changes during the checkout. Otherwise, the update will fail.
 
     This function implements the `git checkout <target>` command.
 
     .EXAMPLE
-    Update-GitRepository -RepoRoot 'C:\Projects\LibGit2' -Target 'feature/ticket'
+    Update-GitRepository -RepoRoot 'C:\Projects\LibGit2' -Revision 'feature/ticket'
 
     Demonstrates how to checkout the 'feature/ticket' branch of the given repository.
 
     .EXAMPLE
-    Update-GitRepository -RepoRoot 'C:\Projects\LibGit2' -Target 'refs/tags/tag1'
+    Update-GitRepository -RepoRoot 'C:\Projects\LibGit2' -Revision 'refs/tags/tag1'
 
     Demonstrates how to create a detached head at the tag 'tag1'.
+
+    .EXAMPLE
+    Update-GitRepository -RepoRoot 'C:\Projects\LibGit2' -Revision 'develop' -Force
+
+    Demonstrates how to remove any uncommitted changes during the checkout by using the `Force` switch.
     #>
 
     [CmdletBinding()]
@@ -44,7 +51,11 @@ function Update-GitRepository
 
         [string]
         # The revision checkout, i.e. update the repository to. A revision can be a specific commit ID/sha (short or long), branch name, tag name, etc. Run git help gitrevisions or go to https://git-scm.com/docs/gitrevisions for full documentation on Git's revision syntax.
-        $Revision = "HEAD"
+        $Revision = "HEAD",
+
+        [Switch]
+        # Remove any uncommitted changes when checking out/updating to `Revision`.
+        $Force
     )
 
     Set-StrictMode -Version 'Latest'
@@ -57,25 +68,31 @@ function Update-GitRepository
 
     try
     {
-        $validTarget = $repo.Lookup($Revision)
-        if( -not $validTarget )
+        $checkoutOptions = New-Object -TypeName 'LibGit2Sharp.CheckoutOptions'
+        if( $Force )
         {
-            $remoteRevision = ('origin/{0}' -f $Revision)
-            $remoteTarget = $repo.Lookup($remoteRevision)
-            if( -not $remoteTarget )
-            {
-                Write-Error ("No valid git object identified by '{0}' exists in the repository." -f $Revision)
-                return
-            }
-            
-            $localBranch = New-GitBranch -RepoRoot $RepoRoot -Name $Revision -Revision $remoteRevision
-            $remoteBranch = Get-GitBranch -RepoRoot $RepoRoot | Where-Object { $_.Name -eq $remoteRevision }
-            $updateRemote = [scriptblock]::Create('param($Branch) $Branch.TrackedBranch = ''{0}''' -f $remoteBranch.CanonicalName)
-            $localBranch = $repo.Branches.Update($localBranch, @($updateRemote))
+            $checkoutOptions.CheckoutModifiers = [LibGit2Sharp.CheckoutModifiers]::Force
         }
-        
-        $options = New-Object LibGit2Sharp.CheckoutOptions
-        $repo.Checkout($Revision, $options)
+
+        $branch = $repo.Branches[$Revision]
+        if( -not $branch )
+        {
+            [LibGit2Sharp.Branch]$remoteBranch = $repo.Branches | Where-Object { $_.UpstreamBranchCanonicalName -eq ('refs/heads/{0}' -f $Revision) }
+            if( $remoteBranch )
+            {
+                $branch = $repo.Branches.Add($Revision, $remoteBranch.Tip.Sha)
+                $repo.Branches.Update($branch, {
+                    param(
+                        [LibGit2Sharp.BranchUpdater]
+                        $Updater
+                    )
+
+                    $Updater.TrackedBranch = $remoteBranch.CanonicalName
+                })
+            }
+        }
+
+        [LibGit2Sharp.Commands]::Checkout($repo, $Revision, $checkoutOptions)
     }
     finally
     {

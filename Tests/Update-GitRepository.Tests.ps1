@@ -221,3 +221,38 @@ Describe 'Update-GitRepository when the given repo does not exist' {
         $Global:Error | Should Match 'does not exist'
     }
 }
+
+Describe 'Update-GitRepository.when there are uncommitted changes' {
+    Clear-Error
+    
+    $repo = New-GitTestRepo
+    Add-GitTestFile -RepoRoot $repo -Path 'file1'
+    Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
+    $c1 = Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+
+    Add-GitTestFile -RepoRoot $repo -Path 'file2'
+    Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
+    $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
+
+    [Guid]::NewGuid() | Set-Content -Path (Join-Path -Path $repo -ChildPath 'file2')
+    Update-GitRepository -RepoRoot $repo -Revision $c1.Sha -Force
+
+    It 'should remove uncomitted changes' {
+        $status = Get-GitRepositoryStatus -Path $repo
+        $status.State | Should -BeNullOrEmpty
+
+        $r = Find-GitRepository -Path $repo
+        try
+        {
+            $r.Head.Tip.Sha | Should Be $c1.Sha
+            (Get-GitBranch -RepoRoot $repo -Current).Name | Should Match 'no branch'
+
+        }
+        finally
+        {
+            $r.Dispose()
+        }
+    }
+
+    Assert-ThereAreNoErrors
+}
