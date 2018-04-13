@@ -16,6 +16,7 @@ $serverWorkingDirectory = $null
 $serverBareDirectory = $null
 $clientDirectory = $null
 [Git.Automation.CommitInfo]$lastCommit = $null
+[Git.Automation.SendBranchResult]$result = $null
 
 function GivenBranch
 {
@@ -218,7 +219,7 @@ function ThenHeadsSame
     }
 }
 
-function ThenStatusIs
+function ThenMergeStatusIs
 {
     param(
         [LibGit2Sharp.MergeStatus]
@@ -226,14 +227,40 @@ function ThenStatusIs
     )
     
     It ('should result in "{0}" merge' -f $ExpectedStatus) {
-        $result.Status | Should -Be $ExpectedStatus
+        $result.LastMergeResult.Status | Should -Be $ExpectedStatus
+    }
+}
+
+function ThenPushStatus
+{
+    param(
+        [Parameter(Mandatory=$true,ParameterSetName='Is')]
+        [Git.Automation.PushResult]
+        $Is,
+
+        [Parameter(Mandatory=$true,ParameterSetName='IsNull')]
+        [Switch]
+        $IsNull
+    )
+    
+    if( $PSCmdlet.ParameterSetName -eq 'Is' )
+    {
+        It ('should result in "{0}" push' -f $Is) {
+            $result.LastPushResult | Should -Be $Is
+        }
+    }
+    else
+    {
+        It ('should not push') {
+            $result.LastPushResult | Should -BeNullOrEmpty
+        }
     }
 }
 
 function ThenUpdateFailed
 {
     It ('should fail the update') {
-        $script:result | Should -BeNullOrEmpty
+        $result | Should -BeNullOrEmpty
         $Global:Error | Should -Not -BeNullOrEmpty
     }
 }
@@ -259,7 +286,8 @@ Describe 'Send-GitBranch.when no new commits on the server' {
     Init
     GivenNewCommitIn $clientDirectory
     WhenUpdated -RepoRoot $clientDirectory
-    ThenStatusIs 'UpToDate'
+    ThenMergeStatusIs 'UpToDate'
+    ThenPushStatus -Is Ok
     ThenHeadIsLastCommit
     ThenHeadsSame
 }
@@ -267,7 +295,8 @@ Describe 'Send-GitBranch.when no new commits on the server' {
 Describe 'Send-GitBranch.when no new commits local and no new commits on server' {
     Init
     WhenUpdated -RepoRoot $clientDirectory
-    ThenStatusIs 'UpToDate'
+    ThenMergeStatusIs 'UpToDate'
+    ThenPushStatus -Is Ok
     ThenHeadIsLastCommit
     ThenHeadsSame
 }
@@ -276,7 +305,8 @@ Describe 'Send-GitBranch.when no new commits local and new commits on server and
     Init
     GivenNewCommitIn $serverWorkingDirectory -AndPushed
     WhenUpdated -RepoRoot $clientDirectory
-    ThenStatusIs 'FastForward'
+    ThenMergeStatusIs 'FastForward'
+    ThenPushStatus -Is Ok
     ThenHeadIsLastCommit
     ThenHeadsSame
 }
@@ -285,7 +315,8 @@ Describe 'Send-GitBranch.when no new commits local and new commits on server and
     Init
     GivenNewCommitIn $serverWorkingDirectory -AndPushed
     WhenUpdated -RepoRoot $clientDirectory -AndMergeStrategyIs 'Merge'
-    ThenStatusIs 'NonFastForward'
+    ThenMergeStatusIs 'NonFastForward'
+    ThenPushStatus -Is Ok
     ThenHeadIsNewCommit
     ThenHeadsSame
 }
@@ -295,7 +326,8 @@ Describe 'Send-GitBranch.when new commits local and new commits on server' {
     GivenNewCommitIn $serverWorkingDirectory -AndPushed
     GivenNewCommitIn $clientDirectory
     WhenUpdated -RepoRoot $clientDirectory
-    ThenStatusIs 'NonFastForward'
+    ThenMergeStatusIs 'NonFastForward'
+    ThenPushStatus -Is Ok
     ThenHeadIsNewCommit
     ThenHeadsSame
 }
@@ -305,6 +337,7 @@ Describe 'Send-GitBranch.when new commits local and new commits on server and me
     GivenNewCommitIn $serverWorkingDirectory -AndPushed
     GivenNewCommitIn $clientDirectory
     WhenUpdated -RepoRoot $clientDirectory -AndMergeStrategyIs 'FastForward' -ErrorAction SilentlyContinue
+    ThenPushStatus -IsNull
     ThenUpdateFailed
     ThenErrorIs 'Cannot\ perform\ fast-forward\ merge'
     ThenHeadIsLastCommit
@@ -316,6 +349,7 @@ Describe 'Send-GitBranch.when no local branch' {
     GivenNewCommitIn $clientDirectory
     GivenCheckedOut $lastCommit.Sha
     WhenUpdated -RepoRoot $clientDirectory -ErrorAction SilentlyContinue
+    ThenPushStatus -IsNull
     ThenUpdateFailed
     ThenErrorIs 'isn''t\ on\ a\ branch'
     ThenHeadIsLastCommit
@@ -328,7 +362,8 @@ Describe 'Send-GitBranch.when no tracking branch and there is a remote equivalen
     GivenNewCommitIn $serverWorkingDirectory -AndPushed
     GivenNoUpstreamBranchFor 'master'
     WhenUpdated -RepoRoot $clientDirectory
-    ThenStatusIs 'NonFastForward'
+    ThenMergeStatusIs 'NonFastForward'
+    ThenPushStatus -Is Ok
     ThenHeadIsNewCommit
     ThenHeadsSame
 }
@@ -338,6 +373,7 @@ Describe 'Send-GitBranch.when no tracking branch and there is no remote equivale
     GivenBranch 'develop'
     GivenNewCommitIn $clientDirectory
     WhenUpdated -RepoRoot $clientDirectory -ErrorAction SilentlyContinue
+    ThenPushStatus -IsNull
     ThenUpdateFailed
     ThenErrorIs 'unable\ to\ find\ a\ remote\ branch\ named\ "develop"'
     ThenHeadIsLastCommit 'develop'
@@ -358,7 +394,8 @@ Describe 'Send-GitBranch.when there are conflicts between local and remote' {
     Init
     GivenConflicts
     WhenUpdated -RepoRoot $clientDirectory -ErrorAction SilentlyContinue
-    ThenStatusIs 'Conflicts'
+    ThenPushStatus -IsNull
+    ThenMergeStatusIs 'Conflicts'
     ThenHeadIsLastCommit
     ThenHeadsDifferent
 }

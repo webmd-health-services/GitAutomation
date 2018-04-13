@@ -23,6 +23,12 @@ function Send-GitBranch
 
     The `Retry` parameter controls how many pull/merge/push attempts to make. The default is "5".
 
+    Returns a `Git.Automation.SendBranchResult`. To see if the push succeeded, check the `LastPushResult` property, which is a `Git.Automation.PushResult` enumeration. A value of `Ok` means the push succeeded. Other values are `Failed` or `Rejected`.
+
+    The result object contains lists for every merge and push operation this function attempts. Merge results are in a `MergeResult` object, from first attempt to most recent attempt. Push results are in a `PushResult` property, from first attempt to most recent attempt.
+
+    The most recent merge result is available as the `LastMergeResult` property. The most recent push result is available as the `LastPushResult` property.
+
     This command implements the `git push` function.
 
     .LINK
@@ -37,6 +43,7 @@ function Send-GitBranch
     Demonstrates how to push changes to a remote repository.
     #>
     [CmdletBinding()]
+    [OutputType([Git.Automation.SendBranchResult])]
     param(
         [string]
         $RepoRoot = (Get-Location).ProviderPath,
@@ -60,25 +67,34 @@ function Send-GitBranch
         $mergeStrategyParam['MergeStrategy'] = $MergeStrategy
     }
     
-    $tryNum = 0
-    do
+    $result = New-Object -TypeName 'Git.Automation.SendBranchResult'
+
+    try
     {
-        $syncResult = Sync-GitBranch -RepoRoot $RepoRoot @mergeStrategyParam
-        if( -not $syncResult )
+        $tryNum = 0
+        do
         {
-            return
+            $syncResult = Sync-GitBranch -RepoRoot $RepoRoot @mergeStrategyParam
+            if( -not $syncResult )
+            {
+                return
+            }
+
+            $result.MergeResult.Add($syncResult)
+
+            if( $syncResult.Status -eq [LibGit2Sharp.MergeStatus]::Conflicts )
+            {
+                Write-Error -Message ('There are merge conflicts pulling remote changes into local branch.')
+                return
+            }
+
+            $pushResult = Send-GitCommit -RepoRoot $RepoRoot
+            $result.PushResult.Add($pushResult)
         }
-
-        $syncResult
-
-        if( $syncResult.Status -eq [LibGit2Sharp.MergeStatus]::Conflicts )
-        {
-            Write-Error -Message ('There are merge conflicts pulling remote changes into local branch.')
-            return
-        }
-
-        $pushResult = Send-GitCommit -RepoRoot $RepoRoot
-        $pushResult
+        while( $tryNum++ -lt $Retry -and $pushResult -ne [Git.Automation.PushResult]::Ok )
     }
-    while( $tryNum++ -lt $Retry -and $pushResult -ne [Git.Automation.PushResult]::Ok )
+    finally
+    {
+        Write-Output -InputObject $result -NoEnumerate
+    }
 }
