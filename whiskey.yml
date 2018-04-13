@@ -5,23 +5,23 @@ BuildTasks:
 # The Version task sets the current build's version number. You should almost always 
 # have one of these.
 - Version:
-    Path: LibGit2\LibGit2.psd1
+    Path: GitAutomation\GitAutomation.psd1
     Build: $(WHISKEY_BUILD_NUMBER).$(WHISKEY_SCM_BRANCH).$(WHISKEY_SCM_COMMIT_ID)
 
 - MSBuild:
-    Path: Source\LibGit2.Automation.sln
+    Path: Source\Git.Automation.sln
 
 - Delete:
     OnlyBy: BuildServer
     Path: 
-    - LibGit2\bin\*.pdb
+    - GitAutomation\bin\*.pdb
 
 - Exec: 
     OnlyDuring: Build
     Path: robocopy 
     Argument:
-    - Source\LibGit2.Automation\bin\$(WHISKEY_MSBUILD_CONFIGURATION)
-    - LibGit2\bin
+    - Source\Git.Automation\bin\$(WHISKEY_MSBUILD_CONFIGURATION)
+    - GitAutomation\bin
     - /MIR 
     - /NJH 
     - /NJS 
@@ -29,7 +29,7 @@ BuildTasks:
     - /NDL 
     - /R:0
     - /XF
-    - $(WHISKEY_BUILD_ROOT)\LibGit2\bin\gitconfig
+    - $(WHISKEY_BUILD_ROOT)\GitAutomation\bin\gitconfig
     SuccessExitCode: <8
 
 - Exec:
@@ -74,10 +74,10 @@ PublishTasks:
     SkipUploadedCheck: true
 
 - PowerShell:
-    Path: Publish-LibGit2.ps1
+    Path: Publish-GitAutomation.ps1
 
 - PublishPowerShellModule:
     RepositoryName: PSGallery
     RepositoryUri: https://www.powershellgallery.com/api/v2/
     ApiKeyID: powershellgallery.com
-    Path: LibGit2
+    Path: GitAutomation

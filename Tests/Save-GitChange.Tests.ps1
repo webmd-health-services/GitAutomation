@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
 $repoRoot = $null
 [LibGit2Sharp.Signature]$signature = $null
@@ -38,7 +38,7 @@ Describe 'Save-GitChange when committing changes' {
     Add-GitItem -Path 'file1' -RepoRoot $repoRoot
     $commit = Save-GitChange -Message 'fubar' -RepoRoot $repoRoot -Signature $signature
     It 'should return a commit object' {
-        $commit.pstypenames | Where-Object { $_ -eq 'LibGit2.Automation.CommitInfo' } | Should Not BeNullOrEmpty
+        $commit.pstypenames | Where-Object { $_ -eq 'Git.Automation.CommitInfo' } | Should Not BeNullOrEmpty
     }
     It 'should commit everything' {
         git -C $repoRoot status --porcelain | Should BeNullOrEmpty

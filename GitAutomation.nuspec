@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!--
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+   
+       http://www.apache.org/licenses/LICENSE-2.0
+   
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<package>
+  <metadata>
+    <id>GitAutomation</id>
+    <version>0.7.0</version>
+    <authors>Aaron Jensen</authors>
+    <owners>Aaron Jensen</owners>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+    <projectUrl>https://github.com/webmd-health-services/GitAutomation</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <summary>GitAutomation is a PowerShell module for working with Git repositories.</summary>
+    <description>GitAutomation is a PowerShell module for working with Git repositories. You can use it to create, clone, query, push to, pull from, and commit to Git repositories.
+    
+This module uses [LibGit2Sharp](https://github.com/libgit2/libgit2sharp), the .NET wrapper for [libgit2](https://libgit2.github.com/), "a portable, pure C implementation of... Git", which allows you to call Git via API instead using the Git command line interface.</description>
+    <language>en-us</language>
+    <releaseNotes>
+* `Compare-GitTree` now accepts either a path to the repository with the `RepositoryRoot` parameter or a repository object with the `RepositoryObject` parameter.
+    </releaseNotes>
+    <copyright>Copyright 2016 Aaron Jensen</copyright>
+    <tags>git vcs rcs automation github gitlab libgit2</tags>
+  </metadata>
+  <files>
+    <file src=".\GitAutomation\**\*" target="GitAutomation" exclude="**\*.pdb;**\*.Tests.ps1" />
+    <file src=".\Tools\chocolateyInstall.ps1" target="Tools" />
+    <file src=".\Tools\chocolateyUninstall.ps1" target="Tools" />
+    <file src=".\Tools\VERIFICATION.txt" target="Tools" />
+    <file src=".\LICENSE*" target="" />
+    <file src=".\LICENSE*" target="GitAutomation" />
+    <file src=".\NOTICE*" target="" />
+    <file src=".\NOTICE*" target="GitAutomation" />
+    <file src=".\RELEASE_NOTES.md" target="" />
+    <file src=".\RELEASE_NOTES.md" target="GitAutomation" />
+  </files>
+</package>

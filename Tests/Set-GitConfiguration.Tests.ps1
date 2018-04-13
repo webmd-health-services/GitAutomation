@@ -13,7 +13,7 @@
 #Requires -Version 4
 Set-StrictMode -Version 'Latest'
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
 $globalSearchPaths = [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global)
 
@@ -58,10 +58,10 @@ Describe 'Set-GitConfiguration when repo does not exist' {
 
 Describe 'Set-GitConfiguration when setting global configuration' {
     $value = [Guid]::NewGuid()
-    Set-GitConfiguration -Name 'libgit2.test' -Value $value -Scope Global
+    Set-GitConfiguration -Name 'GitAutomation.test' -Value $value -Scope Global
     $repo = Find-GitRepository -Path $PSScriptRoot
     It 'should set option globally' {
-        $option = $repo.Config | Where-Object { $_.Key -eq 'libgit2.test' -and $_.Value -eq $value -and $_.Level -eq [LibGit2Sharp.ConfigurationLevel]::Global } | Should Not BeNullOrEmpty
+        $option = $repo.Config | Where-Object { $_.Key -eq 'GitAutomation.test' -and $_.Value -eq $value -and $_.Level -eq [LibGit2Sharp.ConfigurationLevel]::Global } | Should Not BeNullOrEmpty
     }
 }
 
@@ -115,7 +115,7 @@ Describe 'Set-GitConfiguration when using a relative path to a specific configur
 
 Describe 'Set-GitConfiguration when setting global configuration and not in a repository' {
     $tempRoot = (Get-Item -Path 'TestDrive:').FullName
-    Mock -CommandName 'Test-Path' -ModuleName 'LibGit2' -ParameterFilter { $Path -eq 'env:HOME' } -MockWith { return $false }
+    Mock -CommandName 'Test-Path' -ModuleName 'GitAutomation' -ParameterFilter { $Path -eq 'env:HOME' } -MockWith { return $false }
     Push-Location -Path $tempRoot
     try
     {
@@ -135,8 +135,8 @@ Describe 'Set-GitConfiguration when setting global configuration and not in a re
 Describe 'Set-GitConfiguration when HOME environment variable exists' {
     [LibGit2Sharp.GlobalSettings]::SetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global, ($env:TEMP -replace '\\','/') )
     $tempRoot = (Get-Item -Path 'TestDrive:').FullName
-    Mock -CommandName 'Test-Path' -ModuleName 'LibGit2' -ParameterFilter { $Path -eq 'env:HOME' } -MockWith { return $true }
-    Mock -CommandName 'Get-Item' -ModuleName 'LibGit2' -ParameterFilter { $Path -eq 'env:HOME' } -MockWith { return [pscustomobject]@{ Name = 'HOME' ; Value = (Get-Item -Path 'TestDrive:').FullName } }
+    Mock -CommandName 'Test-Path' -ModuleName 'GitAutomation' -ParameterFilter { $Path -eq 'env:HOME' } -MockWith { return $true }
+    Mock -CommandName 'Get-Item' -ModuleName 'GitAutomation' -ParameterFilter { $Path -eq 'env:HOME' } -MockWith { return [pscustomobject]@{ Name = 'HOME' ; Value = (Get-Item -Path 'TestDrive:').FullName } }
 
     Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -Scope Global -ErrorVariable 'errors'
     Assert-ConfigurationVariableSet -Path (Join-Path -Path $tempRoot -ChildPath '.gitconfig')

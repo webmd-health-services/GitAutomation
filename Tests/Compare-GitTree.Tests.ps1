@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
 [LibGit2Sharp.TreeChanges]$diffOutput = $null
 $repoRoot= $null
@@ -95,7 +95,7 @@ function WhenGettingDiff
     }
     elseif ($GivenRepositoryObject)
     {
-        Mock -CommandName 'Invoke-Command' -ModuleName 'LibGit2' -ParameterFilter { $ScriptBlock.ToString() -match 'Dispose' }
+        Mock -CommandName 'Invoke-Command' -ModuleName 'GitAutomation' -ParameterFilter { $ScriptBlock.ToString() -match 'Dispose' }
         $repoObject = Get-GitRepository -RepoRoot $repoRoot
         try
         {
@@ -127,7 +127,7 @@ function WhenGettingDiff
 function ThenDidNotDisposeRepoObject
 {
     It 'should not dispose the repository object' {
-        Assert-MockCalled -CommandName 'Invoke-Command' -ModuleName 'LibGit2' -ParameterFilter { $ScriptBlock.ToString() -match 'Dispose' } -Times 0
+        Assert-MockCalled -CommandName 'Invoke-Command' -ModuleName 'GitAutomation' -ParameterFilter { $ScriptBlock.ToString() -match 'Dispose' } -Times 0
     }
 }
 
