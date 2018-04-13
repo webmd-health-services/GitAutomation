@@ -23,7 +23,7 @@ Set-StrictMode -Version 'Latest'
 $ErrorActionPreference = 'Stop'
 
 $env:PSModulePath -split ';' |
-    Join-Path -ChildPath 'LibGit2' |
+    Join-Path -ChildPath 'GitAutomation' |
     Where-Object { Test-Path -Path $_ -PathType Container } |
-    Rename-Item -NewName { 'LibGit2{0}' -f [IO.Path]::GetRandomFileName() } -PassThru |
+    Rename-Item -NewName { 'GitAutomation{0}' -f [IO.Path]::GetRandomFileName() } -PassThru |
     Remove-Item -Recurse -Force

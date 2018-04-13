@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Sets the version number for the LibGit2 module.
+Sets the version number for the GitAutomation module.
 #>
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ $ErrorActionPreference = 'Stop'
 
 Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'Modules\Silk' -Resolve)
 
-$manifestPath = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2\LibGit2.psd1'
+$manifestPath = Join-Path -Path $PSScriptRoot -ChildPath 'GitAutomation\GitAutomation.psd1'
 
 $manifest = Test-ModuleManifest -Path $manifestPath
 if( -not $manifest )
@@ -42,7 +42,7 @@ if( -not $manifest )
     return
 }
 
-$nuspecPath = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2.PowerShell.nuspec' -Resolve
+$nuspecPath = Join-Path -Path $PSScriptRoot -ChildPath 'GitAutomation.nuspec' -Resolve
 $releaseNotesPath = Join-Path -Path $PSScriptRoot -ChildPath 'RELEASE_NOTES.md' -Resolve
 
 Set-ModuleVersion -ManifestPath $manifestPath `
@@ -50,14 +50,14 @@ Set-ModuleVersion -ManifestPath $manifestPath `
                   -PreReleaseVersion $PreReleaseVersion `
                   -BuildMetadata $BuildMetadata `
                   -ReleaseNotesPath (Join-Path -Path $PSScriptRoot -ChildPath 'RELEASE_NOTES.md' -Resolve) `
-                  -NuspecPath (Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2.PowerShell.nuspec' -Resolve) `
-                  -SolutionPath (Join-Path -Path $PSScriptRoot -ChildPath 'Source\LibGit2.Automation.sln' -Resolve) `
-                  -AssemblyInfoPath (Join-Path -Path $PSScriptRoot -ChildPath 'Source\LibGit2.Automation\Properties\AssemblyInfo.cs' -Resolve)
+                  -NuspecPath (Join-Path -Path $PSScriptRoot -ChildPath 'GitAutomation.nuspec' -Resolve) `
+                  -SolutionPath (Join-Path -Path $PSScriptRoot -ChildPath 'Source\Git.Automation.sln' -Resolve) `
+                  -AssemblyInfoPath (Join-Path -Path $PSScriptRoot -ChildPath 'Source\Git.Automation\Properties\AssemblyInfo.cs' -Resolve)
 
 $valid = Assert-ModuleVersion -ManifestPath $manifestPath -ReleaseNotesPath $releaseNotesPath -NuspecPath $nuspecPath -ExcludeAssembly 'LibGit2Sharp.dll'
 if( -not $valid )
 {
-    Write-Error -Message ('LibGit2 isn''t at the right version. Please use the -Version parameter to set the version.')
+    Write-Error -Message ('GitAutomation isn''t at the right version. Please use the -Version parameter to set the version.')
     return
 }
 
@@ -79,19 +79,19 @@ else
     New-Item -Path $outputDirectory -ItemType 'directory'
 }
 
-$manifestPath = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2\LibGit2.psd1'
+$manifestPath = Join-Path -Path $PSScriptRoot -ChildPath 'GitAutomation\GitAutomation.psd1'
 New-NuGetPackage -OutputDirectory (Join-Path -Path $outputDirectory -ChildPath 'nuget.org') `
                  -ManifestPath $manifestPath `
                  -NuspecPath $nuspecPath `
                  -NuspecBasePath $PSScriptRoot `
-                 -PackageName 'LibGit2.PowerShell'
+                 -PackageName 'GitAutomation'
 
 New-ChocolateyPackage -OutputDirectory (Join-Path -Path $outputDirectory -ChildPath 'chocolatey.org') `
                       -ManifestPath $manifestPath `
                       -NuspecPath $nuspecPath
 
-$source = Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2'
-$destination = Join-Path -Path $outputDirectory -ChildPath 'LibGit2'
+$source = Join-Path -Path $PSScriptRoot -ChildPath 'GitAutomation'
+$destination = Join-Path -Path $outputDirectory -ChildPath 'GitAutomation'
 robocopy.exe $source $destination /MIR /NJH /NJS /NP /NDL /XD /XF '*.pdb'
 if( $LASTEXITCODE -lt 8 )
 {

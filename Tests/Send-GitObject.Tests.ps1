@@ -12,7 +12,7 @@
 
 Set-StrictMode -Version 'Latest'
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
 function GivenRemoteRepository
 {
@@ -191,7 +191,7 @@ Describe 'Send-GitObject.when pushing changes to a remote repository' {
     GivenCommit
     WhenSendingObject 'refs/heads/master'
     ThenNoErrorsWereThrown
-    ThenPushResultIs ([LibGit2.Automation.PushResult]::Ok)
+    ThenPushResultIs ([Git.Automation.PushResult]::Ok)
     ThenRemoteContainsLocalCommits
 }
 
@@ -200,7 +200,7 @@ Describe 'Send-GitObject.when there are no local changes to push to remote' {
     GivenLocalRepositoryTracksRemote 'LocalRepo'
     WhenSendingObject 'refs/heads/master'
     ThenNoErrorsWereThrown
-    ThenPushResultIs ([LibGit2.Automation.PushResult]::Ok)
+    ThenPushResultIs ([Git.Automation.PushResult]::Ok)
 }
 
 Describe 'Send-GitObject.when remote repository has changes not contained locally' {
@@ -210,7 +210,7 @@ Describe 'Send-GitObject.when remote repository has changes not contained locall
     GivenCommit
     WhenSendingObject 'refs/heads/master' -ErrorAction SilentlyContinue
     ThenErrorWasThrown 'that you are trying to update on the remote contains commits that are not present locally.'
-    ThenPushResultIs ([LibGit2.Automation.PushResult]::Rejected)
+    ThenPushResultIs ([Git.Automation.PushResult]::Rejected)
 }
 
 Describe 'Send-GitObject.when no upstream remote is defined' {
@@ -218,7 +218,7 @@ Describe 'Send-GitObject.when no upstream remote is defined' {
     GivenCommit
     WhenSendingObject 'refs/heads/master' -ErrorAction SilentlyContinue
     ThenErrorWasThrown 'A\ remote\ named\ "origin"\ does\ not\ exist\.'
-    ThenPushResultIs ([LibGit2.Automation.PushResult]::Failed)
+    ThenPushResultIs ([Git.Automation.PushResult]::Failed)
 }
 
 Describe 'Send-GitObject.when refspec doesn''t exist' {
@@ -226,7 +226,7 @@ Describe 'Send-GitObject.when refspec doesn''t exist' {
     GivenLocalRepositoryTracksRemote 'LocalRepo'
     WhenSendingObject 'refs/heads/dsfsdaf' -ErrorAction SilentlyContinue
     ThenErrorWasThrown 'does\ not\ match\ any\ existing\ object'
-    ThenPushResultIs ([LibGit2.Automation.PushResult]::Failed)
+    ThenPushResultIs ([Git.Automation.PushResult]::Failed)
 }
 
 Describe 'Send-GitObject.when pushing tags' {

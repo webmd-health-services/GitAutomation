@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
 function Assert-Repository
 {
@@ -22,7 +22,7 @@ function Assert-Repository
 
     It 'should create a repository' {
         $Repository | Should Not BeNullOrEmpty
-        $Repository | Should BeOfType ([LibGit2.Automation.RepositoryInfo])
+        $Repository | Should BeOfType ([Git.Automation.RepositoryInfo])
         $Repository.WorkingDirectory | Should Be $CreatedAt
         $Repository.Path | Should Be (Join-Path -Path $CreatedAt -ChildPath '.git\')
     }
