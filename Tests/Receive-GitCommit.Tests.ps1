@@ -12,7 +12,7 @@
 
 & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
-Describe 'Receive-GitCommit with the -Pull switch when there are incoming commits on master'{
+Describe 'Receive-GitCommit'{
     Clear-Error
 
     $remoteRepo = New-GitTestRepo
@@ -33,42 +33,10 @@ Describe 'Receive-GitCommit with the -Pull switch when there are incoming commit
         $repo.Head.Tip.Sha | Should Not Be $remote.Head.Tip.Sha
         Receive-GitCommit -RepoRoot $localRepoPath
 
-        It 'should fast-forward remote changes on master'{        
-            $repo.Head.Tip.Sha | Should Be $remote.Head.Tip.Sha
-        }
-
-    }
-    finally{
-        $repo.Dispose()
-        $remote.Dispose()
-    }
-   
-    Assert-ThereAreNoErrors
-}
-
-Describe 'Receive-GitCommit when ran withouth the -Pull switch'{
-    Clear-Error
-
-    $remoteRepo = New-GitTestRepo
-    Add-GitTestFile -RepoRoot $remoteRepo -Path 'file1'
-    Add-GitItem -Path (Join-Path -Path $remoteRepo -ChildPath 'file1') -RepoRoot $remoteRepo
-    Save-GitChange -RepoRoot $remoteRepo -Message 'file1 commit'
-
-    $localRepoPath = Join-Path -Path (Resolve-TestDrivePath) -ChildPath 'LocalRepo'
-    Copy-GitRepository -Source $remoteRepo -DestinationPath $localRepoPath
-
-    Add-GitTestFile -RepoRoot $remoteRepo -Path 'file2'
-    Add-GitItem -Path (Join-Path -Path $remoteRepo -ChildPath 'file2') -RepoRoot $remoteRepo
-    Save-GitChange -RepoRoot $remoteRepo -Message 'file2 commit'
-
-    $repo = Find-GitRepository -Path $localRepoPath
-    $remote = Find-GitRepository -Path $remoteRepo
-    try{
-        $repo.Head.Tip.Sha | Should Not Be $remote.Head.Tip.Sha
-        Receive-GitCommit -RepoRoot $localRepoPath -Fetch
-
         It 'should fetch commits for tracked local branches'{
-            Test-GitIncomingCommit -RepoRoot $localRepoPath | Should Be $true
+            [LibGit2Sharp.Branch]$remoteOrigin = $repo.Branches | Where-Object { $_.FriendlyName -eq 'origin/master' }
+            [LibGit2Sharp.Branch]$localOrigin = $repo.Branches | Where-Object { $_.FriendlyName -eq 'master' }
+            $remoteOrigin.Tip.Sha | Should -Not -Be $localOrigin.Tip.Sha
         }
 
         It 'should not merge remote changes'{        

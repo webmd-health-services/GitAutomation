@@ -60,14 +60,6 @@
         "Tags": [ "branch" ]
     },
     {
-        "Name": "Test-GitIncomingCommit",
-        "Tags": [ "pull", "fetch" ]
-    },
-    {
-        "Name": "Test-GitOutgoingCommit",
-        "Tags": [ "push" ]
-    },
-    {
         "Name": "Test-GitRemoteUri",
         "Tags": [ "repository", "remote" ]
     },
