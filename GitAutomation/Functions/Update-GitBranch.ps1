@@ -25,6 +25,8 @@ function Update-GitBranch
 
     If the function needs to create a merge commit, but the `merge.ff` option is `only` or the `MergeStrategy` parameter is `FastForward`, the function will write an error and return `$null`.
 
+    If the current branch isn't tracking a remote branch, this function will look for a remote branch with the same name, and create tracking information. If there is no remote branch with the same name, this function will write an error and return `$null`.
+
     By default, this function works on the repository in the current directory. Use the `RepoRoot` parameter to specify an explicit repository.
 
     This function implements the `git pull` command.
@@ -63,6 +65,32 @@ function Update-GitBranch
 
     try
     {
+        $branch = $repo.Branches | Where-Object { $_.IsCurrentRepositoryHead }
+        if( -not $branch )
+        {
+            Write-Error -Message ('Repository in "{0}" isn''t on a branch. Use "Update-GitRepository" to update to a branch.' -f $RepoRoot)
+            return
+        }
+
+        if( -not $branch.IsTracking )
+        {
+            [LibGit2Sharp.Branch]$remoteBranch = $repo.Branches | Where-Object { $_.UpstreamBranchCanonicalName -eq $branch.CanonicalName }
+            if( -not $remoteBranch )
+            {
+                Write-Error -Message ('Branch "{0}" in repository "{1}" isn''t tracking a remote branch and we''re unable to find a remote branch named "{0}".' -f $branch.FriendlyName,$RepoRoot)
+                return
+            }
+        
+            $repo.Branches.Update($branch, {
+                param(
+                    [LibGit2Sharp.BranchUpdater]
+                    $Updater
+                )
+        
+                $Updater.TrackedBranch = $remoteBranch.CanonicalName
+            })
+        }
+
         $pullOptions = New-Object LibGit2Sharp.PullOptions
         $mergeOptions = New-Object LibGit2Sharp.MergeOptions
         $mergeOptions.FastForwardStrategy = [LibGit2Sharp.FastForwardStrategy]::Default
