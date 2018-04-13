@@ -223,36 +223,59 @@ Describe 'Update-GitRepository when the given repo does not exist' {
 }
 
 Describe 'Update-GitRepository.when there are uncommitted changes' {
+    Write-Host '226'
     Clear-Error
+    Write-Host '228'
     
     $repo = New-GitTestRepo
+    Write-Host '231'
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
+    Write-Host '233'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
+    Write-Host '235'
     $c1 = Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    Write-Host '237'
 
     Add-GitTestFile -RepoRoot $repo -Path 'file2'
+    Write-Host '240'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
+    Write-Host '242'
     $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
+    Write-Host '244'
 
+    Write-Host '246'
     [Guid]::NewGuid() | Set-Content -Path (Join-Path -Path $repo -ChildPath 'file2')
+    Write-Host '248'
     Update-GitRepository -RepoRoot $repo -Revision $c1.Sha -Force
+    Write-Host '250'
 
     It 'should remove uncomitted changes' {
+    Write-Host '253'
         $status = Get-GitRepositoryStatus -Path $repo
+    Write-Host '255'
         $status.State | Should -BeNullOrEmpty
 
+    Write-Host '258'
         $r = Find-GitRepository -Path $repo
+    Write-Host '260'
         try
         {
+    Write-Host '263'
             $r.Head.Tip.Sha | Should Be $c1.Sha
+    Write-Host '265'
             (Get-GitBranch -RepoRoot $repo -Current).Name | Should Match 'no branch'
+    Write-Host '267'
 
         }
         finally
         {
+    Write-Host '272'
             $r.Dispose()
         }
+    Write-Host '275'
     }
 
+    Write-Host '278'
     Assert-ThereAreNoErrors
+    Write-Host '280'
 }
