@@ -14,17 +14,17 @@
 -->
 <package>
   <metadata>
-    <id>LibGit2.PowerShell</id>
+    <id>GitAutomation</id>
     <version>0.7.0</version>
     <authors>Aaron Jensen</authors>
     <owners>Aaron Jensen</owners>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
-    <projectUrl>https://github.com/splatteredbits/LibGit2.PowerShell/wiki</projectUrl>
+    <projectUrl>https://github.com/webmd-health-services/GitAutomation</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <summary>LibGit2 is a PowerShell module that wraps the libgit2 library.</summary>
-    <description>LibGit2 is a PowerShell module for working with Git repositories. You can use it to create, clone, query, push to, pull from, and commit to Git repositories.
+    <summary>GitAutomation is a PowerShell module for working with Git repositories.</summary>
+    <description>GitAutomation is a PowerShell module for working with Git repositories. You can use it to create, clone, query, push to, pull from, and commit to Git repositories.
     
-This module uses the .NET wrapper of [libgit2](https://libgit2.github.com/), "a portable, pure C implementation of... Git", which allows you to call Git via API instead using the Git command line interface.</description>
+This module uses [LibGit2Sharp](https://github.com/libgit2/libgit2sharp), the .NET wrapper for [libgit2](https://libgit2.github.com/), "a portable, pure C implementation of... Git", which allows you to call Git via API instead using the Git command line interface.</description>
     <language>en-us</language>
     <releaseNotes>
 * `Compare-GitTree` now accepts either a path to the repository with the `RepositoryRoot` parameter or a repository object with the `RepositoryObject` parameter.
@@ -33,15 +33,15 @@ This module uses the .NET wrapper of [libgit2](https://libgit2.github.com/), "a 
     <tags>git vcs rcs automation github gitlab libgit2</tags>
   </metadata>
   <files>
-    <file src=".\LibGit2\**\*" target="LibGit2" exclude="**\*.pdb;**\*.Tests.ps1" />
+    <file src=".\GitAutomation\**\*" target="GitAutomation" exclude="**\*.pdb;**\*.Tests.ps1" />
     <file src=".\Tools\chocolateyInstall.ps1" target="Tools" />
     <file src=".\Tools\chocolateyUninstall.ps1" target="Tools" />
     <file src=".\Tools\VERIFICATION.txt" target="Tools" />
     <file src=".\LICENSE*" target="" />
-    <file src=".\LICENSE*" target="LibGit2" />
+    <file src=".\LICENSE*" target="GitAutomation" />
     <file src=".\NOTICE*" target="" />
-    <file src=".\NOTICE*" target="LibGit2" />
+    <file src=".\NOTICE*" target="GitAutomation" />
     <file src=".\RELEASE_NOTES.md" target="" />
-    <file src=".\RELEASE_NOTES.md" target="LibGit2" />
+    <file src=".\RELEASE_NOTES.md" target="GitAutomation" />
   </files>
 </package>
