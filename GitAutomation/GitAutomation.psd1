@@ -100,8 +100,6 @@
                             'Set-GitConfiguration',
                             'Test-GitBranch',
                             'Test-GitCommit',
-                            'Test-GitIncomingCommit',
-                            'Test-GitOutgoingCommit',
                             'Test-GitRemoteUri',
                             'Test-GitTag',
                             'Test-GitUncommittedChange',
@@ -150,6 +148,13 @@
 
 * Module renamed to `GitAutomation`. The LibGit2 folks don't want us to use the LibGit2 name.
 * Added `Force` switch to `Update-GitRepository` to overwrite any uncomitted changes when checking out/updating to a specific revision.
+* Removed `Test-GitIncomingCommit` function. It actually downloaded changes from the remote repository to do its test. This function only exists because we came from Mercurial, which doesn't do any kind of automated merging. Because of this, it is normal to have to test/check for incoming changes when automating. Git does automatic mergeing so this kind of check isn't needed.
+* Removed `Test-GitOutgoingCommit` function.  This function only exists because we came from Mercurial, which doesn't do any kind of automated merging. Because of this, it is normal to have to test/check for outgoing changes. With Git, it just handles no outgoing/upstream changes to push, so this function isn't necessary.
+
+## Upgrade Instructions
+
+* The namespace for compiled objects is now `Git.Automation`. Replace references in your code to `LibGit2.Automation` with `Git.Automation`.
+* Remove any usages of the `Test-GitIncomingCommit` or `Test-GitOutgoingCommit` functions.
 
 
 # 0.10.1

@@ -106,7 +106,19 @@ function ThenRemoteContainsLocalCommits
     }
     
     It 'local repository should not have any outgoing commits' {
-        Test-GitOutgoingCommit -RepoRoot $localRepoPath | Should -BeFalse
+        $repo = Get-GitRepository -RepoRoot $localRepoPath
+        try
+        {
+            $localBranch = $repo.Branches | Where-Object { $_.IsCurrentRepositoryHead -and -not $_.IsRemote }
+            $remoteBranch = $repo.Branches | Where-Object { $_.IsRemote -and $_.CanonicalName -eq $localBranch.TrackedBranch }
+            $localBranch | Should -Not -BeNullOrEmpty
+            $remoteBranch | Should -Not -BeNullOrEmpty
+            $remoteBranch.Tip | Should -Be $localBranch.Tip
+        }
+        finally
+        {
+            $repo.Dispose()
+        }
     }
 
     It 'the HEAD commit of the local repository should match the remote repository' {

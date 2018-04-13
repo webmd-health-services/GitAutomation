@@ -63,10 +63,6 @@ function Send-GitCommit
     try
     {
         [LibGit2Sharp.Branch]$currentBranch = $repo.Branches | Where-Object { $_.IsCurrentRepositoryHead -eq $true }
-        if( -not (Test-GitOutgoingCommit -RepoRoot $RepoRoot) )
-        {
-            return [Git.Automation.PushResult]::Ok
-        }
 
         $result = Send-GitObject -RefSpec $currentBranch.CanonicalName -RepoRoot $RepoRoot -Credential $Credential
 
