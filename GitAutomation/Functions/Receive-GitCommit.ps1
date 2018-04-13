@@ -14,31 +14,25 @@ function Receive-GitCommit
 {
     <#
     .SYNOPSIS
-    Pulls or fetches remote changes for a repository
+    Downloads all branches (and their commits) from remote repositories.
 
     .DESCRIPTION
-    The `Recieve-GitCommit` function fetches or pulls the remote changes for the specified repository.
+    The `Recieve-GitCommit` function gets all the commits on all branches from all remote repositories and brings them into your repository.
 
-    If the -Fetch switch is used, all remotes are fetched. Otherwise, if the current branch can be fast-forwarded, the commits are pulled.
+    It defaults to the repository in the current directory. Pass the path to a different repository to the `RepoRoot` parameter.
 
-    It defaults to the current repository. Use the `RepoRoot` parameter to specify an explicit path to another repo.
-
-    This function implements the `git fetch --all` and `git pull` commands.
+    This function implements the `git fetch` command.
 
     .EXAMPLE
-    Receive-GitCommit -RepoRoot 'C:\Projects\GitAutomation'
+    Receive-GitCommit 
 
-    Demonstrates how to pull remotes changes for a repository that isn't the current directory.
+    Demonstrates how to get all branches from a remote repository.
     #>
     [CmdletBinding()]
     param(
         [string]
         # The repository to fetch updates for. Defaults to the current directory.
-        $RepoRoot = (Get-Location).ProviderPath,
-
-        [Switch]
-        # Use this switch to only fetch updates, instead of pulling
-        $Fetch
+        $RepoRoot = (Get-Location).ProviderPath
     )
 
     Set-StrictMode -Version 'Latest'
@@ -52,22 +46,12 @@ function Receive-GitCommit
 
     try
     {
-        if( $Fetch )
+        $fetchOptions = New-Object 'LibGit2Sharp.FetchOptions'
+        foreach( $remote in $repo.Network.Remotes )
         {
-            foreach( $remote in $repo.Network.Remotes )
-            {
-                $repo.Network.Fetch($remote)
-            } 
-        }
-        else
-        {
-            $pullOptions = New-Object LibGit2Sharp.PullOptions
-            $mergeOptions = New-Object LibGit2Sharp.MergeOptions
-            $mergeOptions.FastForwardStrategy = [LibGit2Sharp.FastForwardStrategy]::FastForwardOnly
-            $pullOptions.MergeOptions = $mergeOptions
-            $signature = $repo.Config.BuildSignature((Get-Date))
-            [LibGit2Sharp.Commands]::Pull($repo, $signature, $pullOptions)
-        }
+            [string[]]$refspecs = $remote.FetchRefSpecs | Select-Object -ExpandProperty 'Specification'
+            [LibGit2Sharp.Commands]::Fetch($repo, $remote.Name, $refspecs, $fetchOptions, $null)
+        } 
     }
     finally
     {
