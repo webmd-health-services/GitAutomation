@@ -91,7 +91,7 @@ Describe 'Update-GitRepository when updating to a remote reference' {
     Add-GitItem -Path (Join-Path -Path $remoteRepo -ChildPath 'file2') -RepoRoot $remoteRepo
     $c2 = Save-GitChange -RepoRoot $remoteRepo -Message 'file2 commit'
     
-    Receive-GitCommit -RepoRoot $localRepoPath
+    Receive-GitCommit -RepoRoot $localRepoPath -Fetch
 
     Update-GitRepository -RepoRoot $localRepoPath -Revision 'refs/remotes/origin/master'
 
