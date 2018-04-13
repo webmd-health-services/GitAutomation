@@ -210,10 +210,10 @@ function WhenUpdated
         $mergeStrategyArg['MergeStrategy'] = $AndMergeStrategyIs
     }
 
-    $script:result = Update-GitBranch -RepoRoot $RepoRoot @mergeStrategyArg
+    $script:result = Sync-GitBranch -RepoRoot $RepoRoot @mergeStrategyArg
 }
 
-Describe 'Update-GitBranch.when no new commits on the server' {
+Describe 'Sync-GitBranch.when no new commits on the server' {
     Init
     GivenNewCommitIn $clientDirectory
     WhenUpdated -RepoRoot $clientDirectory
@@ -221,14 +221,14 @@ Describe 'Update-GitBranch.when no new commits on the server' {
     ThenHeadIsLastCommit
 }
 
-Describe 'Update-GitBranch.when no new commits local and no new commits on server' {
+Describe 'Sync-GitBranch.when no new commits local and no new commits on server' {
     Init
     WhenUpdated -RepoRoot $clientDirectory
     ThenStatusIs 'UpToDate'
     ThenHeadIsLastCommit
 }
 
-Describe 'Update-GitBranch.when no new commits local and new commits on server' {
+Describe 'Sync-GitBranch.when no new commits local and new commits on server' {
     Init
     GivenNewCommitIn $serverWorkingDirectory -AndPushed
     WhenUpdated -RepoRoot $clientDirectory
@@ -236,7 +236,7 @@ Describe 'Update-GitBranch.when no new commits local and new commits on server' 
     ThenHeadIsLastCommit
 }
 
-Describe 'Update-GitBranch.when no new commits local and new commits on server' {
+Describe 'Sync-GitBranch.when no new commits local and new commits on server' {
     Init
     GivenNewCommitIn $serverWorkingDirectory -AndPushed
     WhenUpdated -RepoRoot $clientDirectory -AndMergeStrategyIs 'Merge'
@@ -244,7 +244,7 @@ Describe 'Update-GitBranch.when no new commits local and new commits on server' 
     ThenHeadIsNewCommit
 }
 
-Describe 'Update-GitBranch.when new commits local and new commits on server' {
+Describe 'Sync-GitBranch.when new commits local and new commits on server' {
     Init
     GivenNewCommitIn $serverWorkingDirectory -AndPushed
     GivenNewCommitIn $clientDirectory
@@ -253,7 +253,7 @@ Describe 'Update-GitBranch.when new commits local and new commits on server' {
     ThenHeadIsNewCommit
 }
 
-Describe 'Update-GitBranch.when new commits local and new commits on server and merge must be fast-forwarded' {
+Describe 'Sync-GitBranch.when new commits local and new commits on server and merge must be fast-forwarded' {
     Init
     GivenNewCommitIn $serverWorkingDirectory -AndPushed
     GivenNewCommitIn $clientDirectory
@@ -263,7 +263,7 @@ Describe 'Update-GitBranch.when new commits local and new commits on server and 
     ThenHeadIsLastCommit
 }
 
-Describe 'Update-GitBranch.when no local branch' {
+Describe 'Sync-GitBranch.when no local branch' {
     Init
     GivenNewCommitIn $clientDirectory
     GivenCheckedOut $lastCommit.Sha
@@ -273,7 +273,7 @@ Describe 'Update-GitBranch.when no local branch' {
     ThenHeadIsLastCommit
 }
 
-Describe 'Update-GitBranch.when no tracking branch and there is a remote equivalent' {
+Describe 'Sync-GitBranch.when no tracking branch and there is a remote equivalent' {
     Init
     GivenNewCommitIn $clientDirectory
     GivenNewCommitIn $serverWorkingDirectory -AndPushed
@@ -283,7 +283,7 @@ Describe 'Update-GitBranch.when no tracking branch and there is a remote equival
     ThenHeadIsNewCommit
 }
 
-Describe 'Update-GitBranch.when no tracking branch and there is no remote equivalent' {
+Describe 'Sync-GitBranch.when no tracking branch and there is no remote equivalent' {
     Init
     GivenBranch 'develop'
     GivenNewCommitIn $clientDirectory
@@ -293,17 +293,17 @@ Describe 'Update-GitBranch.when no tracking branch and there is no remote equiva
     ThenHeadIsLastCommit 'develop'
 }
 
-Describe 'Update-GitBranch.when the given repo doesn''t exist' {
+Describe 'Sync-GitBranch.when the given repo doesn''t exist' {
     Clear-Error
 
-    Update-GitBranch -RepoRoot 'C:\I\do\not\exist' -ErrorAction SilentlyContinue
+    Sync-GitBranch -RepoRoot 'C:\I\do\not\exist' -ErrorAction SilentlyContinue
     It 'should write an error' {
         $Global:Error.Count | Should Be 1
         $Global:Error | Should Match 'does not exist'
     }
 }
 
-Describe 'Update-GitBranch.when there are conflicts between local and remote' {
+Describe 'Sync-GitBranch.when there are conflicts between local and remote' {
     Init
     GivenConflicts
     WhenUpdated -RepoRoot $clientDirectory

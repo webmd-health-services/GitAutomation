@@ -10,14 +10,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-function Update-GitBranch
+function Sync-GitBranch
 {
     <#
     .SYNOPSIS
     Updates the current branch so it is in sync with its remote branch.
 
     .DESCRIPTION
-    The `Update-GitBranch` function merges in commits from the current branch's remote branch. It pulls in these commits from the remote repository. If there are new commits in the remote branch, they are merged into your current branch and a new commit is created. If there are no new commits in the remote branch, the remote branch is updated to point to the head of your current branch. This is called a "fast forward" merge. 
+    The `Sync-GitBranch` function merges in commits from the current branch's remote branch. It pulls in these commits from the remote repository. If there are new commits in the remote branch, they are merged into your current branch and a new commit is created. If there are no new commits in the remote branch, the remote branch is updated to point to the head of your current branch. This is called a "fast forward" merge. 
     
     This function's default behavior is controlled by Git's `merge.ff` setting. If unset or set to `true`, it behaves as described above. You can also use the `MergeStrategy` parameter to control how you want remote commits to get merged into your branch.
     
@@ -45,12 +45,12 @@ function Update-GitBranch
     This function implements the `git pull` command.
 
     .EXAMPLE
-    Update-GitBranch
+    Sync-GitBranch
 
     Demonstrates the simplest way to get your current branch up-to-date with its remote branch. 
 
     .EXAMPLE
-    Update-GitBranch -RepoRoot 'C:\Projects\GitAutomation'
+    Sync-GitBranch -RepoRoot 'C:\Projects\GitAutomation'
 
     Demonstrates how to pull remotes commits for a repository that isn't in the current directory.
     #>
