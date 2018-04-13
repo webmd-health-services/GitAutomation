@@ -12,7 +12,7 @@
 
 using LibGit2Sharp;
 
-namespace LibGit2.Automation
+namespace Git.Automation
 {
     public static class Diff
     {

@@ -148,6 +148,7 @@
             ReleaseNotes = @'
 # 0.11.0
 
+* Module renamed to `GitAutomation`. The LibGit2 folks don't want us to use the LibGit2 name.
 * Added `Force` switch to `Update-GitRepository` to overwrite any uncomitted changes when checking out/updating to a specific revision.
 
 

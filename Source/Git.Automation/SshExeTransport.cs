@@ -14,7 +14,7 @@ using System;
 using System.IO;
 using LibGit2Sharp;
 
-namespace LibGit2.Automation
+namespace Git.Automation
 {
 	public class SshExeTransport : SmartSubtransport
 	{

@@ -14,7 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LibGit2Sharp;
 
-namespace LibGit2.Automation
+namespace Git.Automation
 {
 	public sealed class CommitInfo
 	{

@@ -15,7 +15,7 @@ using System.Diagnostics;
 using System.IO;
 using LibGit2Sharp;
 
-namespace LibGit2.Automation
+namespace Git.Automation
 {
 	public class SshExeTransportStream : SmartSubtransportStream, IDisposable
 	{

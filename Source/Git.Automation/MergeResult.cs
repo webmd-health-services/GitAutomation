@@ -17,7 +17,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LibGit2Sharp;
 
-namespace LibGit2.Automation
+namespace Git.Automation
 {
     public sealed class MergeResult
     {

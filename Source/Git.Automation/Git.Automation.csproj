@@ -8,8 +8,8 @@
     <ProjectGuid>{CCFDFA91-79F2-4153-A1DC-8EE496885489}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LibGit2.Automation</RootNamespace>
-    <AssemblyName>LibGit2.Automation</AssemblyName>
+    <RootNamespace>Git.Automation</RootNamespace>
+    <AssemblyName>Git.Automation</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>24289813</NuGetPackageImportStamp>
