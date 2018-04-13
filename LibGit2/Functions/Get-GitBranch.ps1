@@ -24,7 +24,7 @@ function Get-GitBranch
    It defaults to the current repository. Use the `RepoRoot` parameter to specify an explicit path to another repo.
 
    .EXAMPLE
-   Get-GitBranch -RepoRoot 'C:\Projects\LibGit2' -Current
+   Get-GitBranch -RepoRoot 'C:\Projects\GitAutomation' -Current
     
    Returns an object representing the current branch for the specified repo.
 
@@ -34,7 +34,7 @@ function Get-GitBranch
    Returns objects for all the branches in the current directory.
    #>
    [CmdletBinding()]
-   [OutputType([LibGit2.Automation.BranchInfo])]
+   [OutputType([Git.Automation.BranchInfo])]
     param(
         [string]
         # Specifies which git repository to check. Defaults to the current directory.
@@ -57,12 +57,12 @@ function Get-GitBranch
     {
         if( $Current )
         {
-            New-Object LibGit2.Automation.BranchInfo $repo.Head
+            New-Object Git.Automation.BranchInfo $repo.Head
             return
         }
         else
         {
-            $repo.Branches | ForEach-Object { New-Object LibGit2.Automation.BranchInfo $_ }
+            $repo.Branches | ForEach-Object { New-Object Git.Automation.BranchInfo $_ }
             return
         }
 

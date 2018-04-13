@@ -22,7 +22,7 @@ function Copy-GitRepository
     To clone a local repository, pass a file system path to the `Uri` parameter.
 
     .EXAMPLE
-    Copy-GitRepository -Uri 'https://github.com/splatteredbits/LibGit2.PowerShell' -DestinationPath LibGit2.PowerShell
+    Copy-GitRepository -Uri 'https://github.com/webmd-health-services/GitAutomation' -DestinationPath GitAutomation
     #>
     param(
         [Parameter(Mandatory=$true)]

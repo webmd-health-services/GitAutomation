@@ -29,7 +29,7 @@ function Test-GitOutgoingCommit
     Demonstrates how to check for unpushed commits in the current repo on the current branch.
 
     .EXAMPLE
-    Test-GitOutgoingCommit -RepoRoot 'C:\Projects\LibGit2' -All
+    Test-GitOutgoingCommit -RepoRoot 'C:\Projects\GitAutomation' -All
 
     Demonstrates how to check for unpushed commits on all branches of a repository that isn't the current directory.
     #>

@@ -26,7 +26,7 @@ function Test-GitIncomingCommit
     This function implements the `git log branch..remotes/origin/branch` command
 
     .EXAMPLE
-    Test-GitIncomingChange -RepoRoot 'C:\Projects\LibGit2'
+    Test-GitIncomingChange -RepoRoot 'C:\Projects\GitAutomation'
 
     Demonstrates how to check for incoming changes for a repository that isn't the current directory.
     #>

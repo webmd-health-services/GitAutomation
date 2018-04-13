@@ -12,7 +12,7 @@
 
 Set-StrictMode -Version 'Latest'
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
 function Assert-ThisRepositoryFound
 {
@@ -73,7 +73,7 @@ Describe 'Find-GitRepository when given a relative path' {
     Push-Location -Path $PSScriptRoot
     try
     {
-        $repo = Find-GitRepository -Path '..\LibGit2\bin'
+        $repo = Find-GitRepository -Path '..\GitAutomation\bin'
         Assert-ThisRepositoryFound -Repository $repo
     }
     finally

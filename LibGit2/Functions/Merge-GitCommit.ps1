@@ -17,7 +17,7 @@ function Merge-GitCommit
     Merges a commit into the current branch.
 
     .DESCRIPTION
-    The `Merge-GitCommit` function merges a commit into the current branch. The commit can be identified with its ID, by a tag name, or branch name. It returns a `LibGit2.Automation.MergeResult` object, which has two properties:
+    The `Merge-GitCommit` function merges a commit into the current branch. The commit can be identified with its ID, by a tag name, or branch name. It returns a `Git.Automation.MergeResult` object, which has two properties:
 
     * `Status`: the status of the merge. It will be one of the following values:
       * `Conflicts`: when there are conflicts with the merge.
@@ -36,7 +36,7 @@ function Merge-GitCommit
     Demonstrates how to merge a branch into the current branch.
     #>
     [CmdletBinding()]
-    [OutputType([LibGit2.Automation.MergeResult])]
+    [OutputType([Git.Automation.MergeResult])]
     param(
         [string]
         # The path to the repository where the files should be added. The default is the current directory as returned by Get-Location.
@@ -90,7 +90,7 @@ function Merge-GitCommit
     try
     {
         $result = $repo.Merge($Revision,$signature,$mergeOptions)
-        New-Object -TypeName 'LibGit2.Automation.MergeResult' -ArgumentList $result
+        New-Object -TypeName 'Git.Automation.MergeResult' -ArgumentList $result
     }
     catch
     {

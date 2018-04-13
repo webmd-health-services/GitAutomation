@@ -27,7 +27,7 @@ function Test-GitBranch
     Demonstrates how to check if the 'develop' branch exists in the current directory.
 
     .EXAMPLE
-    Test-GitBranch -RepoRoot 'C:\Projects\LibGit2' -Name 'develop'
+    Test-GitBranch -RepoRoot 'C:\Projects\GitAutomation' -Name 'develop'
 
     Demonstrates how to check if the 'develop' branch exists in a specific repository.
     #>

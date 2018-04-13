@@ -59,7 +59,7 @@ function New-GitTestRepo
     )
 
     $testDrive = (Get-Item -Path 'TestDrive:').FullName
-    $repoRoot = Join-Path -Path $testDrive -ChildPath ('LibGit2.{0}' -f ([IO.Path]::GetRandomFileName()))
+    $repoRoot = Join-Path -Path $testDrive -ChildPath ('GitAutomation.{0}' -f ([IO.Path]::GetRandomFileName()))
     New-GitRepository -Path $repoRoot | Format-List | Out-String | Write-Debug
     return $repoRoot
 }

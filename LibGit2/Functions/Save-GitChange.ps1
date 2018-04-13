@@ -17,14 +17,14 @@ function Save-GitChange
     Commits changes to a Git repository.
 
     .DESCRIPTION
-    The `Save-GitChange` function commits changes to a Git repository. Those changes must be staged first with `git add` or the `LibGit2` module's `Add-GitItem` function. If there are no changes staged, nothing happens, and nothing is returned.
+    The `Save-GitChange` function commits changes to a Git repository. Those changes must be staged first with `git add` or the `GitAutomation` module's `Add-GitItem` function. If there are no changes staged, nothing happens, and nothing is returned.
 
     You are required to pass a commit message with the `Message` parameter. This module is intended to be used by non-interactive repository automation scripts, so opening in an editor is not supported.
 
     Implements the `git commit` command.
 
     .OUTPUTS
-    LibGit2.Automation.CommitInfo
+    Git.Automation.CommitInfo
 
     .LINK
     Add-GitItem
@@ -35,7 +35,7 @@ function Save-GitChange
     Demonstrates how to commit staged changes in a Git repository. In this example, the repository is assumed to be in the current directory.
 
     .EXAMPLE
-    Save-GitChange -Message 'Creating Save-GitChange function.' -RepoRoot 'C:\Projects\LibGit2.PowerShell'
+    Save-GitChange -Message 'Creating Save-GitChange function.' -RepoRoot 'C:\Projects\GitAutomation'
 
     Demonstrates how to commit changes to a repository other than the current directory.
 
@@ -45,7 +45,7 @@ function Save-GitChange
     Demonstrates how to set custom author metadata. In this case, the commit will be from user "Name" whose email address is "email@example.com".
     #>
     [CmdletBinding()]
-    [OutputType([LibGit2.Automation.CommitInfo])]
+    [OutputType([Git.Automation.CommitInfo])]
     param(
         [Parameter(Mandatory=$true)]
         [string]
@@ -91,7 +91,7 @@ function Save-GitChange
         }
 
         $repo.Commit( $Message, $Signature, $Signature, $commitOptions ) |
-            ForEach-Object { New-Object 'LibGit2.Automation.CommitInfo' $_ } 
+            ForEach-Object { New-Object 'Git.Automation.CommitInfo' $_ } 
     }
     catch [LibGit2Sharp.EmptyCommitException]
     {

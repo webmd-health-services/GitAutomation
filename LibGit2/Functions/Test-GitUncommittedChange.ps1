@@ -24,7 +24,7 @@ function Test-GitUncommittedChange
     Implements the `git diff --exit-code` command ( No output if no uncommitted changes, otherwise output diff )
 
     .EXAMPLE
-    Test-GitUncommittedChange -RepoRoot 'C:\Projects\LibGit2'
+    Test-GitUncommittedChange -RepoRoot 'C:\Projects\GitAutomation'
 
     Demonstrates how to check for uncommitted changes in a repository that isn't the current directory.
     #>

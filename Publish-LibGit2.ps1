@@ -1,12 +1,12 @@
 <#
 .SYNOPSIS
-Packages and publishes LibGit2 packages.
+Packages and publishes GitAutomation packages.
 
 .DESCRIPTION
-The `Publish-LibGit2.ps1` script packages and publishes a version of the LibGit2 module. It uses the version defined in the LibGit2.psd1 file. Before publishing, it adds the current date to the version in the release notes, updates the module's website, then tags the latest revision with the version number. It then publishes the module to NuGet, Chocolatey, and the PowerShell Gallery. If the version of LibGit2 being published already exists in a location, it is not re-published. If the PowerShellGet module isn't installed, the module is not publishes to the PowerShell Gallery.
+The `Publish-GitAutomation.ps1` script packages and publishes a version of the GitAutomation module. It uses the version defined in the GitAutomation.psd1 file. Before publishing, it adds the current date to the version in the release notes, updates the module's website, then tags the latest revision with the version number. It then publishes the module to NuGet, Chocolatey, and the PowerShell Gallery. If the version of GitAutomation being published already exists in a location, it is not re-published. If the PowerShellGet module isn't installed, the module is not publishes to the PowerShell Gallery.
 
 .EXAMPLE
-Publish-LibGit2.ps1
+Publish-GitAutomation.ps1
 
 Yup. That's it.
 #>
@@ -32,10 +32,10 @@ Set-StrictMode -Version Latest
 
 Import-Module (Join-Path -Path $PSScriptRoot -ChildPath 'Modules\Silk' -Resolve)
 
-$libGitRoot = Join-Path -Path $PSScriptRoot -ChildPath '.output\LibGit2'
+$libGitRoot = Join-Path -Path $PSScriptRoot -ChildPath '.output\GitAutomation'
 $releaseNotesPath = Join-Path -Path $libGitRoot -ChildPath 'RELEASE_NOTES.md' -Resolve
 
-$manifestPath = Join-Path -Path $libGitRoot -ChildPath 'LibGit2.psd1'
+$manifestPath = Join-Path -Path $libGitRoot -ChildPath 'GitAutomation.psd1'
 $manifest = Test-ModuleManifest -Path $manifestPath
 if( -not $manifest )
 {
@@ -43,5 +43,5 @@ if( -not $manifest )
 }
 
 $nupkgPath = Join-Path -Path $PSScriptRoot `
-                       -ChildPath ('.output\chocolatey.org\LibGit2.PowerShell.{0}.nupkg' -f $manifest.Version)
+                       -ChildPath ('.output\chocolatey.org\GitAutomation.{0}.nupkg' -f $manifest.Version)
 Publish-ChocolateyPackage -NupkgPath $nupkgPath -ApiKey $env:CHOCOLATEY_ORG_API_KEY

@@ -31,14 +31,14 @@ function Get-GitTag{
     Demonstrates how to return a specific tag.  If no tag matches, then `$null` is returned.
 
     .EXAMPLE
-    Get-GitTag -Name '13.8.*' -RepoRoot 'C:\Projects\LibGit2'
+    Get-GitTag -Name '13.8.*' -RepoRoot 'C:\Projects\GitAutomation'
 
     Demonstrates how to return all tags that match a wildcard in the given repository.'
     #>
 
 
    [CmdletBinding()]
-   [OutputType([LibGit2.Automation.TagInfo])]
+   [OutputType([Git.Automation.TagInfo])]
     param(
         [string]
         # Specifies which git repository to check. Defaults to the current directory.
@@ -60,7 +60,7 @@ function Get-GitTag{
     try
     {
         $repo.Tags | ForEach-Object {
-            New-Object LibGit2.Automation.TagInfo $_
+            New-Object Git.Automation.TagInfo $_
             } |
             Where-Object {
                 if( $PSBoundParameters.ContainsKey('Name') )

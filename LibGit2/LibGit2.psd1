@@ -13,7 +13,7 @@
 @{
 
     # Script module or binary module file associated with this manifest.
-    RootModule = 'LibGit2.psm1'
+    RootModule = 'GitAutomation.psm1'
 
     # Version number of this module.
     ModuleVersion = '0.11.0'
@@ -32,7 +32,7 @@
 
     # Description of the functionality provided by this module
     Description = @'
-    LibGit2 is a PowerShell module for working with Git repositories. You can use it to create, clone, query, push to, pull from, and commit to Git repositories.
+    GitAutomation is a PowerShell module for working with Git repositories. You can use it to create, clone, query, push to, pull from, and commit to Git repositories.
     
     This module uses the .NET wrapper of [libgit2](https://libgit2.github.com/), "a portable, pure C implementation of... Git", which allows you to call Git via API instead using the Git command line interface.
 '@
@@ -59,7 +59,7 @@
     # RequiredModules = @()
 
     # Assemblies that must be loaded prior to importing this module
-    RequiredAssemblies = @( 'bin\LibGit2Sharp.dll', 'bin\LibGit2.Automation.dll' )
+    RequiredAssemblies = @( 'bin\LibGit2Sharp.dll', 'bin\Git.Automation.dll' )
 
     # Script files (.ps1) that are run in the caller's environment prior to importing this module.
     # ScriptsToProcess = @()
@@ -69,7 +69,7 @@
 
     # Format files (.ps1xml) to be loaded when importing this module
     FormatsToProcess = @( 
-                            'Formats\LibGit2.Automation.CommitInfo.formats.ps1xml',
+                            'Formats\Git.Automation.CommitInfo.formats.ps1xml',
                             'Formats\LibGit2Sharp.StatusEntry.formats.ps1xml' 
                         )
 
@@ -138,7 +138,7 @@
             LicenseUri = 'http://www.apache.org/licenses/LICENSE-2.0'
 
             # A URL to the main website for this project.
-            ProjectUri = 'https://github.com/webmd-health-services/LibGit2.PowerShell'
+            ProjectUri = 'https://github.com/webmd-health-services/GitAutomation'
 
             # A URL to an icon representing this module.
             # IconUri = ''

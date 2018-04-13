@@ -10,6 +10,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-& (Join-Path -Path $PSScriptRoot -ChildPath '..\LibGit2\Import-LibGit2.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath '..\GitAutomation\Import-GitAutomation.ps1' -Resolve)
 
-Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2Test' -Resolve) -Force
+Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'GitAutomationTest' -Resolve) -Force

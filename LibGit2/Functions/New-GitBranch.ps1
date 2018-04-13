@@ -27,7 +27,7 @@ function New-GitBranch
 
     .EXAMPLE
 
-    New-GitBranch -RepoRoot 'C:\Projects\LibGit2' -Name 'develop'
+    New-GitBranch -RepoRoot 'C:\Projects\GitAutomation' -Name 'develop'
 
     Demonstrates how to create a new branch named 'develop' in the specified repository.
 

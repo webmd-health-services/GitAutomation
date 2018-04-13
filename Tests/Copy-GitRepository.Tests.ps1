@@ -12,7 +12,7 @@
 
 Set-StrictMode -Version 'Latest'
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
 $output = $null
 
@@ -75,9 +75,9 @@ function WhenCloningRepository
 }
 
 Describe 'Copy-GitRepository when cloning a remote repository' {
-    $destination = Join-Path -Path (Get-Item -Path 'TestDrive:').FullName -ChildPath 'LibGit2.PowerShell'
+    $destination = Join-Path -Path (Get-Item -Path 'TestDrive:').FullName -ChildPath 'GitAutomation'
     GivenThereAreNoErrors
-    WhenCloningRepository 'https://github.com/splatteredbits/LibGit2.PowerShell' -To $destination
+    WhenCloningRepository 'https://github.com/webmd-health-services/GitAutomation' -To $destination
     ThenRepositoryWasClonedTo $destination -WithNoOutput
 }
 

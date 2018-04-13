@@ -1,52 +1,52 @@
 TOPIC
-    about_LibGit2_Installation
+    about_GitAutomation_Installation
     
 SHORT DESCRIPTION
-    LibGit2 can be installed from the PowerShell gallery, with Chocolatey, and NuGet.
+    GitAutomation can be installed from the PowerShell gallery, with Chocolatey, and NuGet.
     
 INSTALL FROM POWERSHELL GALLERY
     To install from the PowerShell Gallery, you must be running PowerShell 5 or 
     PowerShell 4 with the PowerShellGet module installed. If so, run:     
-        PS> Install-Module -Name 'LibGit2'
+        PS> Install-Module -Name 'GitAutomation'
     
-    You can now import LibGit2 by running:
+    You can now import GitAutomation by running:
     
-        PS> Import-Module 'LibGit2'
+        PS> Import-Module 'GitAutomation'
   
 INSTALL WITH CHOCOLATEY
     To install with Chocolatey, you'll need [Chocolatey installed](http://chocolatey.org).
     With Chocolatey installed, run:
     
-        PS> choco install LibGit2.PowerShell
+        PS> choco install GitAutomation
 
-    This will install LibGit2 into one of PowerShell's module paths. You can now import
-    LibGit2 by running:
+    This will install GitAutomation into one of PowerShell's module paths. You can now import
+    GitAutomation by running:
     
-        PS> Import-Module 'LibGit2'  
+        PS> Import-Module 'GitAutomation'  
 
 INSTALL WITH NUGET
     To install with NuGet, you'll need [NuGet installed](http://nuget.org). With NuGet
     installed, run:
     
-        PS> nuget install LibGit2.PowerShell
+        PS> nuget install GitAutomation
     
-    This will create a `LibGit2.X.Y.Z` directory in your current directory (or the 
+    This will create a `GitAutomation.X.Y.Z` directory in your current directory (or the 
     output directory you specified with Nuget's `OutputDirectory` parameter). You can
-    import LibGit2 from that directory using the `Import-LibGit2.ps1 script:
+    import GitAutomation from that directory using the `Import-GitAutomation.ps1 script:
     
-        PS> .\LibGit2.X.Y.Z\LibGit2\Import-LibGit2.ps1
+        PS> .\GitAutomation.X.Y.Z\GitAutomation\Import-GitAutomation.ps1
      
     Or with PowerShell's `Import-Module` command:
     
-        PS> Import-Module '.\LibGit2.X.Y.Z\LibGit2'
+        PS> Import-Module '.\GitAutomation.X.Y.Z\GitAutomation'
         
-    If you want LibGit2 available so you can run `Import-Module LibGit2`, copy the
-    `LibGit2.X.Y.Z\LibGit2` directory into one of PowerShell's module paths. This 
+    If you want GitAutomation available so you can run `Import-Module GitAutomation`, copy the
+    `GitAutomation.X.Y.Z\GitAutomation` directory into one of PowerShell's module paths. This 
     command will give you a list:
     
         PS> $env:PSModulePath -split ';'
 
 SEE ALSO
-    http://chocolatey.org/packages/LibGit2.PowerShell
-    http://www.nuget.org/packages/LibGit2.PowerShell
-    https://www.powershellgallery.com/packages/LibGit2
+    http://chocolatey.org/packages/GitAutomation
+    http://www.nuget.org/packages/GitAutomation
+    https://www.powershellgallery.com/packages/GitAutomation

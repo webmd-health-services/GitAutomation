@@ -24,7 +24,7 @@ function Get-GitCommit
     To get the commit of the current checkout, pass `HEAD` to the `Revision` parameter.
     #>
     [CmdletBinding(DefaultParameterSetName='All')]
-    [OutputType([LibGit2.Automation.CommitInfo])]
+    [OutputType([Git.Automation.CommitInfo])]
     param(
         [Parameter(ParameterSetName='All')]
         [switch]
@@ -72,7 +72,7 @@ function Get-GitCommit
         {
             $filter = New-Object -TypeName 'LibGit2Sharp.CommitFilter'
             $filter.IncludeReachableFrom = $repo.Refs
-            $repo.Commits.QueryBy($filter) | ForEach-Object { New-Object -TypeName 'LibGit2.Automation.CommitInfo' -ArgumentList $_ }
+            $repo.Commits.QueryBy($filter) | ForEach-Object { New-Object -TypeName 'Git.Automation.CommitInfo' -ArgumentList $_ }
             return
         }
         elseif( $PSCmdlet.ParameterSetName -eq 'Lookup' )
@@ -80,7 +80,7 @@ function Get-GitCommit
             $change = $repo.Lookup($Revision)
             if( $change )
             {
-                return New-Object -TypeName 'LibGit2.Automation.CommitInfo' -ArgumentList $change
+                return New-Object -TypeName 'Git.Automation.CommitInfo' -ArgumentList $change
             }
             else
             {
@@ -120,7 +120,7 @@ function Get-GitCommit
                 $filteredCommits = $filteredCommits | Where-Object { $_.Parents.Count -le 1 }
             }
 
-            $filteredCommits | ForEach-Object { New-Object -TypeName 'LibGit2.Automation.CommitInfo' -ArgumentList $_ }
+            $filteredCommits | ForEach-Object { New-Object -TypeName 'Git.Automation.CommitInfo' -ArgumentList $_ }
         }
     }
     finally

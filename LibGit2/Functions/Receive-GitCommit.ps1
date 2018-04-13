@@ -26,7 +26,7 @@ function Receive-GitCommit
     This function implements the `git fetch --all` and `git pull` commands.
 
     .EXAMPLE
-    Receive-GitCommit -RepoRoot 'C:\Projects\LibGit2'
+    Receive-GitCommit -RepoRoot 'C:\Projects\GitAutomation'
 
     Demonstrates how to pull remotes changes for a repository that isn't the current directory.
     #>

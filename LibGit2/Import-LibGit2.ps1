@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-Imports the LibGit2 module.
+Imports the GitAutomation module.
 
 .DESCRIPTION
-The `Import-LibGit2.ps1` script imports the `LibGit2` module from this script's directory.
+The `Import-GitAutomation.ps1` script imports the `GitAutomation` module from this script's directory.
 #>
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,9 +25,9 @@ param(
 #Requires -Version 4
 Set-StrictMode -Version 'Latest'
 
-if( (Get-Module -Name 'LibGit2') )
+if( (Get-Module -Name 'GitAutomation') )
 {
-    Remove-Module -Name 'LibGit2' -Force
+    Remove-Module -Name 'GitAutomation' -Force
 }
 
-Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'LibGit2.psd1')
+Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'GitAutomation.psd1')

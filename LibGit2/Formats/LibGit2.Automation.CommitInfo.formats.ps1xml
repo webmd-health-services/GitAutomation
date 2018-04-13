@@ -15,9 +15,9 @@
 <Configuration>
     <ViewDefinitions>
         <View>
-            <Name>LibGit2.Automation.CommitInfo</Name>
+            <Name>Git.Automation.CommitInfo</Name>
             <ViewSelectedBy>
-                <TypeName>LibGit2.Automation.CommitInfo</TypeName>
+                <TypeName>Git.Automation.CommitInfo</TypeName>
             </ViewSelectedBy>
             <TableControl>
                 <TableHeaders>

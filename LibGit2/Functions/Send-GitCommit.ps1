@@ -21,7 +21,7 @@ function Send-GitCommit
     
     If the repository requires authentication, pass the username/password via the `Credential` parameter.
 
-    Returns a `LibGit2.Automation.PushResult` that represents the result of the push. One of:
+    Returns a `Git.Automation.PushResult` that represents the result of the push. One of:
 
     * `Ok`: the push succeeded
     * `Failed`: the push failed.
@@ -40,7 +40,7 @@ function Send-GitCommit
     Pushes commits from the repository located at 'C:\Build\TestGitRepo' to its remote using authentication
     #>
     [CmdletBinding()]
-    [OutputType([LibGit2.Automation.PushResult])]
+    [OutputType([Git.Automation.PushResult])]
     param(
         [string]
         # Specifies the location of the repository to synchronize. Defaults to the current directory.
@@ -65,12 +65,12 @@ function Send-GitCommit
         [LibGit2Sharp.Branch]$currentBranch = $repo.Branches | Where-Object { $_.IsCurrentRepositoryHead -eq $true }
         if( -not (Test-GitOutgoingCommit -RepoRoot $RepoRoot) )
         {
-            return [LibGit2.Automation.PushResult]::Ok
+            return [Git.Automation.PushResult]::Ok
         }
 
         $result = Send-GitObject -RefSpec $currentBranch.CanonicalName -RepoRoot $RepoRoot -Credential $Credential
 
-        if( -not $SetUpstream -or $result -ne [LibGit2.Automation.PushResult]::Ok )
+        if( -not $SetUpstream -or $result -ne [Git.Automation.PushResult]::Ok )
         {
             return $result
         }

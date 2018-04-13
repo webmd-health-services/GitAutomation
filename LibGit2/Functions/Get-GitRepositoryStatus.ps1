@@ -41,10 +41,10 @@ function Get-GitRepositoryStatus
 
         State    FilePath                                                                                                                                                                                                                                            
         -----    --------                                                                                                                                                                                                                                            
-         a       LibGit2\Formats\LibGit2Sharp.StatusEntry.ps1xml                                                                                                                                                                                                     
-         a       LibGit2\Functions\Get-GitRepositoryStatus.ps1                                                                                                                                                                                                       
-          m      LibGit2\LibGit2.psd1                                                                                                                                                                                                                                
-         a       LibGit2\Types\LibGit2Sharp.StatusEntry.types.ps1xml                                                                                                                                                                                                 
+         a       GitAutomation\Formats\LibGit2Sharp.StatusEntry.ps1xml                                                                                                                                                                                                     
+         a       GitAutomation\Functions\Get-GitRepositoryStatus.ps1                                                                                                                                                                                                       
+          m      GitAutomation\GitAutomation.psd1                                                                                                                                                                                                                                
+         a       GitAutomation\Types\LibGit2Sharp.StatusEntry.types.ps1xml                                                                                                                                                                                                 
          a       Tests\Get-GitRepositoryStatus.Tests.ps1
 
     The state will display:
@@ -69,7 +69,7 @@ function Get-GitRepositoryStatus
     Demonstrates how to get the status of any uncommitted changes for the repository in the current directory.
 
     .EXAMPLE
-    Get-GitRepositoryStatus -RepoRoot 'C:\Projects\LibGit2.PowerShell'
+    Get-GitRepositoryStatus -RepoRoot 'C:\Projects\GitAutomation'
 
     Demonstrates how to get the status of any uncommitted changes for the repository at a specific location.
 
@@ -79,9 +79,9 @@ function Get-GitRepositoryStatus
     Demonstrates how to get the status for specific files at or under the current directory using the Path parameter. In this case, only modified files named `build.ps1` or that match the wildcard `*.cs` under the current directory will be returned.
 
     .EXAMPLE
-    Get-GitRepositoryStatus -Path 'build.ps1','*.cs' -RepoRoot 'C:\Projects\LibGit2.PowerShell`
+    Get-GitRepositoryStatus -Path 'build.ps1','*.cs' -RepoRoot 'C:\Projects\GitAutomation`
 
-    Demonstrates how to get the status for specific files under the root of a specific repository. In this case, only modified files named `build.ps1` or that match the wildcard `*.cs` under `C:\Projects\LibGit2.PowerShell` will be returned.
+    Demonstrates how to get the status for specific files under the root of a specific repository. In this case, only modified files named `build.ps1` or that match the wildcard `*.cs` under `C:\Projects\GitAutomation` will be returned.
     #>
     [CmdletBinding()]
     [OutputType([LibGit2Sharp.StatusEntry])]

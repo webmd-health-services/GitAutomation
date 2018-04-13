@@ -84,7 +84,7 @@ function Send-GitObject
     if( -not $remote )
     {
         Write-Error -Message ('A remote named "{0}" does not exist.' -f $RemoteName)
-        return [LibGit2.Automation.PushResult]::Failed
+        return [Git.Automation.PushResult]::Failed
     }
 
     if( $Tags )
@@ -95,7 +95,7 @@ function Send-GitObject
     try
     {
         $repo.Network.Push($remote, $RefSpec, $pushOptions)
-        return [LibGit2.Automation.PushResult]::Ok
+        return [Git.Automation.PushResult]::Ok
     }
     catch
     {
@@ -103,10 +103,10 @@ function Send-GitObject
         
         switch ( $_.FullyQualifiedErrorId )
         {
-            'NonFastForwardException' { return [LibGit2.Automation.PushResult]::Rejected }
-            'LibGit2SharpException' { return [LibGit2.Automation.PushResult]::Failed }
-            'BareRepositoryException' { return [LibGit2.Automation.PushResult]::Failed }
-            default { return [LibGit2.Automation.PushResult]::Failed }
+            'NonFastForwardException' { return [Git.Automation.PushResult]::Rejected }
+            'LibGit2SharpException' { return [Git.Automation.PushResult]::Failed }
+            'BareRepositoryException' { return [Git.Automation.PushResult]::Failed }
+            default { return [Git.Automation.PushResult]::Failed }
         }
     }
     finally

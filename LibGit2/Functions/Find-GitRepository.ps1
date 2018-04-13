@@ -32,9 +32,9 @@ function Find-GitRepository
     Demonstrates how to find the Git repository of the current directory.
 
     .EXAMPLE
-    Find-GitRepository -Path 'C:\Projects\LibGit2.PowerShell\LibGit2\bin'
+    Find-GitRepository -Path 'C:\Projects\GitAutomation\GitAutomation\bin'
 
-    Demonstrates how to find the Git repository that a specific directory is a part of. In this case, a `LibGit2Sharp.Repository` object is returned for the repository at `C:\Projects\LibGit2.PowerShell`.
+    Demonstrates how to find the Git repository that a specific directory is a part of. In this case, a `LibGit2Sharp.Repository` object is returned for the repository at `C:\Projects\GitAutomation`.
     #>
     [CmdletBinding()]
     [OutputType([LibGit2Sharp.Repository])]

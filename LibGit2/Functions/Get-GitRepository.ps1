@@ -27,7 +27,7 @@ function Get-GitRepository
     Demonstrates how to get a `LibGit2Sharp.Repository` object for the repository in the current directory.
 
     .EXAMPLE
-    Get-GitRepository -RepoRoot 'C:\Projects\LibGit2.PowerShell'
+    Get-GitRepository -RepoRoot 'C:\Projects\GitAutomation'
 
     Demonstrates how to get a `LibGit2Sharp.Repository` object for a specific repository.
     #>

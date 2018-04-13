@@ -38,9 +38,9 @@ function Set-GitConfiguration
     Demonstrates how to set a configuration variable so that it applies across all a user's repositories by using the `-Global` switch.
 
     .EXAMPLE
-    Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -RepoRoot 'C:\Projects\LibGit2.PowerShell'
+    Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -RepoRoot 'C:\Projects\GitAutomation'
 
-    Demonstrates how to set a configuration variable for a specific repository. In this case, the configuration for the repository at `C:\Projects\LibGit2.PowerShell` will be updated.
+    Demonstrates how to set a configuration variable for a specific repository. In this case, the configuration for the repository at `C:\Projects\GitAutomation` will be updated.
     #>
     [CmdletBinding()]
     param(

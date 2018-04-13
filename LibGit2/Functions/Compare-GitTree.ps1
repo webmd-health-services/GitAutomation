@@ -91,7 +91,7 @@ function Compare-GitTree
             return
         }
 
-        return , [LibGit2.Automation.Diff]::GetTreeChanges($repo, $oldCommit, $newCommit)
+        return , [Git.Automation.Diff]::GetTreeChanges($repo, $oldCommit, $newCommit)
     }
     finally
     {

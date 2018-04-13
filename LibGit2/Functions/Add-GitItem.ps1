@@ -27,22 +27,22 @@ function Add-GitItem
     Save-GitChange
 
     .EXAMPLE
-    Add-GitItem -Path 'C:\Projects\LibGit2'
+    Add-GitItem -Path 'C:\Projects\GitAutomation'
 
     Demonstrates how to add all the items under a directory to the next commit to the repository in the current directory.
 
     .EXAMPLE
-    Add-GitItem -Path 'C:\Projects\LibGit2\Functions\Add-GitItem.ps1','C:\Projects\LibGit2\Tests\Add-GitItem.Tests.ps1'
+    Add-GitItem -Path 'C:\Projects\GitAutomation\Functions\Add-GitItem.ps1','C:\Projects\GitAutomation\Tests\Add-GitItem.Tests.ps1'
 
     Demonstrates how to add multiple items and files to the next commit.
 
     .EXAMPLE
-    Get-ChildItem '.\LibGit2\Functions','.\Tests' | Add-GitItem
+    Get-ChildItem '.\GitAutomation\Functions','.\Tests' | Add-GitItem
 
     Demonstrates that you can pipe paths or file system objects to Add-GitItem. When passing directories, all untracked/new or modified files under that directory are added. When passing files, only that file is added.
 
     .EXAMPLE 
-    Add-GitItem -Path 'C:\Projects\LibGit2' -RepoRoot 'C:\Projects\LibGit2'
+    Add-GitItem -Path 'C:\Projects\GitAutomation' -RepoRoot 'C:\Projects\GitAutomation'
 
     Demonstrates how to operate on a repository that isn't the current directory.
 

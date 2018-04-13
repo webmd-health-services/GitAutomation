@@ -24,7 +24,7 @@ function New-GitRepository
     This function implements the `git init` command.
 
     .OUTPUTS
-    LibGit2.Automation.RepositoryInfo.
+    Git.Automation.RepositoryInfo.
 
     .EXAMPLE
     New-GitRepository -Path 'C:\Projects\MyCoolNewRepo'
@@ -37,7 +37,7 @@ function New-GitRepository
     Demonstrates how to create a repository that doesn't have a working directory. Git calls these "Bare" repositories.
     #>
     [CmdletBinding(SupportsShouldProcess=$true)]
-    [OutputType([LibGit2.Automation.RepositoryInfo])]
+    [OutputType([Git.Automation.RepositoryInfo])]
     param(
         [Parameter(Mandatory=$true)]
         [string]
@@ -66,7 +66,7 @@ function New-GitRepository
     $repo = New-Object 'LibGit2Sharp.Repository' $repoPath
     try
     {
-        return New-Object 'LibGit2.Automation.RepositoryInfo' $repo.Info
+        return New-Object 'Git.Automation.RepositoryInfo' $repo.Info
     }
     finally
     {

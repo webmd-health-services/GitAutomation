@@ -28,17 +28,17 @@ function Update-GitRepository
     This function implements the `git checkout <target>` command.
 
     .EXAMPLE
-    Update-GitRepository -RepoRoot 'C:\Projects\LibGit2' -Revision 'feature/ticket'
+    Update-GitRepository -RepoRoot 'C:\Projects\GitAutomation' -Revision 'feature/ticket'
 
     Demonstrates how to checkout the 'feature/ticket' branch of the given repository.
 
     .EXAMPLE
-    Update-GitRepository -RepoRoot 'C:\Projects\LibGit2' -Revision 'refs/tags/tag1'
+    Update-GitRepository -RepoRoot 'C:\Projects\GitAutomation' -Revision 'refs/tags/tag1'
 
     Demonstrates how to create a detached head at the tag 'tag1'.
 
     .EXAMPLE
-    Update-GitRepository -RepoRoot 'C:\Projects\LibGit2' -Revision 'develop' -Force
+    Update-GitRepository -RepoRoot 'C:\Projects\GitAutomation' -Revision 'develop' -Force
 
     Demonstrates how to remove any uncommitted changes during the checkout by using the `Force` switch.
     #>

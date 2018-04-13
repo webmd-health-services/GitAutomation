@@ -26,7 +26,7 @@ function Remove-GitItem
     Remove-GitItem -Path 'file.ps1'
 
     .Example
-    Get-ChildItem '.\LibGit2\Functions','.\Tests' | Remove-GitItem
+    Get-ChildItem '.\GitAutomation\Functions','.\Tests' | Remove-GitItem
 
     #>
 
