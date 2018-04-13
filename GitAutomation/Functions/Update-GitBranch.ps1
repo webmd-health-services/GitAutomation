@@ -36,6 +36,8 @@ function Update-GitBranch
 
     If the function needs to create a merge commit, but the `merge.ff` option is `only` or the `MergeStrategy` parameter is `FastForward`, the function will write an error and return `$null`.
 
+    If there are conflicts made during the merge, this function won't write an error. You need to check the return object to ensure there are no conflicts.
+
     If the current branch isn't tracking a remote branch, this function will look for a remote branch with the same name, and create tracking information. If there is no remote branch with the same name, this function will write an error and return `$null`.
 
     By default, this function works on the repository in the current directory. Use the `RepoRoot` parameter to specify an explicit repository.

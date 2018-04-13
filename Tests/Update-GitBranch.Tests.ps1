@@ -35,6 +35,19 @@ function GivenCheckedOut
     Update-GitRepository -RepoRoot $clientDirectory -Revision $Revision
 }
 
+function GivenConflicts
+{
+    foreach( $dir in @( $serverWorkingDirectory, $clientDirectory ) )
+    {
+        $filePath = Join-Path -Path $dir -ChildPath 'first'
+        [Guid]::NewGuid() | Set-Content -Path $filePath
+        Add-GitItem -Path $filePath -RepoRoot $dir
+        $script:lastCommit = Save-GitChange -RepoRoot $dir -Message 'conflict first'
+    }
+
+    Send-GitCommit -RepoRoot $serverWorkingDirectory
+}
+
 function GivenNewCommitIn
 {
     param(
@@ -288,4 +301,12 @@ Describe 'Update-GitBranch.when the given repo doesn''t exist' {
         $Global:Error.Count | Should Be 1
         $Global:Error | Should Match 'does not exist'
     }
+}
+
+Describe 'Update-GitBranch.when there are conflicts between local and remote' {
+    Init
+    GivenConflicts
+    WhenUpdated -RepoRoot $clientDirectory
+    ThenStatusIs 'Conflicts'
+    ThenHeadIsLastCommit
 }
