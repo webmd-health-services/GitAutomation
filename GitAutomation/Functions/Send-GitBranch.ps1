@@ -29,7 +29,7 @@ function Send-GitBranch
 
     The most recent merge result is available as the `LastMergeResult` property. The most recent push result is available as the `LastPushResult` property.
 
-    This command implements the `git push` function.
+    This command implements the `git push` command, and, if there are new changes in the remote repository, the `git pull` command.
 
     .LINK
     Sync-GitBranch
