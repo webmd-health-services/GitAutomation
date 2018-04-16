@@ -44,7 +44,7 @@ Describe 'Get-GitRepositoryStatus when getting status' {
         $status | Where-Object { $_.FilePath -ne 'untracked' } | Select-Object -ExpandProperty 'State' | ForEach-Object { $_ |  Should Be ([LibGit2Sharp.FileStatus]::NewInIndex) }
     }
 
-    Save-GitChange -Message 'testing status' -RepoRoot $repoRoot
+    Save-GitCommit -Message 'testing status' -RepoRoot $repoRoot
 
     'modified' | Set-Content -Path $modifiedPath
 

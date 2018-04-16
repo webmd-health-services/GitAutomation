@@ -48,7 +48,7 @@
         "Tags": [ "pull", "fetch" ]
     },
     {
-        "Name": "Save-GitChange",
+        "Name": "Save-GitCommit",
         "Tags": [ "commit" ]
     },
     {

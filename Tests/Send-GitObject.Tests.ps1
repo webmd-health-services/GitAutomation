@@ -26,7 +26,7 @@ function GivenRemoteRepository
     New-GitRepository -Path $remoteRepoPath | Out-Null
     Add-GitTestFile -RepoRoot $remoteRepoPath -Path 'InitialCommit.txt'
     Add-GitItem -RepoRoot $remoteRepoPath -Path 'InitialCommit.txt'
-    Save-GitChange -RepoRoot $remoteRepoPath -Message 'Initial Commit'
+    Save-GitCommit -RepoRoot $remoteRepoPath -Message 'Initial Commit'
     Set-GitConfiguration -Name 'core.bare' -Value 'true' -RepoRoot $remoteRepoPath
 }
 
@@ -68,7 +68,7 @@ function GivenCommit
     $fileName = [IO.Path]::GetRandomFileName()
     Add-GitTestFile -RepoRoot $localRepoPath -Path $fileName | Out-Null
     Add-GitItem -RepoRoot $localRepoPath -Path $fileName
-    Save-GitChange -RepoRoot $localRepoPath -Message $fileName
+    Save-GitCommit -RepoRoot $localRepoPath -Message $fileName
 }
 
 function GivenRemoteContainsOtherChanges
@@ -76,7 +76,7 @@ function GivenRemoteContainsOtherChanges
     Set-GitConfiguration -Name 'core.bare' -Value 'false' -RepoRoot $remoteRepoPath
     Add-GitTestFile -RepoRoot $remoteRepoPath -Path 'RemoteTestFile.txt'
     Add-GitItem -RepoRoot $remoteRepoPath -Path 'RemoteTestFile.txt'
-    Save-GitChange -RepoRoot $remoteRepoPath -Message 'Adding remote test file to remote repo'
+    Save-GitCommit -RepoRoot $remoteRepoPath -Message 'Adding remote test file to remote repo'
     Set-GitConfiguration -Name 'core.bare' -Value 'true' -RepoRoot $remoteRepoPath
 }
 

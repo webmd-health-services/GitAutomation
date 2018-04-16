@@ -48,7 +48,7 @@ function GivenCommit
         $filePath = Join-Path -Path $repoRoot -ChildPath ([System.IO.Path]::GetRandomFileName())
         [Guid]::NewGuid() | Set-Content -Path $filePath -Force
         Add-GitItem -Path $filePath -RepoRoot $repoRoot | Out-Null
-        Save-GitChange -Message 'Get-GitCommit Tests' -RepoRoot $repoRoot | Out-Null
+        Save-GitCommit -Message 'Get-GitCommit Tests' -RepoRoot $repoRoot | Out-Null
     }
 }
 

@@ -18,7 +18,7 @@ Describe 'New-GitTag when creating a new unique tag without passing a target' {
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     $tagName = 'TAAAAAGGGGG'
     Test-GitTag -RepoRoot $repo -Name $tagName | Should Be $false
@@ -50,11 +50,11 @@ Describe 'New-GitTag when creating a new unique tag and passing a revision'{
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    $c1 = Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    $c1 = Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     Add-GitTestFile -RepoRoot $repo -Path 'file2'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
-    $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
+    $c2 = Save-GitCommit -RepoRoot $repo -Message 'file2 commit'
 
     $tagName = 'aNOTHER---ONNEEE!!!'
     Test-GitTag -RepoRoot $repo -Name $tagName | Should Be $false
@@ -77,7 +77,7 @@ Describe 'New-GitTag when passing a name of a tag that already exists without us
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     $tagName = 'duplicate'
     New-GitTag -RepoRoot $repo -Name $tagName
@@ -98,11 +98,11 @@ Describe 'New-GitTag when using the -Force switch to overwrite a tag'{
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    $c1 = Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    $c1 = Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     Add-GitTestFile -RepoRoot $repo -Path 'file2'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
-    $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
+    $c2 = Save-GitCommit -RepoRoot $repo -Message 'file2 commit'
 
     $tagName = 'tag'
     New-GitTag -RepoRoot $repo -Name $tagName -Revision $c1.Sha
@@ -124,11 +124,11 @@ Describe 'New-GitTag when creating a new tag for a revision that is already tagg
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    $c1 = Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    $c1 = Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     Add-GitTestFile -RepoRoot $repo -Path 'file2'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
-    $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
+    $c2 = Save-GitCommit -RepoRoot $repo -Message 'file2 commit'
 
     $tag1 = 'tag1'
     $tag2 = 'tag2'
@@ -154,7 +154,7 @@ Describe 'New-GitTag when passing an invalid revision' {
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     New-GitTag -RepoRoot $repo -Name 'whocares' -Revision 'IdoNotExist' -ErrorAction SilentlyContinue
 

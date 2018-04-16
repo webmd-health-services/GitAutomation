@@ -18,7 +18,7 @@ Describe 'Test-GitBranch when running from a valid git repository' {
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     It 'should return true if the branch name exists' {
         Test-GitBranch -RepoRoot $repo -Name 'master' | Should Be $true

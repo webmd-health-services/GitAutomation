@@ -80,7 +80,7 @@ function GivenCommit
     $filename = '{0}-{1}' -f $prefix,[IO.Path]::GetRandomFileName()
     Add-GitTestFile -RepoRoot $repoRoot -Path $filename | Out-Null
     Add-GitItem -RepoRoot $repoRoot -Path $filename
-    Save-GitChange -RepoRoot $repoRoot -Message $filename
+    Save-GitCommit -RepoRoot $repoRoot -Message $filename
 
     if( $InRemote )
     {
@@ -122,7 +122,7 @@ function Init
 
     Add-GitTestFile -RepoRoot $remoteWorkingRoot -Path 'InitialCommit.txt'
     Add-GitItem -RepoRoot $remoteWorkingRoot -Path 'InitialCommit.txt'
-    Save-GitChange -RepoRoot $remoteWorkingRoot -Message 'Initial Commit'
+    Save-GitCommit -RepoRoot $remoteWorkingRoot -Message 'Initial Commit'
     Send-GitCommit -RepoRoot $remoteWorkingRoot
 
 }

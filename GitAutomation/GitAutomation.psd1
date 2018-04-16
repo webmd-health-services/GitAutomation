@@ -94,7 +94,7 @@
                             'New-GitTag',
                             'Receive-GitCommit',
                             'Remove-GitItem',
-                            'Save-GitChange',
+                            'Save-GitCommit',
                             'Send-GitCommit',
                             'Send-GitObject',
                             'Set-GitConfiguration',
@@ -154,6 +154,7 @@
 * Added an `Sync-GitBranch` function for pulling (i.e. downloading) and merging a remote branch into its local branch. This function implements the `git pull` command.
 * `Receive-GitCommit` no longer merges changes into branches. It only downloads new commits into a repository. Use the new `Sync-GitBranch` to pull and merge changes from a remote branch into your current branch.
 * Removed the `Fetch` switch from `Receive-GitCommit`; the function now only fetches so the switch was redundant.s
+* Renamed `Save-GitChange` to `Save-GitCommit` for better discoverability and consistency.
 
 ## Upgrade Instructions
 

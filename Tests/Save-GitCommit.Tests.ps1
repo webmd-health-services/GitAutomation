@@ -31,12 +31,12 @@ function Init
     $script:signature = $null
 }
 
-Describe 'Save-GitChange when committing changes' {
+Describe 'Save-GitCommit when committing changes' {
     GivenRepository
     GivenSignature
     Add-GitTestFile -Path 'file1' -RepoRoot $repoRoot
     Add-GitItem -Path 'file1' -RepoRoot $repoRoot
-    $commit = Save-GitChange -Message 'fubar' -RepoRoot $repoRoot -Signature $signature
+    $commit = Save-GitCommit -Message 'fubar' -RepoRoot $repoRoot -Signature $signature
     It 'should return a commit object' {
         $commit.pstypenames | Where-Object { $_ -eq 'Git.Automation.CommitInfo' } | Should Not BeNullOrEmpty
     }
@@ -71,12 +71,12 @@ Describe 'Save-GitChange when committing changes' {
     }
 }
 
-Describe 'Save-GitChange when nothing to commit' {
+Describe 'Save-GitCommit when nothing to commit' {
     Clear-Error
     GivenRepository
     GivenSignature
-    Save-GitChange -Message 'fubar' -RepoRoot $repoRoot -Signature $signature
-    $commit = Save-GitChange -Message 'fubar' -RepoRoot $repoRoot 
+    Save-GitCommit -Message 'fubar' -RepoRoot $repoRoot -Signature $signature
+    $commit = Save-GitCommit -Message 'fubar' -RepoRoot $repoRoot 
     It 'should commit nothing' {
         $commit | Should BeNullOrEmpty
     }
@@ -85,12 +85,12 @@ Describe 'Save-GitChange when nothing to commit' {
     }
 }
 
-Describe 'Save-GitChange.when committing in the current directory' {
+Describe 'Save-GitCommit.when committing in the current directory' {
     GivenRepository
     Push-Location $repoRoot
     try
     {
-        $commit = Save-GitChange -Message 'fubar'
+        $commit = Save-GitCommit -Message 'fubar'
         It ('should commit') {
             $commit | Should -Not -BeNullOrEmpty
         }

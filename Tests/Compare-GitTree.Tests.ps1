@@ -41,7 +41,7 @@ function GivenACommit
         Add-GitItem -RepoRoot $repoRoot -Path $ThatModifies
     }
 
-    Save-GitChange -RepoRoot $repoRoot -Message 'Compare-GitTree tests commit'
+    Save-GitCommit -RepoRoot $repoRoot -Message 'Compare-GitTree tests commit'
 }
 
 function GivenARepository
@@ -51,7 +51,7 @@ function GivenARepository
     
     Add-GitTestFile -RepoRoot $repoRoot -Path 'InitialCommit.txt'
     Add-GitItem -RepoRoot $repoRoot -Path 'InitialCommit.txt'
-    Save-GitChange -RepoRoot $repoRoot -Message 'Initial Commit'
+    Save-GitCommit -RepoRoot $repoRoot -Message 'Initial Commit'
 }
 
 function GivenTag

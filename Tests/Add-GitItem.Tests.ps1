@@ -192,7 +192,7 @@ Describe 'Add-GitItem for an unmodified file' {
     $repoRoot = New-GitTestRepo
     Add-GitTestFile -Path 'file1' -RepoRoot $repoRoot
     Add-GitItem -Path 'file1','file1' -RepoRoot $repoRoot
-    Save-GitChange -Message 'Committing a file change' -RepoRoot $repoRoot
+    Save-GitCommit -Message 'Committing a file change' -RepoRoot $repoRoot
     Add-GitItem -Path 'file1' -RepoRoot $repoRoot
     Assert-FileNotStaged -Path 'file1' -RepoRoot $repoRoot
     It 'should not throw any errors' {

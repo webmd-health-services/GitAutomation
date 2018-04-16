@@ -24,7 +24,7 @@ function GivenRepositoryWithFile
         New-Item -Path (Join-Path -Path $repoRoot -ChildPath $item) -Type 'File'
     }
     Add-GitItem -RepoRoot $repoRoot -Path $Name
-    Save-GitChange -RepoRoot $repoRoot -Message 'Commit to add test files'
+    Save-GitCommit -RepoRoot $repoRoot -Message 'Commit to add test files'
 }
 
 function GivenIncorrectRepo
