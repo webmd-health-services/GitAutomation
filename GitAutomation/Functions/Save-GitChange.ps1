@@ -95,6 +95,7 @@ function Save-GitChange
     }
     catch [LibGit2Sharp.EmptyCommitException]
     {
+        $Global:Error.RemoveAt(0)
         Write-Warning -Message ('Nothing to commit. Git only commits changes that are staged. To stage changes, use the Add-GitItem function or the `git add` command.')
     }
     catch 

@@ -72,12 +72,16 @@ Describe 'Save-GitChange when committing changes' {
 }
 
 Describe 'Save-GitChange when nothing to commit' {
+    Clear-Error
     GivenRepository
     GivenSignature
     Save-GitChange -Message 'fubar' -RepoRoot $repoRoot -Signature $signature
     $commit = Save-GitChange -Message 'fubar' -RepoRoot $repoRoot 
     It 'should commit nothing' {
         $commit | Should BeNullOrEmpty
+    }
+    It ('should write no errors') {
+        $Global:Error | Should -BeNullOrEmpty
     }
 }
 
