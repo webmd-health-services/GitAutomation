@@ -11,3 +11,4 @@ get-libgit2.org/
 Output/
 **/*.user
 .output
+.vs
