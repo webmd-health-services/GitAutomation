@@ -42,7 +42,7 @@ function GivenConflicts
         $filePath = Join-Path -Path $dir -ChildPath 'first'
         [Guid]::NewGuid() | Set-Content -Path $filePath
         Add-GitItem -Path $filePath -RepoRoot $dir
-        $script:lastCommit = Save-GitChange -RepoRoot $dir -Message 'conflict first'
+        $script:lastCommit = Save-GitCommit -RepoRoot $dir -Message 'conflict first'
     }
 
     Send-GitCommit -RepoRoot $serverWorkingDirectory
@@ -62,7 +62,7 @@ function GivenNewCommitIn
         $filePath = [IO.Path]::GetRandomFileName()
         New-Item -Path $filePath -ItemType 'File'
         Add-GitItem -Path $filePath
-        $script:lastCommit = Save-GitChange -Message $filePath
+        $script:lastCommit = Save-GitCommit -Message $filePath
 
         if( $AndPushed )
         {
@@ -117,7 +117,7 @@ function Init
     {
         '' | Set-Content -Path 'master'
         Add-GitItem 'master'
-        $script:lastCommit = Save-GitChange -Message 'first'
+        $script:lastCommit = Save-GitCommit -Message 'first'
         Send-GitCommit
     }
     finally

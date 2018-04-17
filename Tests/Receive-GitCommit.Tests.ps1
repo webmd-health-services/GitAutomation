@@ -18,14 +18,14 @@ Describe 'Receive-GitCommit'{
     $remoteRepo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $remoteRepo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $remoteRepo -ChildPath 'file1') -RepoRoot $remoteRepo
-    Save-GitChange -RepoRoot $remoteRepo -Message 'file1 commit'
+    Save-GitCommit -RepoRoot $remoteRepo -Message 'file1 commit'
 
     $localRepoPath = Join-Path -Path (Resolve-TestDrivePath) -ChildPath 'LocalRepo'
     Copy-GitRepository -Source $remoteRepo -DestinationPath $localRepoPath
 
     Add-GitTestFile -RepoRoot $remoteRepo -Path 'file2'
     Add-GitItem -Path (Join-Path -Path $remoteRepo -ChildPath 'file2') -RepoRoot $remoteRepo
-    Save-GitChange -RepoRoot $remoteRepo -Message 'file2 commit'
+    Save-GitCommit -RepoRoot $remoteRepo -Message 'file2 commit'
 
     $repo = Find-GitRepository -Path $localRepoPath
     $remote = Find-GitRepository -Path $remoteRepo

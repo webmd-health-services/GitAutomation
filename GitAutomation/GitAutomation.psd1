@@ -94,7 +94,7 @@
                             'New-GitTag',
                             'Receive-GitCommit',
                             'Remove-GitItem',
-                            'Save-GitChange',
+                            'Save-GitCommit',
                             'Send-GitBranch',
                             'Send-GitCommit',
                             'Send-GitObject',
@@ -148,21 +148,27 @@
             ReleaseNotes = @'
 # 0.11.0
 
-* Module renamed to `GitAutomation`. The LibGit2 folks don't want us to use the LibGit2 name.
+***This release contains breaking changes.*** The *Upgrade Instructions* section below explains what you should do when upgrading.
+
+## Changes
+
+* ***Breaking Change***: Module renamed to `GitAutomation`. The LibGit2 folks don't want us to use the LibGit2 name.
 * Added `Force` switch to `Update-GitRepository` to overwrite any uncomitted changes when checking out/updating to a specific revision.
-* Removed `Test-GitIncomingCommit` function. It actually downloaded changes from the remote repository to do its test. This function only exists because we came from Mercurial, which doesn't do any kind of automated merging. Because of this, it is normal to have to test/check for incoming changes when automating. Git does automatic mergeing so this kind of check isn't needed.
-* Removed `Test-GitOutgoingCommit` function.  This function only exists because we came from Mercurial, which doesn't do any kind of automated merging. Because of this, it is normal to have to test/check for outgoing changes. With Git, it just handles no outgoing/upstream changes to push, so this function isn't necessary.
-* Added an `Sync-GitBranch` function for pulling (i.e. downloading) and merging a remote branch into its local branch. This function implements the `git pull` command.
-* `Receive-GitCommit` no longer merges changes into branches. It only downloads new commits into a repository. Use the new `Sync-GitBranch` to pull and merge changes from a remote branch into your current branch.
-* Removed the `Fetch` switch from `Receive-GitCommit`; the function now only fetches so the switch was redundant.s
+* ***Breaking Change***: Removed `Test-GitIncomingCommit` function. It actually downloaded changes from the remote repository to do its test. This function only exists because we came from Mercurial, which doesn't do any kind of automated merging. Because of this, it is normal to have to test/check for incoming changes when automating. Git does automatic mergeing so this kind of check isn't needed.
+* ***Breaking Change***: Removed `Test-GitOutgoingCommit` function.  This function only exists because we came from Mercurial, which doesn't do any kind of automated merging. Because of this, it is normal to have to test/check for outgoing changes. With Git, it just handles no outgoing/upstream changes to push, so this function isn't necessary.
+* Added a `Sync-GitBranch` function for pulling (i.e. downloading) and merging a remote branch into its local branch. This function implements the `git pull` command.
+* ***Breaking Change***: `Receive-GitCommit` no longer merges changes into branches. It only downloads new commits into a repository. Use the new `Sync-GitBranch` to pull and merge changes from a remote branch into your current branch.
+* ***Breaking Change***: Removed the `Fetch` switch from `Receive-GitCommit`; the function now only fetches so the switch was redundant.s
 * Added `Send-GitBranch` function for pushing a branch to a remote repository, merging in any new changes, if possible.
+* ***Breaking Change***: Renamed `Save-GitChange` to `Save-GitCommit` for better discoverability and consistency.
 
 ## Upgrade Instructions
 
 * The namespace for compiled objects is now `Git.Automation`. Replace references in your code to `LibGit2.Automation` with `Git.Automation`.
 * Remove any usages of the `Test-GitIncomingCommit` or `Test-GitOutgoingCommit` functions.
-* Remove usages of the `Fetch` switch when calling `Receive-GitCommit`.
 * Replace any usages of `Receive-GitCommit` that don't have the `Fetch` parameter with `Sync-GitBranch`.
+* Remove usages of the `Fetch` switch when calling `Receive-GitCommit`.
+* Replace all usages of `Save-GitChange` with `Save-GitCommit`.
 
 
 # 0.10.1

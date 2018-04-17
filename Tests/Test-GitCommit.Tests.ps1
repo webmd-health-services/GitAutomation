@@ -31,7 +31,7 @@ function GivenRepository
     New-GitRepository -Path $repoRoot
     Add-GitTestFile -RepoRoot $repoRoot -Path 'first'
     Add-GitItem -Path 'first' -RepoRoot $repoRoot
-    Save-GitChange -Message 'first' -RepoRoot $repoRoot
+    Save-GitCommit -Message 'first' -RepoRoot $repoRoot
 }
 
 function GivenTag
