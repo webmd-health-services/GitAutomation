@@ -24,7 +24,7 @@ function Add-GitItem
     This function implements the `git add` command.
 
     .LINK
-    Save-GitChange
+    Save-GitCommit
 
     .EXAMPLE
     Add-GitItem -Path 'C:\Projects\GitAutomation'
