@@ -94,7 +94,7 @@ function Sync-GitBranch
                 return
             }
         
-            $repo.Branches.Update($branch, {
+            [void]$repo.Branches.Update($branch, {
                 param(
                     [LibGit2Sharp.BranchUpdater]
                     $Updater
