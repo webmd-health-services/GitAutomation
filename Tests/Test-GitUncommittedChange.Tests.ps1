@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
 Describe 'Test-GitUncommittedChange when checking for uncommitted changes'{
     Clear-Error
@@ -18,7 +18,7 @@ Describe 'Test-GitUncommittedChange when checking for uncommitted changes'{
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    Save-GitChange -RepoRoot $repo -Message 'added file1'
+    Save-GitCommit -RepoRoot $repo -Message 'added file1'
 
     It 'should return false if there are no changes'{
         Test-GitUncommittedChange -RepoRoot $repo | Should Be $false
@@ -31,7 +31,7 @@ Describe 'Test-GitUncommittedChange when checking for uncommitted changes'{
     }
 
     Add-GitItem -Path (Join-Path $repo -ChildPath 'file1') -RepoRoot $repo
-    Save-GitChange -RepoRoot $repo -Message 'modified file1'
+    Save-GitCommit -RepoRoot $repo -Message 'modified file1'
 
     Add-GitTestFile -RepoRoot $repo -Path 'file2'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
@@ -40,7 +40,7 @@ Describe 'Test-GitUncommittedChange when checking for uncommitted changes'{
         Test-GitUncommittedChange -RepoRoot $repo | Should Be $true
     }
 
-    Save-GitChange -RepoRoot $repo -Message 'added file2'
+    Save-GitCommit -RepoRoot $repo -Message 'added file2'
 
     Rename-Item -Path (Join-Path -Path $repo -ChildPath 'file2') -NewName 'file2.Awesome'
 
@@ -49,7 +49,7 @@ Describe 'Test-GitUncommittedChange when checking for uncommitted changes'{
     }
 
     Add-GitItem -Path (Join-Path $repo -ChildPath 'file2.Awesome') -RepoRoot $repo
-    Save-GitChange -RepoRoot $repo -Message 'renamed file2'
+    Save-GitCommit -RepoRoot $repo -Message 'renamed file2'
 
     Remove-Item -Path (Join-Path -Path $repo -ChildPath 'file1')
 

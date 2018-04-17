@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
 Describe 'New-GitBranch when creating a new unique branch' {
     Clear-Error
@@ -18,7 +18,7 @@ Describe 'New-GitBranch when creating a new unique branch' {
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     $branchName = 'newBranch'
     Test-GitBranch -RepoRoot $repo -Name $branchName | Should Be $false
@@ -53,7 +53,7 @@ Describe 'New-GitBranch when trying to create an existing branch name' {
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     $branchName = 'master'
     Test-GitBranch -RepoRoot $repo -Name $branchName | Should Be $true
@@ -84,11 +84,11 @@ Describe 'New-GitBranch when passing a start point that is not head' {
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    $c1 = Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    $c1 = Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     Add-GitTestFile -RepoRoot $repo -Path 'file2'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
-    $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
+    $c2 = Save-GitCommit -RepoRoot $repo -Message 'file2 commit'
 
     $branchName = 'newBranch'
     Test-GitBranch -RepoRoot $repo -Name $branchName | Should Be $false
@@ -113,7 +113,7 @@ Describe 'New-GitBranch when passing an invalid start point'{
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     $branchName = 'newBranch'
     $startPoint = 'IDONOTEXIST'

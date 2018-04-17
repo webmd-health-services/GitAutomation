@@ -12,7 +12,7 @@
 
 Set-StrictMode -Version 'Latest'
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
 Describe 'Get-GitRepositoryStatus when getting status' {
     $repoRoot = New-GitTestRepo
@@ -44,7 +44,7 @@ Describe 'Get-GitRepositoryStatus when getting status' {
         $status | Where-Object { $_.FilePath -ne 'untracked' } | Select-Object -ExpandProperty 'State' | ForEach-Object { $_ |  Should Be ([LibGit2Sharp.FileStatus]::NewInIndex) }
     }
 
-    Save-GitChange -Message 'testing status' -RepoRoot $repoRoot
+    Save-GitCommit -Message 'testing status' -RepoRoot $repoRoot
 
     'modified' | Set-Content -Path $modifiedPath
 

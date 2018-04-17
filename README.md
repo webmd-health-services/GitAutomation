@@ -1,1 +1,1 @@
-You can find the LibGit2 PowerShell module documentation at [http://get-libgit2.org](http://get-libgit2.org).
+You can find the GitAutomation PowerShell module documentation at [http://get-gitautomation.org](http://get-gitautomation.org).

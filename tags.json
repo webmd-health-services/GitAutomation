@@ -48,7 +48,7 @@
         "Tags": [ "pull", "fetch" ]
     },
     {
-        "Name": "Save-GitChange",
+        "Name": "Save-GitCommit",
         "Tags": [ "commit" ]
     },
     {
@@ -58,14 +58,6 @@
     {
         "Name": "Test-GitBranch",
         "Tags": [ "branch" ]
-    },
-    {
-        "Name": "Test-GitIncomingCommit",
-        "Tags": [ "pull", "fetch" ]
-    },
-    {
-        "Name": "Test-GitOutgoingCommit",
-        "Tags": [ "push" ]
     },
     {
         "Name": "Test-GitRemoteUri",

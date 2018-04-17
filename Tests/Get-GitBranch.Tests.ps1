@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
 Describe 'Get-GitBranch when using the -Current switch' {
     Clear-Error
@@ -18,7 +18,7 @@ Describe 'Get-GitBranch when using the -Current switch' {
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    $c1 = Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    $c1 = Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     It 'should return the current branch info'{
         $branch = Get-GitBranch -RepoRoot $repo -Current
@@ -36,7 +36,7 @@ Describe 'Get-GitBranch without the -Current switch' {
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    $c1 = Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    $c1 = Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     New-GitBranch -RepoRoot $repo -Name 'branch2'
     New-GitBranch -RepoRoot $repo -Name 'branch3'

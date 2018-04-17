@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
 Describe 'Get-GitTag without passing a name' {
     Clear-Error
@@ -18,11 +18,11 @@ Describe 'Get-GitTag without passing a name' {
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    $c1 = Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    $c1 = Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     Add-GitTestFile -RepoRoot $repo -Path 'file2'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
-    $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
+    $c2 = Save-GitCommit -RepoRoot $repo -Message 'file2 commit'
 
     New-GitTag -RepoRoot $repo -Name 'tag1' -Revision $c1.Sha
     New-GitTag -RepoRoot $repo -Name 'tag2' -Revision $c2.Sha
@@ -45,11 +45,11 @@ Describe 'Get-GitTag when passing a specific name' {
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    $c1 = Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    $c1 = Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     Add-GitTestFile -RepoRoot $repo -Path 'file2'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
-    $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
+    $c2 = Save-GitCommit -RepoRoot $repo -Message 'file2 commit'
 
     New-GitTag -RepoRoot $repo -Name 'tag1' -Revision $c1.Sha
     New-GitTag -RepoRoot $repo -Name 'tag2' -Revision $c2.Sha
@@ -70,11 +70,11 @@ Describe 'Get-GitTag when passing a name that does not exist' {
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    $c1 = Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    $c1 = Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     Add-GitTestFile -RepoRoot $repo -Path 'file2'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
-    $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
+    $c2 = Save-GitCommit -RepoRoot $repo -Message 'file2 commit'
 
     New-GitTag -RepoRoot $repo -Name 'tag1' -Revision $c1.Sha
     New-GitTag -RepoRoot $repo -Name 'tag2' -Revision $c2.Sha
@@ -93,11 +93,11 @@ Describe 'Get-GitTag when passing a name using wildcards' {
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    $c1 = Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    $c1 = Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     Add-GitTestFile -RepoRoot $repo -Path 'file2'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
-    $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
+    $c2 = Save-GitCommit -RepoRoot $repo -Message 'file2 commit'
 
     New-GitTag -RepoRoot $repo -Name 'tag1' -Revision $c1.Sha
     New-GitTag -RepoRoot $repo -Name 'tag2' -Revision $c2.Sha

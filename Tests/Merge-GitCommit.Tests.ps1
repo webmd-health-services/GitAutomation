@@ -10,9 +10,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
-[LibGit2.Automation.MergeResult]$result = $null
+[Git.Automation.MergeResult]$result = $null
 
 function Get-RepoRoot
 {
@@ -37,7 +37,7 @@ function GivenFile
 
     [IO.File]::WriteAllText((Join-Path -Path (Get-RepoRoot) -ChildPath $Name), $Content)
     Add-GitItem -Path $Name -RepoRoot (Get-RepoRoot)
-    Save-GitChange -Message $Name -RepoRoot (Get-RepoRoot)
+    Save-GitCommit -Message $Name -RepoRoot (Get-RepoRoot)
 }
 
 function GivenGitBranch
@@ -57,7 +57,7 @@ function GivenGitRepository
     $file = Join-Path -Path $repoRoot -ChildPath 'master'
     '' | Set-Content -Path $file
     Add-GitItem -Path 'master' -RepoRoot $repoRoot
-    Save-GitChange -Message 'master' -RepoRoot $repoRoot
+    Save-GitCommit -Message 'master' -RepoRoot $repoRoot
 }
 
 function GivenTag

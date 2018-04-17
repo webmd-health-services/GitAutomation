@@ -12,7 +12,7 @@
 
 Set-StrictMode -Version 'Latest'
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
 function GivenRemoteRepository
 {
@@ -26,7 +26,7 @@ function GivenRemoteRepository
     New-GitRepository -Path $remoteRepoPath | Out-Null
     Add-GitTestFile -RepoRoot $remoteRepoPath -Path 'InitialCommit.txt'
     Add-GitItem -RepoRoot $remoteRepoPath -Path 'InitialCommit.txt'
-    Save-GitChange -RepoRoot $remoteRepoPath -Message 'Initial Commit'
+    Save-GitCommit -RepoRoot $remoteRepoPath -Message 'Initial Commit'
     Set-GitConfiguration -Name 'core.bare' -Value 'true' -RepoRoot $remoteRepoPath
 }
 
@@ -68,7 +68,7 @@ function GivenCommit
     $fileName = [IO.Path]::GetRandomFileName()
     Add-GitTestFile -RepoRoot $localRepoPath -Path $fileName | Out-Null
     Add-GitItem -RepoRoot $localRepoPath -Path $fileName
-    Save-GitChange -RepoRoot $localRepoPath -Message $fileName
+    Save-GitCommit -RepoRoot $localRepoPath -Message $fileName
 }
 
 function GivenRemoteContainsOtherChanges
@@ -76,7 +76,7 @@ function GivenRemoteContainsOtherChanges
     Set-GitConfiguration -Name 'core.bare' -Value 'false' -RepoRoot $remoteRepoPath
     Add-GitTestFile -RepoRoot $remoteRepoPath -Path 'RemoteTestFile.txt'
     Add-GitItem -RepoRoot $remoteRepoPath -Path 'RemoteTestFile.txt'
-    Save-GitChange -RepoRoot $remoteRepoPath -Message 'Adding remote test file to remote repo'
+    Save-GitCommit -RepoRoot $remoteRepoPath -Message 'Adding remote test file to remote repo'
     Set-GitConfiguration -Name 'core.bare' -Value 'true' -RepoRoot $remoteRepoPath
 }
 
@@ -106,7 +106,19 @@ function ThenRemoteContainsLocalCommits
     }
     
     It 'local repository should not have any outgoing commits' {
-        Test-GitOutgoingCommit -RepoRoot $localRepoPath | Should -BeFalse
+        $repo = Get-GitRepository -RepoRoot $localRepoPath
+        try
+        {
+            $localBranch = $repo.Branches | Where-Object { $_.IsCurrentRepositoryHead -and -not $_.IsRemote }
+            $remoteBranch = $repo.Branches | Where-Object { $_.IsRemote -and $_.CanonicalName -eq $localBranch.TrackedBranch }
+            $localBranch | Should -Not -BeNullOrEmpty
+            $remoteBranch | Should -Not -BeNullOrEmpty
+            $remoteBranch.Tip | Should -Be $localBranch.Tip
+        }
+        finally
+        {
+            $repo.Dispose()
+        }
     }
 
     It 'the HEAD commit of the local repository should match the remote repository' {
@@ -191,7 +203,7 @@ Describe 'Send-GitObject.when pushing changes to a remote repository' {
     GivenCommit
     WhenSendingObject 'refs/heads/master'
     ThenNoErrorsWereThrown
-    ThenPushResultIs ([LibGit2.Automation.PushResult]::Ok)
+    ThenPushResultIs ([Git.Automation.PushResult]::Ok)
     ThenRemoteContainsLocalCommits
 }
 
@@ -200,7 +212,7 @@ Describe 'Send-GitObject.when there are no local changes to push to remote' {
     GivenLocalRepositoryTracksRemote 'LocalRepo'
     WhenSendingObject 'refs/heads/master'
     ThenNoErrorsWereThrown
-    ThenPushResultIs ([LibGit2.Automation.PushResult]::Ok)
+    ThenPushResultIs ([Git.Automation.PushResult]::Ok)
 }
 
 Describe 'Send-GitObject.when remote repository has changes not contained locally' {
@@ -210,7 +222,7 @@ Describe 'Send-GitObject.when remote repository has changes not contained locall
     GivenCommit
     WhenSendingObject 'refs/heads/master' -ErrorAction SilentlyContinue
     ThenErrorWasThrown 'that you are trying to update on the remote contains commits that are not present locally.'
-    ThenPushResultIs ([LibGit2.Automation.PushResult]::Rejected)
+    ThenPushResultIs ([Git.Automation.PushResult]::Rejected)
 }
 
 Describe 'Send-GitObject.when no upstream remote is defined' {
@@ -218,7 +230,7 @@ Describe 'Send-GitObject.when no upstream remote is defined' {
     GivenCommit
     WhenSendingObject 'refs/heads/master' -ErrorAction SilentlyContinue
     ThenErrorWasThrown 'A\ remote\ named\ "origin"\ does\ not\ exist\.'
-    ThenPushResultIs ([LibGit2.Automation.PushResult]::Failed)
+    ThenPushResultIs ([Git.Automation.PushResult]::Failed)
 }
 
 Describe 'Send-GitObject.when refspec doesn''t exist' {
@@ -226,7 +238,7 @@ Describe 'Send-GitObject.when refspec doesn''t exist' {
     GivenLocalRepositoryTracksRemote 'LocalRepo'
     WhenSendingObject 'refs/heads/dsfsdaf' -ErrorAction SilentlyContinue
     ThenErrorWasThrown 'does\ not\ match\ any\ existing\ object'
-    ThenPushResultIs ([LibGit2.Automation.PushResult]::Failed)
+    ThenPushResultIs ([Git.Automation.PushResult]::Failed)
 }
 
 Describe 'Send-GitObject.when pushing tags' {

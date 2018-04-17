@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
 [LibGit2Sharp.TreeChanges]$diffOutput = $null
 $repoRoot= $null
@@ -41,7 +41,7 @@ function GivenACommit
         Add-GitItem -RepoRoot $repoRoot -Path $ThatModifies
     }
 
-    Save-GitChange -RepoRoot $repoRoot -Message 'Compare-GitTree tests commit'
+    Save-GitCommit -RepoRoot $repoRoot -Message 'Compare-GitTree tests commit'
 }
 
 function GivenARepository
@@ -51,7 +51,7 @@ function GivenARepository
     
     Add-GitTestFile -RepoRoot $repoRoot -Path 'InitialCommit.txt'
     Add-GitItem -RepoRoot $repoRoot -Path 'InitialCommit.txt'
-    Save-GitChange -RepoRoot $repoRoot -Message 'Initial Commit'
+    Save-GitCommit -RepoRoot $repoRoot -Message 'Initial Commit'
 }
 
 function GivenTag
@@ -95,7 +95,7 @@ function WhenGettingDiff
     }
     elseif ($GivenRepositoryObject)
     {
-        Mock -CommandName 'Invoke-Command' -ModuleName 'LibGit2' -ParameterFilter { $ScriptBlock.ToString() -match 'Dispose' }
+        Mock -CommandName 'Invoke-Command' -ModuleName 'GitAutomation' -ParameterFilter { $ScriptBlock.ToString() -match 'Dispose' }
         $repoObject = Get-GitRepository -RepoRoot $repoRoot
         try
         {
@@ -127,7 +127,7 @@ function WhenGettingDiff
 function ThenDidNotDisposeRepoObject
 {
     It 'should not dispose the repository object' {
-        Assert-MockCalled -CommandName 'Invoke-Command' -ModuleName 'LibGit2' -ParameterFilter { $ScriptBlock.ToString() -match 'Dispose' } -Times 0
+        Assert-MockCalled -CommandName 'Invoke-Command' -ModuleName 'GitAutomation' -ParameterFilter { $ScriptBlock.ToString() -match 'Dispose' } -Times 0
     }
 }
 

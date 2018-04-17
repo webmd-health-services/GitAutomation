@@ -2,4 +2,4 @@
 
 This package contains and uses cross-platform LibGit2Sharp binaries from the [LibGit2Sharp project](https://github.com/libgit2/libgit2sharp), released under the MIT license, which allows redstribution.
 
-It also contains its own LibGit2.Automation.dll assembly.
+It also contains its own Git.Automation.dll assembly.

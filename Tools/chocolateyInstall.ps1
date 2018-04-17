@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Chocolately install script for LibGit2.
+Chocolately install script for GitAutomation.
 #>
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,9 +70,9 @@ function Get-PowerShellModuleInstallPath
 }
 
 $installPath = Get-PowerShellModuleInstallPath
-$installPath = Join-Path -Path $installPath -ChildPath 'LibGit2'
+$installPath = Join-Path -Path $installPath -ChildPath 'GitAutomation'
 
-$source = Join-Path -Path $PSScriptRoot -ChildPath '..\LibGit2' -Resolve
+$source = Join-Path -Path $PSScriptRoot -ChildPath '..\GitAutomation' -Resolve
 if( -not $source )
 {
     return
@@ -80,13 +80,13 @@ if( -not $source )
 
 if( (Test-Path -Path $installPath -PathType Container) )
 {
-    $newName = 'LibGit2{0}' -f [IO.Path]::GetRandomFileName()
-    Write-Verbose ('Renaming existing LibGit2 module: {0} -> {1}' -f $installPath,$newName)
+    $newName = 'GitAutomation{0}' -f [IO.Path]::GetRandomFileName()
+    Write-Verbose ('Renaming existing GitAutomation module: {0} -> {1}' -f $installPath,$newName)
     Rename-Item -Path $installPath $newName
     $oldModulePath = Join-Path -Path (Get-PowerShellModuleInstallPath) -ChildPath $newName
     if( Test-Path -Path $oldModulePath -PathType Container )
     {
-        Write-Verbose ('Removing old LibGit2 module: {0}' -f $oldModulePath)
+        Write-Verbose ('Removing old GitAutomation module: {0}' -f $oldModulePath)
         Remove-Item -Path $oldModulePath -Force -Recurse
     }
     else
@@ -100,5 +100,5 @@ if( (Test-Path -Path $installPath -PathType Container) )
     }
 }
 
-Write-Verbose -Message ('Installing LibGit2: {0} -> {1}' -f $source,$installPath)
+Write-Verbose -Message ('Installing GitAutomation: {0} -> {1}' -f $source,$installPath)
 Copy-Item -Path $source -Destination $installPath -Recurse

@@ -12,7 +12,7 @@
 
 Set-StrictMode -Version 'Latest'
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
 $remoteRepoRoot = $null
 $remoteWorkingRoot = $null
@@ -80,7 +80,7 @@ function GivenCommit
     $filename = '{0}-{1}' -f $prefix,[IO.Path]::GetRandomFileName()
     Add-GitTestFile -RepoRoot $repoRoot -Path $filename | Out-Null
     Add-GitItem -RepoRoot $repoRoot -Path $filename
-    Save-GitChange -RepoRoot $repoRoot -Message $filename
+    Save-GitCommit -RepoRoot $repoRoot -Message $filename
 
     if( $InRemote )
     {
@@ -122,7 +122,7 @@ function Init
 
     Add-GitTestFile -RepoRoot $remoteWorkingRoot -Path 'InitialCommit.txt'
     Add-GitItem -RepoRoot $remoteWorkingRoot -Path 'InitialCommit.txt'
-    Save-GitChange -RepoRoot $remoteWorkingRoot -Message 'Initial Commit'
+    Save-GitCommit -RepoRoot $remoteWorkingRoot -Message 'Initial Commit'
     Send-GitCommit -RepoRoot $remoteWorkingRoot
 
 }
@@ -231,7 +231,7 @@ Describe 'Send-GitCommit.when pushing changes to a remote repository' {
     $commit = GivenCommit -InLocal
     WhenSendingCommits
     ThenNoErrorsWereThrown
-    ThenPushResultIs ([LibGit2.Automation.PushResult]::Ok)
+    ThenPushResultIs ([Git.Automation.PushResult]::Ok)
     ThenRemoteRevision $commit.Sha -Exists
 }
 
@@ -240,7 +240,7 @@ Describe 'Send-GitCommit.when there are no local changes to push to remote' {
     GivenLocalRepoIs -ClonedFromRemote
     WhenSendingCommits
     ThenNoErrorsWereThrown
-    ThenPushResultIs ([LibGit2.Automation.PushResult]::Ok)
+    ThenPushResultIs ([Git.Automation.PushResult]::Ok)
 }
 
 Describe 'Send-GitCommit.when remote repository has changes not contained locally' {
@@ -250,7 +250,7 @@ Describe 'Send-GitCommit.when remote repository has changes not contained locall
     GivenCommit -InLocal
     WhenSendingCommits -ErrorAction SilentlyContinue
     ThenErrorWasThrown 'that you are trying to update on the remote contains commits that are not present locally.'
-    ThenPushResultIs ([LibGit2.Automation.PushResult]::Rejected)
+    ThenPushResultIs ([Git.Automation.PushResult]::Rejected)
 }
 
 Describe 'Send-GitCommit.when no upstream remote is defined' {
@@ -259,7 +259,7 @@ Describe 'Send-GitCommit.when no upstream remote is defined' {
     GivenCommit -InLocal
     WhenSendingCommits -ErrorAction SilentlyContinue
     ThenErrorWasThrown 'A\ remote\ named\ "origin"\ does\ not\ exist\.'
-    ThenPushResultIs ([LibGit2.Automation.PushResult]::Failed)
+    ThenPushResultIs ([Git.Automation.PushResult]::Failed)
 }
 
 Describe 'Send-GitCommit.when changes on other branches' {
@@ -280,7 +280,7 @@ Describe 'Send-GitCommit.when pushing a new branch' {
     GivenBranch 'develop' -InLocal
     $commit = GivenCommit -InLocal
     WhenSendingCommits -SetUpstream
-    ThenPushResultIs ([LibGit2.Automation.PushResult]::Ok)
+    ThenPushResultIs ([Git.Automation.PushResult]::Ok)
     ThenRemoteRevision $commit.Sha -Exists
     ThenRemoteRevision 'develop' -Exists
     ThenLocalHead 'refs/heads/develop' -Tracks 'refs/remotes/origin/develop'
@@ -293,7 +293,7 @@ Describe 'Send-GitCommit.when pushing new commits on a branch' {
     GivenLocalRepoIs -ClonedFromRemote
     $commit = GivenCommit -InLocal -OnBranch 'develop'
     WhenSendingCommits
-    ThenPushResultIs ([LibGit2.Automation.PushResult]::Ok)
+    ThenPushResultIs ([Git.Automation.PushResult]::Ok)
     ThenRemoteRevision $commit.Sha -Exists
     ThenRemoteRevision 'develop' -Exists
 }

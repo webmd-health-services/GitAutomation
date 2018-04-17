@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-LibGit2Test.ps1' -Resolve)
+& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
 Describe 'Update-GitRepository when updating to a specific commit'{
     Clear-Error
@@ -18,11 +18,11 @@ Describe 'Update-GitRepository when updating to a specific commit'{
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    $c1 = Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    $c1 = Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     Add-GitTestFile -RepoRoot $repo -Path 'file2'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
-    $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
+    $c2 = Save-GitCommit -RepoRoot $repo -Message 'file2 commit'
 
     Update-GitRepository -RepoRoot $repo -Revision $c1.Sha
 
@@ -49,11 +49,11 @@ Describe 'Update-GitRespository when updating to a tag'{
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    $c1 = Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    $c1 = Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     Add-GitTestFile -RepoRoot $repo -Path 'file2'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
-    $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
+    $c2 = Save-GitCommit -RepoRoot $repo -Message 'file2 commit'
 
     New-GitTag -RepoRoot $repo -Name 'tag1' -Revision $c1.Sha
     $tag = Get-GitTag -RepoRoot $repo -Name 'tag1'
@@ -82,16 +82,16 @@ Describe 'Update-GitRepository when updating to a remote reference' {
     $remoteRepo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $remoteRepo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $remoteRepo -ChildPath 'file1') -RepoRoot $remoteRepo
-    $c1 = Save-GitChange -RepoRoot $remoteRepo -Message 'file1 commit'
+    $c1 = Save-GitCommit -RepoRoot $remoteRepo -Message 'file1 commit'
 
     $localRepoPath = Join-Path -Path (Resolve-TestDrivePath) -ChildPath 'LocalRepo'
     Copy-GitRepository -Source $remoteRepo -DestinationPath $localRepoPath
 
     Add-GitTestFile -RepoRoot $remoteRepo -Path 'file2'
     Add-GitItem -Path (Join-Path -Path $remoteRepo -ChildPath 'file2') -RepoRoot $remoteRepo
-    $c2 = Save-GitChange -RepoRoot $remoteRepo -Message 'file2 commit'
+    $c2 = Save-GitCommit -RepoRoot $remoteRepo -Message 'file2 commit'
     
-    Receive-GitCommit -RepoRoot $localRepoPath -Fetch
+    Receive-GitCommit -RepoRoot $localRepoPath
 
     Update-GitRepository -RepoRoot $localRepoPath -Revision 'refs/remotes/origin/master'
 
@@ -117,11 +117,11 @@ Describe 'Update-GitRepository when updating to the head of a branch' {
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    $c1 = Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    $c1 = Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     Add-GitTestFile -RepoRoot $repo -Path 'file2'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
-    $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
+    $c2 = Save-GitCommit -RepoRoot $repo -Message 'file2 commit'
 
     $branch1Name = 'newbranch'
     New-GitBranch -RepoRoot $repo -Name $branch1Name -Revision $c1.Sha
@@ -152,7 +152,7 @@ Describe 'Update-GitRepository when updating to a branch that only exists at the
     $remoteRepo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $remoteRepo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $remoteRepo -ChildPath 'file1') -RepoRoot $remoteRepo
-    $c1 = Save-GitChange -RepoRoot $remoteRepo -Message 'file1 commit'
+    $c1 = Save-GitCommit -RepoRoot $remoteRepo -Message 'file1 commit'
     New-GitBranch -RepoRoot $remoteRepo -Name 'develop' -Revision 'master'
     Update-GitRepository -RepoRoot $remoteRepo -Revision 'master'
 
@@ -187,11 +187,11 @@ Describe 'Update-GitRepository when run with no parameters' {
     $repo = New-GitTestRepo
     Add-GitTestFile -RepoRoot $repo -Path 'file1'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    $c1 = Save-GitChange -RepoRoot $repo -Message 'file1 commit'
+    $c1 = Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
     Add-GitTestFile -RepoRoot $repo -Path 'file2'
     Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
-    $c2 = Save-GitChange -RepoRoot $repo -Message 'file2 commit'
+    $c2 = Save-GitCommit -RepoRoot $repo -Message 'file2 commit'
     try
     {
         Push-Location $repo
@@ -220,4 +220,39 @@ Describe 'Update-GitRepository when the given repo does not exist' {
         $Global:Error.Count | Should Be 1
         $Global:Error | Should Match 'does not exist'
     }
+}
+
+Describe 'Update-GitRepository.when there are uncommitted changes' {
+    Clear-Error
+    
+    $repo = New-GitTestRepo
+    Add-GitTestFile -RepoRoot $repo -Path 'file1'
+    Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
+    $c1 = Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
+
+    Add-GitTestFile -RepoRoot $repo -Path 'file2'
+    Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
+    $c2 = Save-GitCommit -RepoRoot $repo -Message 'file2 commit'
+
+    [Guid]::NewGuid() | Set-Content -Path (Join-Path -Path $repo -ChildPath 'file2')
+    Update-GitRepository -RepoRoot $repo -Revision $c1.Sha -Force
+
+    It 'should remove uncomitted changes' {
+        $status = Get-GitRepositoryStatus -RepoRoot $repo
+        $status.State | Should -BeNullOrEmpty
+
+        $r = Find-GitRepository -Path $repo
+        try
+        {
+            $r.Head.Tip.Sha | Should Be $c1.Sha
+            (Get-GitBranch -RepoRoot $repo -Current).Name | Should Match 'no branch'
+
+        }
+        finally
+        {
+            $r.Dispose()
+        }
+    }
+
+    Assert-ThereAreNoErrors
 }
