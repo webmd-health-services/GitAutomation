@@ -15,7 +15,7 @@ function Get-GitConfiguration
     [CmdletBinding()]
     [OutputType([LibGit2Sharp.ConfigurationEntry[string]])]
     param(
-        [Parameter(Mandatory=$true,Position=0)]
+        [Parameter(Position=0)]
         [string]
         # The name of the configuration variable to get.
         $Name,
@@ -51,6 +51,11 @@ function Get-GitConfiguration
         $config = [LibGit2Sharp.Configuration]::BuildFrom($Path)
         try
         {
+            if( -not $Name )
+            {
+                return $config
+            }
+
             [Git.Automation.ConfigurationExtensions]::GetString( $config, $Name, 'Local' )
         }
         finally
@@ -73,6 +78,11 @@ function Get-GitConfiguration
     {
         try
         {
+            if( -not $Name )
+            {
+                return $repo.Config
+            }
+
             $value = [Git.Automation.ConfigurationExtensions]::GetString( $repo.Config, $Name )
         }
         finally
@@ -86,6 +96,11 @@ function Get-GitConfiguration
         $config = [LibGit2Sharp.Configuration]::BuildFrom([nullstring]::Value,[nullstring]::Value)
         try
         {
+            if( -not $Name )
+            {
+                return $config
+            }
+
             $value = [Git.Automation.ConfigurationExtensions]::GetString( $config, $Name )
         }
         finally
