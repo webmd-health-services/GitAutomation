@@ -121,8 +121,18 @@ function Set-GitConfiguration
     {
         Update-GitConfigurationSearchPath -Scope $Scope
 
+        $configFileName = 'config'
+        $configFileNames = @{
+                                [LibGit2Sharp.ConfigurationLevel]::System = 'gitconfig'
+                                [LibGit2Sharp.ConfigurationLevel]::Global = '.gitconfig'
+                            }
+        if( $configFileNames.ContainsKey($Scope) )
+        {
+            $configFileName = $configFileNames[$Scope]
+        }
+
         # LibGit2 only creates config files explicitly.
-        [string[]]$searchPaths = [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths($Scope) | Join-Path -ChildPath '.gitconfig' 
+        [string[]]$searchPaths = [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths($Scope) | Join-Path -ChildPath $configFileName
         $scopeConfigFiles = $searchPaths | Where-Object { Test-Path -Path $_ -PathType Leaf }
         if( -not $scopeConfigFiles )
         {
