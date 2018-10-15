@@ -147,6 +147,12 @@ function WhenRemoving
 
 foreach( $level in [Enum]::GetValues([LibGit2Sharp.ConfigurationLevel]) )
 {
+    if( $level -eq [LibGit2Sharp.ConfigurationLevel]::Xdg -and -not ([LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths($level)) )
+    {
+        Write-Warning -Message ('Remove-GitConfiguration: unable to test "{0}" scope: looks like there are no XDG-level configuration files so LibGit2Sharp won''t load them. Create these files and reload your PowerShell session.' -f $level)
+        continue
+    }
+
     Describe ('Remove-GitConfiguration.when removing from "{0}" scope' -f $level) {
         Init
         GivenConfiguration 'gitautomation.removegitconfiguration' -AtScope $level

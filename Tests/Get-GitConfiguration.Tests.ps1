@@ -235,7 +235,7 @@ Describe 'Get-GitConfiguraiton.when getting global configuration' {
     $value = [Guid]::NewGuid()
     Init
     GivenConfiguration 'fubar.snafu' -HasValue $value -AtScope Global
-    WhenGettingConfiguration 'fubar.snafu' -AtScope Global
+    WhenGettingConfiguration 'fubar.snafu'
     ThenValue -Is $value
 }
 
