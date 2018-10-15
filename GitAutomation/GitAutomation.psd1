@@ -94,6 +94,7 @@
                             'New-GitSignature',
                             'New-GitTag',
                             'Receive-GitCommit',
+                            'Remove-GitConfiguration',
                             'Remove-GitItem',
                             'Save-GitCommit',
                             'Send-GitBranch',
@@ -148,6 +149,7 @@
 
             ReleaseNotes = @'
 * Added `Get-GitConfiguration` function for getting Git configuration values.
+* Added `Remove-GitConfiguration` function for removing/unsetting Git configuration values.
 '@
 
         } # End of PSData hashtable

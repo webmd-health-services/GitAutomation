@@ -49,7 +49,7 @@ function Get-GitConfiguration
 
     Demonstrates how to get a specific setting.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName='ByScope')]
     [OutputType([LibGit2Sharp.ConfigurationEntry[string]])]
     param(
         [Parameter(Position=0)]
@@ -62,6 +62,7 @@ function Get-GitConfiguration
         # The path to a specific file from which to read configuration. If this file doesn't exist, it is created.
         $Path,
 
+        [Parameter(ParameterSetName='ByScope')]
         [string]
         # The path to the repository whose configuration variables to set. Defaults to the repository the current directory is in.
         $RepoRoot

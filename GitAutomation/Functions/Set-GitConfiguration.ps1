@@ -131,12 +131,24 @@ function Set-GitConfiguration
             $configFileName = $configFileNames[$Scope]
         }
 
+        if( $Scope -eq [LibGit2Sharp.ConfigurationLevel]::Xdg )
+        {
+            $xdgConfigPath = Join-Path -Path $env:HOME -ChildPath '.config\git\config'
+            if( -not (Test-Path -Path $xdgConfigPath -PathType Leaf) )
+            {
+                New-Item -Path $xdgConfigPath -ItemType 'File' -Force | Out-Null
+            }
+        }
+
         # LibGit2 only creates config files explicitly.
         [string[]]$searchPaths = [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths($Scope) | Join-Path -ChildPath $configFileName
-        $scopeConfigFiles = $searchPaths | Where-Object { Test-Path -Path $_ -PathType Leaf }
-        if( -not $scopeConfigFiles )
+        if( $searchPaths )
         {
-            New-Item -Path $searchPaths[0] -ItemType 'File' -Force | Write-Verbose
+            $scopeConfigFiles = $searchPaths | Where-Object { Test-Path -Path $_ -PathType Leaf }
+            if( $searchPaths -and -not $scopeConfigFiles )
+            {
+                New-Item -Path $searchPaths[0] -ItemType 'File' -Force | Write-Verbose
+            }
         }
 
         $config = [LibGit2Sharp.Configuration]::BuildFrom([nullstring]::Value,[nullstring]::Value)
