@@ -22,8 +22,8 @@ function New-WhiskeyContext
     * `ByBuildServer`: a flag indicating if the build is being run by a build server.
     * `ByDeveloper`: a flag indicating if the build is being run by a developer.
     * `Environment`: the environment the build is running in.
-    * `OutputDirectory`: a `System.IO.DirectoryInfo` object representing the path to a directory where build output, reports, etc. should be saved. This directory is created for you. 
-    * `ShouldClean`: a flag indicating if the current build is running in clean mode. 
+    * `OutputDirectory`: a `System.IO.DirectoryInfo` object representing the path to a directory where build output, reports, etc. should be saved. This directory is created for you.
+    * `ShouldClean`: a flag indicating if the current build is running in clean mode.
     * `ShouldInitialize`: a flag indicating if the current build is running in initialize mode.
     * `Temp`: the temporary work directory for the current task.
     * `Version`: a `Whiskey.BuildVersion` object representing version being built (see below).
@@ -81,6 +81,28 @@ function New-WhiskeyContext
 
     $config = Import-WhiskeyYaml -Path $ConfigurationPath
 
+    if( $config.ContainsKey('Build') -and $config.ContainsKey('BuildTasks') )
+    {
+        throw ('{0}: The configuration file contains both "Build" and the deprecated "BuildTasks" pipelines. Move all your build tasks under "Build" and remove the "BuildTasks" pipeline.' -f $ConfigurationPath)
+    }
+
+    $buildPipelineName = 'Build'
+    if( $config.ContainsKey('BuildTasks') )
+    {
+        $buildPipelineName = 'BuildTasks'
+        Write-Warning ('{0}: The default "BuildTasks" pipeline has been renamed to "Build". Backwards compatibility with "BuildTasks" will be removed in the next major version of Whiskey. Rename your "BuildTasks" pipeline to "Build".' -f $ConfigurationPath)
+    }
+
+    if( $config.ContainsKey('Publish') -and $config.ContainsKey('PublishTasks') )
+    {
+        throw ('{0}: The configuration file contains both "Publish" and the deprecated "PublishTasks" pipelines. Move all your publish tasks under "Publish" and remove the "PublishTasks" pipeline.' -f $ConfigurationPath)
+    }
+
+    if( $config.ContainsKey('PublishTasks') )
+    {
+        Write-Warning ('{0}: The default "PublishTasks" pipeline has been renamed to "Publish". Backwards compatibility with "PublishTasks" will be removed in the next major version of Whiskey. Rename your "PublishTasks" pipeline to "Publish".' -f $ConfigurationPath)
+    }
+
     $buildRoot = $ConfigurationPath | Split-Path
     if( -not $DownloadRoot )
     {
@@ -114,47 +136,47 @@ function New-WhiskeyContext
         }
     }
 
-    $versionTaskExists = $config['BuildTasks'] | 
+    $versionTaskExists = $config[$buildPipelineName] |
                             Where-Object { $_ -and ($_ | Get-Member -Name 'Keys') } |
                             Where-Object { $_.Keys | Where-Object { $_ -eq 'Version' } }
     if( -not $versionTaskExists -and ($config.ContainsKey('PrereleaseMap') -or $config.ContainsKey('Version') -or $config.ContainsKey('VersionFrom')) )
     {
         Write-Warning ('{0}: The ''PrereleaseMap'', ''Version'', and ''VersionFrom'' properties are obsolete and will be removed in Whiskey 1.0. They were replaced with the ''Version'' task. Add a ''Version'' task as the first task in your build pipeline. If your current whiskey.yml file looks like this:
-    
+
     Version: 1.2.3
-    
+
     PrereleaseMap:
     - "alpha/*": alpha
     - "release/*": rc
-    
+
 add a Version task to your build pipeline that looks like this:
-    
-    BuildTasks:
+
+    Build:
     - Version:
         Version: 1.2.3
         Prerelease:
         - "alpha/*": alpha.$(WHISKEY_BUILD_NUMBER)
         - "release/*": rc.$(WHISKEY_BUILD_NUMBER)
-    
+
 You must add the ".$(WHISKEY_BUILD_NUMBER)" string to each prerelease version. Whiskey no longer automatically adds a prerelease version number for you.
-    
+
 If you use the "VersionFrom" property, your whiskey.yml file looks something like this:
-    
+
     VersionFrom: Whiskey\Whiskey.psd1
-    
+
 Update it to look like this:
-    
-    BuildTasks:
+
+    Build:
     - Version:
         Path: Whiskey\Whiskey.psd1
- 
+
 Whiskey also no longer automatically adds build metadata to your version number. To preserve Whiskey''s old default build metadata, add a "Build" property to your new "Version" task that looks like this:
- 
-    BuildTasks:
+
+    Build:
     - Version:
         Version: 1.2.3
         Build: $(WHISKEY_SCM_BRANCH).$(WHISKEY_SCM_COMMIT_ID.Substring(0,7))
- 
+
     ' -f $ConfigurationPath)
 
         $versionTask = $null
@@ -176,7 +198,7 @@ Whiskey also no longer automatically adds build metadata to your version number.
 
         if( $config['PrereleaseMap'] )
         {
-            $versionTask['Prerelease'] = $config['PrereleaseMap'] | 
+            $versionTask['Prerelease'] = $config['PrereleaseMap'] |
                                             ForEach-Object {
                                                 if( -not ($_ | Get-Member 'Keys') )
                                                 {
@@ -191,21 +213,21 @@ Whiskey also no longer automatically adds build metadata to your version number.
                                                 }
                                                 $newMap
                                             }
-                                                
+
         }
 
         if( $versionTask )
         {
-            if( -not $config['BuildTasks'] )
+            if( -not $config[$buildPipelineName] )
             {
-                $config['BuildTasks'] = @()
+                $config[$buildPipelineName] = @()
             }
 
-            $config['BuildTasks'] = & {
+            $config[$buildPipelineName] = & {
                                             @{
                                                 Version = $versionTask
                                             }
-                                            $config['BuildTasks']
+                                            $config[$buildPipelineName]
                                     }
         }
     }
@@ -235,7 +257,7 @@ Whiskey also no longer automatically adds build metadata to your version number.
 
     if( $config['Variable'] )
     {
-        Write-Error -Message ('{0}: The ''Variable'' property is no longer supported. Use the `SetVariable` task instead. Move your `Variable` property (and values) into your `BuildTasks` pipeline as the first task. Rename `Variable` to `SetVariable`.' -f $ConfigurationPath) -ErrorAction Stop
+        Write-Error -Message ('{0}: The ''Variable'' property is no longer supported. Use the `SetVariable` task instead. Move your `Variable` property (and values) into your `Build` pipeline as the first task. Rename `Variable` to `SetVariable`.' -f $ConfigurationPath) -ErrorAction Stop
     }
 
     if( $versionTaskExists )
@@ -245,8 +267,8 @@ Whiskey also no longer automatically adds build metadata to your version number.
     else
     {
         Write-Warning ('Whiskey''s default, date-base default version number is OBSOLETE. Beginning with Whiskey 1.0, the default Whiskey version number will be 0.0.0. Use the Version task to set your own custom version. For example, this Version task preserves the existing behavior:
- 
-    BuildTasks
+
+    Build
     - Version:
         Version: $(WHISKEY_BUILD_STARTED_AT.ToString(''yyyy.Mdd'')).$(WHISKEY_BUILD_NUMBER)
         Build: $(WHISKEY_SCM_BRANCH).$(WHISKEY_SCM_COMMIT_ID)

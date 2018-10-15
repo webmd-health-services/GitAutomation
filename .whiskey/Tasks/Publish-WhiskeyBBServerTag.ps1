@@ -2,7 +2,8 @@
 function Publish-WhiskeyBBServerTag
 {
     [CmdletBinding()]
-    [Whiskey.Task("PublishBitbucketServerTag")]
+    [Whiskey.Task('PublishBitbucketServerTag')]
+    [Whiskey.RequiresTool('PowerShellModule::BitbucketServerAutomation','BitbucketServerAutomationPath',Version='0.3.*',VersionParameterName='BitbucketServerAutomationVersion')]
     param(
         [Parameter(Mandatory=$true)]
         [Whiskey.Context]
@@ -16,7 +17,9 @@ function Publish-WhiskeyBBServerTag
     Set-StrictMode -Version 'Latest'
     Use-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
 
-    $exampleTask = 'PublishTasks:
+    Import-WhiskeyPowerShellModule -Name 'BitbucketServerAutomation'
+
+    $exampleTask = 'Publish:
         - PublishBitbucketServerTag:
             CredentialID: BitbucketServerCredential
             Uri: https://bitbucketserver.example.com'
@@ -60,7 +63,7 @@ function Publish-WhiskeyBBServerTag
     {
         Stop-WhiskeyTask -TaskContext $TaskContext -PropertyDescription '' -Message ("Unable to determine the repository where we should create the tag. Either create a `GIT_URL` environment variable that is the URI used to clone your repository, or add your repository''s project and repository keys as `ProjectKey` and `RepositoryKey` properties, respectively, on this task:
         
-        PublishTasks:
+        Publish:
         - PublishBitbucketServerTag:
             CredentialID: $($TaskParameter['CredentialID'])
             Uri: $($TaskParameter['Uri'])

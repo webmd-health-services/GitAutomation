@@ -1,9 +1,9 @@
 # The `PublishOn` property is a list of branch names. After a successful build on a 
-# branch that matches any name in this list, the `PublishTasks` pipeline will run. With 
-# an empty `PublishOn` property, your `PublishTasks` pipeline will never run.
+# branch that matches any name in this list, the `Publish` pipeline will run. With 
+# an empty `PublishOn` property, your `Publish` pipeline will never run.
 #
 # Wildcards are supported. For example, if `release/*` is in the list, the 
-# `PublishTasks` pipeline would run on the `release/6.3` branch but not the `release`
+# `Publish` pipeline would run on the `release/6.3` branch but not the `release`
 # branch.
 PublishOn:
  - master
@@ -26,13 +26,13 @@ PublishBuildStatusTo:
 
 # An array of build tasks you want to run during a build, e.g.
 # 
-#     BuildTasks:
+#     Build:
 #     - TASK_NAME:
 #         PROPERTY_ONE: VALUE_ONE
 #         PROPERTY_TWO: VALUE_TWO
 #
 # See the documentation for each individual task for YML samples.
-BuildTasks:
+Build:
 # The Version task sets the current build's version number. You should almost always 
 # have one of these.
 - Version:
@@ -66,7 +66,7 @@ BuildTasks:
 
 # An array of tasks you want to run when publishing, e.g.
 # 
-#     BuildTasks:
+#     Build:
 #     - TASK_NAME:
 #         PROPERTY_ONE: VALUE_ONE
 #         PROPERTY_TWO: VALUE_TWO
@@ -75,4 +75,4 @@ BuildTasks:
 # Publishing branches are configured with the `PublishOn` property.
 #
 # See the documentation for each individual task for YML samples.
-PublishTasks:
+Publish:
