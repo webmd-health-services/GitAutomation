@@ -73,6 +73,27 @@ function Remove-GitConfiguration
     Set-StrictMode -Version 'Latest'
     Use-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
 
+    if( $PSCmdlet.ParameterSetName -eq 'ByPath' )
+    {
+        if( -not (Test-Path -Path $Path -PathType Leaf) )
+        {
+            return
+        }
+
+        $Path = Resolve-Path -Path $Path | Select-Object -ExpandProperty 'ProviderPath'
+
+        $config = [LibGit2Sharp.Configuration]::BuildFrom($Path)
+        try
+        {
+            $config.Unset( $Name, [LibGit2Sharp.ConfigurationLevel]::Local )
+        }
+        finally
+        {
+            $config.Dispose()
+        }
+        return
+    }
+
     $pathParam = @{}
     if( $RepoRoot )
     {

@@ -25,19 +25,32 @@ function Get-TestRepoPath
 
 function GivenConfiguration
 {
+    [CmdletBinding()]
     param(
+        [Parameter(Mandatory,Position=0)]
         $Name,
-        $AtScope
+        [Parameter(Mandatory,ParameterSetName='AtScope')]
+        $AtScope,
+        [Parameter(Mandatory,ParameterSetName='InFile')]
+        $InFile
     )
 
-    Push-Location -Path (Get-TestRepoPath)
-    try
+    if( $AtScope )
     {
-        Set-GitConfiguration -Name $Name -Value ([Guid]::NewGuid()) -Scope $AtScope
+        Push-Location -Path (Get-TestRepoPath)
+        try
+        {
+            Set-GitConfiguration -Name $Name -Value ([Guid]::NewGuid()) -Scope $AtScope
+        }
+        finally
+        {
+            Pop-Location
+        }
     }
-    finally
+
+    if( $InFile )
     {
-        Pop-Location
+        Set-GitConfiguration -Name $Name -Value ([Guid]::NewGuid()) -Path (Join-Path -Path $TestDrive.FullName -ChildPath $InFile)
     }
 }
 
@@ -61,8 +74,16 @@ function ThenConfiguration
 
         [Parameter(Mandatory)]
         [Switch]
-        $Exists
+        $Exists,
+
+        $InFile
     )
+
+    $optionalParams = @{ }
+    if( $InFile )
+    {
+        $optionalParams['Path'] = Join-Path -Path $TestDrive.FullName -ChildPath $InFile
+    }
 
     Push-Location -Path (Get-TestRepoPath)
     try
@@ -70,13 +91,13 @@ function ThenConfiguration
         if( $Not )
         {
             It ('should remove configuration') {
-                Get-GitConfiguration -Name $name | Should -BeNullOrEmpty
+                Get-GitConfiguration -Name $name @optionalParams | Should -BeNullOrEmpty
             }
         }
         else
         {
             It ('should not remove configuration') {
-                Get-GitConfiguration -Name $name | Should -Not -BeNullOrEmpty
+                Get-GitConfiguration -Name $name @optionalParams | Should -Not -BeNullOrEmpty
             }
         }
     }
@@ -118,7 +139,8 @@ function WhenRemoving
     param(
         $Name,
         $AtScope,
-        $InWorkingDirectory
+        $InWorkingDirectory,
+        $InFile
     )
 
     $Global:Error.Clear()
@@ -132,6 +154,11 @@ function WhenRemoving
     if( $AtScope )
     {
         $optionalParams['Scope'] = $AtScope
+    }
+
+    if( $InFile )
+    {
+        $optionalParams['Path'] = Join-Path -Path $TestDrive.FullName -ChildPath $InFile
     }
 
     Push-Location -Path $InWorkingDirectory
@@ -186,6 +213,13 @@ Describe ('Remove-GitConfiguration.when removing at default scope') {
     GivenConfiguration 'gitautomation.removegitconfiguration' -AtScope Local
     WhenRemoving 'gitautomation.removegitconfiguration'
     ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists
+}
+
+Describe ('Remove-GitConfiguration.when removing from a specific file') {
+    Init
+    GivenConfiguration 'gitautomation.removegitconfiguration' -InFile 'mygitconfig'
+    WhenRemoving 'gitautomation.removegitconfiguration' -InFile 'mygitconfig'
+    ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists -InFile 'mygitconfig'
 }
 
 [LibGit2Sharp.GlobalSettings]::SetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global, $globalSearchPaths)
