@@ -55,7 +55,7 @@ function Remove-GitConfiguration
 
         [Parameter(ParameterSetName='ByScope')]
         [LibGit2Sharp.ConfigurationLevel]
-        # Where to set the configuration value. Local means the value will be set for a specific repository. Global means set for the current user. System means set for all users on the current computer. The default is `Local`.
+        # Where to remove the configuration value. Local means the value will be removed from the repository in the current working directory. Global means remove from the current user's `.gitconfig` file. Xdg means remove from the user's `.config\git\config` file. System means remove from Git's system-wide configuration file. `ProgramData` means remove from the Git's config file in the `Git` directory in Windows' ProgramData directory. The default is `Local`.
         $Scope = ([LibGit2Sharp.ConfigurationLevel]::Local),
 
         [Parameter(Mandatory=$true,ParameterSetName='ByPath')]
