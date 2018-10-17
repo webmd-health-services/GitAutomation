@@ -1,38 +1,6 @@
 
 function Publish-WhiskeyNodeModule
 {
-    <#
-    .SYNOPSIS
-    Publishes a Node module package to the target NPM registry
-    
-    .DESCRIPTION
-    The `PublishNodeModule` task runs `npm publish` in the current working directory.
-
-    This task will install the latest LTS version of Node into a `.node` directory (in the same directory as your whiskey.yml file). To use a specific version, set the `engines.node` property in your package.json file to the version you want. (See https://docs.npmjs.com/files/package.json#engines for more information.)
-
-    # Properties
-    
-    * `NpmRegistryUri` (*mandatory*): the URI to the registry where the module should be published.
-    * `CredentialID` (*mandatory*): the credential to use when publishing. Credentials are added to your build with the `Add-WhiskeyCredential` function. This `CredentialID` property should be the same value as the `ID` parameter used when adding the credential with `Add-WhiskeyCredential`.
-    * `EmailAddress` (*mandatory*): the email address to use when publishing.
-    
-    # Examples
-    
-    ## Example 1
-    
-        BuildTasks:
-	- PublishNodeModule
-
-    Demonstrates how to publish the Node module located in the same directory as your whiskey.yml file
-    
-    ## Example 2
-    
-    	BuildTasks:
-	- PublishNodeModule:
-    	    WorkingDirectory: 'app'
-
-    Demonstrates how to publish a Node module that isn't in the same directory as your whiskey.yml file. In this example, the Node moule in the `app` directory is published (`app` is resolved relative to your whiskey.yml file).
-    #>
     [Whiskey.Task("PublishNodeModule")]
     [Whiskey.RequiresTool("Node", "NodePath",VersionParameterName='NodeVersion')]
     [CmdletBinding()]
@@ -60,7 +28,7 @@ function Publish-WhiskeyNodeModule
     {
         Stop-WhiskeyTask -TaskContext $TaskContext -Message 'Property ''NpmRegistryUri'' is mandatory and must be a URI. It should be the URI to the registry where the module should be published. E.g.,
         
-    BuildTasks:
+    Build:
     - PublishNodeModule:
         NpmRegistryUri: https://registry.npmjs.org/
     '
@@ -78,7 +46,7 @@ function Publish-WhiskeyNodeModule
     {
         Stop-WhiskeyTask -TaskContext $TaskContext -Message ('Property ''CredentialID'' is mandatory. It should be the ID of the credential to use when publishing to ''{0}'', e.g.
     
-    BuildTasks:
+    Build:
     - PublishNodeModule:
         NpmRegistryUri: {0}
         CredentialID: NpmCredential
@@ -93,7 +61,7 @@ function Publish-WhiskeyNodeModule
     {
         Stop-WhiskeyTask -TaskContext $TaskContext -Message ('Property ''EmailAddress'' is mandatory. It should be the e-mail address of the user publishing the module, e.g.
     
-    BuildTasks:
+    Build:
     - PublishNodeModule:
         NpmRegistryUri: {0}
         CredentialID: {1}

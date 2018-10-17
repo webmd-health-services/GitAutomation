@@ -19,7 +19,7 @@ function Copy-WhiskeyFile
     $pathErrorMessage = @'
 'Path' property is missing. Please set it to the list of files to copy, e.g.
 
-BuildTasks:
+Build:
 - CopyFile:
     Path: myfile.txt
     Destination: \\computer\share
@@ -27,7 +27,7 @@ BuildTasks:
     $destDirErrorMessage = @'
 'DestinationDirectory' property is missing. Please set it to the list of target locations to copy to, e.g.
 
-BuildTasks:
+Build:
 - CopyFile:
     Path: myfile.txt
     DestinationDirectory: \\computer\share

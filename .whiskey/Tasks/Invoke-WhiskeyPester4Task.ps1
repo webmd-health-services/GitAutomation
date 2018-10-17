@@ -1,54 +1,8 @@
 
 function Invoke-WhiskeyPester4Task
 {
-    <#
-    .SYNOPSIS
-    Runs Pester tests using Pester 4.
-
-    .DESCRIPTION
-    The `Pester4` task runs tests using Pester 4. You pass the path(s) to test to the `Path` property. If any test fails, the build will fail.
-
-    Pester is installed using the PowerShellGet module's `Save-Module` function. The module is installed to the `Modules` directory in your build root. If the PowerShellGet module isn't installed, this task will fail.
-
-    It is hard, in some build tools, to track down your longest running tests and Describe blocks. The `Pester4` task can output two reports that will show you the longest running It and Describe blocks. The `DescribeDurationReportCount` property controls how many rows to show in the Describe Duration Report, which shows the duration of every Describe block that was run, from longest to shortest duration. The `ItDurationReportCount` property controls how many rows to show in the It Duration Report, which shows the duration of all It blocks that were run, from longest to shortest durations.
-
-    ## Properties
-
-    * `Path` (mandatory): the path to the test scripts to run. These paths are passed to the `Invoke-Pester` function's `Script` parameter. Wildcards are supported, but they are resolved by the `Pester4` task *before* getting passed to Pester.
-    * `Version`: the version of Pester 4 to use. Defaults to the latest version of Pester 4. Wildcards are supported if you want to pin to a specific minor version, e.g. `4.0.*` will use the latest `4.0` version, but never `4.1` or later.
-    * `DescribeDurationReportCount`: the number of rows to show in the Describe Duration Report. The default is `0`. The Describe Duration Report shows Describe block execution durations in your build output, sorted by longest running to shortest running. This property controls how many rows to show in the report.
-    * `ItDurationReportCount`: the number of rows to show in the It Duration Report. The default is `0`. The It Duration Report shows It block execution durations in your build output, sorted by longest running to shortest running. This property controls how many rows to show in the report.
-
-    ## Examples
-
-    ### Example 1
-
-        BuildTasks:
-        - Pester4:
-            Path: Test\*.ps1
-
-    Demonstrates how to run Pester tests using Pester 4. In this case, all the tests in files that match the wildcard `Test\*.ps1` are run.
-
-    ### Example 2
-
-        BuildTasks:
-        - Pester4:
-            Path: Test\*.ps1
-            Version: 4.0.6
-
-    Demonstrates how to pin to a specific version of Pester 4. In this case, Pester 4.0.6 will always be used.
-
-    ### Example 3
-
-        BuildTasks:
-        - Pester4:
-            Path: Test\*.ps1
-            DescribeDurationReportCount: 20
-            ItDurationReportCount: 20
-
-    Demonstrates how to show the Describe Duration Report and It Duration Report after the task finishes. These reports show the duration of all Describe and It blocks that were run. In this example, the top 20 longest Describe and It blocks will be sho
-    #>
-    [Whiskey.Task("Pester4",SupportsClean=$true, SupportsInitialize=$true)]
+    [Whiskey.Task("Pester4")]
+    [Whiskey.RequiresTool('PowerShellModule::Pester','PesterPath',Version='4.*',VersionParameterName='Version')]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true)]
@@ -62,45 +16,12 @@ function Invoke-WhiskeyPester4Task
     
     Set-StrictMode -Version 'Latest'
     Use-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
-    
-    if( $TaskParameter.ContainsKey('Version') )
-    {
-        $version = $TaskParameter['Version'] | ConvertTo-WhiskeySemanticVersion
-        if( -not $version )
-        {
-            Stop-WhiskeyTask -TaskContext $TaskContext -message ('Property ''Version'' isn''t a valid version number. It must be a version number of the form MAJOR.MINOR.PATCH.')
-        }
-
-        if( $version.Major -ne 4)
-        {
-            Stop-WhiskeyTask -TaskContext $TaskContext -Message ('Version property''s value ''{0}'' is invalid. It must start with ''4.'' (i.e. the major version number must always be ''4'')."' -f $version)
-        }
-        
-        $version = [version]('{0}.{1}.{2}' -f $version.Major,$version.Minor,$version.Patch)
-    }
-    else
-    {
-        $version = '4.*'
-    }
-
-    if( $TaskContext.ShouldClean )
-    {
-        Uninstall-WhiskeyTool -ModuleName 'Pester' -BuildRoot $TaskContext.BuildRoot -Version $version
-        return
-    }
-    
-    $pesterModulePath = Install-WhiskeyTool -DownloadRoot $TaskContext.BuildRoot -ModuleName 'Pester' -Version $version
-    
-    if( $TaskContext.ShouldInitialize )
-    {
-        return
-    }
 
     if( -not ($TaskParameter.ContainsKey('Path')))
     {
-        Stop-WhiskeyTask -TaskContext $TaskContext -Message ('Element ''Path'' is mandatory. It should be one or more paths, which should be a list of Pester test scripts (e.g. Invoke-WhiskeyPester4Task.Tests.ps1) or directories that contain Pester test scripts, e.g. 
+        Stop-WhiskeyTask -TaskContext $TaskContext -Message ('Property "Path" is mandatory. It should be one or more paths, which should be a list of Pester test scripts (e.g. Invoke-WhiskeyPester4Task.Tests.ps1) or directories that contain Pester test scripts, e.g. 
         
-        BuildTasks:
+        Build:
         - Pester4:
             Path:
             - My.Tests.ps1
@@ -108,34 +29,46 @@ function Invoke-WhiskeyPester4Task
     }
 
     $path = $TaskParameter['Path'] | Resolve-WhiskeyTaskPath -TaskContext $TaskContext -PropertyName 'Path'
-    
-    if( -not $pesterModulePath )
-    {
-        Stop-WhiskeyTask -TaskContext $TaskContext -Message ('Failed to download or install Pester {0}, most likely because version {0} does not exist. Available version numbers can be found at https://www.powershellgallery.com/packages/Pester' -f $version)
-    }
 
+    if( $TaskParameter['Exclude'] )
+    {
+        $path = $path |
+                    Where-Object {
+                        foreach( $exclusion in $TaskParameter['Exclude'] )
+                        {
+                            if( $_ -like $exclusion )
+                            {
+                                Write-WhiskeyVerbose -Context $TaskContext -Message ('EXCLUDE  {0} -like    {1}' -f $_,$exclusion)
+                                return $false
+                            }
+                            else
+                            {
+                                Write-WhiskeyVerbose -Context $TaskContext -Message ('         {0} -notlike {1}' -f $_,$exclusion)
+                            }
+                        }
+                        return $true
+                    }
+        if( -not $path )
+        {
+            Stop-WhiskeyTask -TaskContext $TaskContext -Message ('Found no tests to run. Property "Exclude" matched all paths in the "Path" property. Please update your exclusion rules to include at least one test. View verbose output to see what exclusion filters excluded what test files.')
+        }
+    }
+    
     [int]$describeDurationCount = 0
     $describeDurationCount = $TaskParameter['DescribeDurationReportCount']
     [int]$itDurationCount = 0
     $itDurationCount = $TaskParameter['ItDurationReportCount']
 
-    $testIdx = 0
-    $outputFileNameFormat = 'pester-{0:00}.xml'
-    while( (Test-Path -Path (Join-Path -Path $TaskContext.OutputDirectory -ChildPath ($outputFileNameFormat -f $testIdx))) )
-    {
-        $testIdx++
-    }
+    $outputFile = Join-Path -Path $TaskContext.OutputDirectory -ChildPath ('pester+{0}.xml' -f [IO.Path]::GetRandomFileName())
 
-    $outputFile = Join-Path -Path $TaskContext.OutputDirectory -ChildPath ($outputFileNameFormat -f $testIdx)
-
-    Write-WhiskeyVerbose -Context $TaskContext -Message $pesterModulePath
+    Write-WhiskeyVerbose -Context $TaskContext -Message $TaskParameter['PesterPath']
     Write-WhiskeyVerbose -Context $TaskContext -Message ('  Script      {0}' -f ($Path | Select-Object -First 1))
     $Path | Select-Object -Skip 1 | ForEach-Object { Write-WhiskeyVerbose -Context $TaskContext -Message ('              {0}' -f $_) }
     Write-Verbose -Message ('  OutputFile  {0}' -f $outputFile)
     # We do this in the background so we can test this with Pester.
     $job = Start-Job -ScriptBlock {
         $script = $using:Path
-        $pesterModulePath = $using:pesterModulePath
+        $pesterModulePath = $using:TaskParameter['PesterPath']
         $outputFile = $using:outputFile
         [int]$describeCount = $using:describeDurationCount
         [int]$itCount = $using:itDurationCount
@@ -166,13 +99,21 @@ function Invoke-WhiskeyPester4Task
             Format-Table -AutoSize -Property 'Describe','Name','Time'
     } 
     
+    # There's a bug where Write-Host output gets duplicated by Receive-Job if $InformationPreference is set to "Continue".
+    # Since Pester uses Write-Host, this is a workaround to avoid seeing duplicate Pester output.
+    $informationActionParameter = @{ }
+    if( (Get-Command -Name 'Receive-Job' -ParameterName 'InformationAction') )
+    {
+        $informationActionParameter['InformationAction'] = 'SilentlyContinue'
+    }
+
     do
     {
-        $job | Receive-Job
+        $job | Receive-Job @informationActionParameter
     }
     while( -not ($job | Wait-Job -Timeout 1) )
 
-    $job | Receive-Job
+    $job | Receive-Job @informationActionParameter
 
     Publish-WhiskeyPesterTestResult -Path $outputFile
 

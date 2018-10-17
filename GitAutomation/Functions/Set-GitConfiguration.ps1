@@ -121,12 +121,34 @@ function Set-GitConfiguration
     {
         Update-GitConfigurationSearchPath -Scope $Scope
 
-        # LibGit2 only creates config files explicitly.
-        [string[]]$searchPaths = [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths($Scope) | Join-Path -ChildPath '.gitconfig' 
-        $scopeConfigFiles = $searchPaths | Where-Object { Test-Path -Path $_ -PathType Leaf }
-        if( -not $scopeConfigFiles )
+        $configFileName = 'config'
+        $configFileNames = @{
+                                [LibGit2Sharp.ConfigurationLevel]::System = 'gitconfig'
+                                [LibGit2Sharp.ConfigurationLevel]::Global = '.gitconfig'
+                            }
+        if( $configFileNames.ContainsKey($Scope) )
         {
-            New-Item -Path $searchPaths[0] -ItemType 'File' -Force | Write-Verbose
+            $configFileName = $configFileNames[$Scope]
+        }
+
+        if( $Scope -eq [LibGit2Sharp.ConfigurationLevel]::Xdg )
+        {
+            $xdgConfigPath = Join-Path -Path $env:HOME -ChildPath '.config\git\config'
+            if( -not (Test-Path -Path $xdgConfigPath -PathType Leaf) )
+            {
+                New-Item -Path $xdgConfigPath -ItemType 'File' -Force | Out-Null
+            }
+        }
+
+        # LibGit2 only creates config files explicitly.
+        [string[]]$searchPaths = [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths($Scope) | Join-Path -ChildPath $configFileName
+        if( $searchPaths )
+        {
+            $scopeConfigFiles = $searchPaths | Where-Object { Test-Path -Path $_ -PathType Leaf }
+            if( -not $scopeConfigFiles )
+            {
+                New-Item -Path $searchPaths[0] -ItemType 'File' -Force | Write-Verbose
+            }
         }
 
         $config = [LibGit2Sharp.Configuration]::BuildFrom([nullstring]::Value,[nullstring]::Value)

@@ -5,7 +5,7 @@ function Uninstall-WhiskeyTool
     Removes a tool installed with `Install-WhiskeyTool`.
 
     .DESCRIPTION
-    The `Uninstall-WhiskeyTool` function removes tools that were installed with `Install-WhiskeyTool`. It removes PowerShell modules, NuGet packages, Node, and Node modules that Whiskey installs into your build root. PowerShell modules are removed from the `Modules` direcory. NuGet packages are removed from the `packages` directory. Node and node modules are removed from the `.node` directory. 
+    The `Uninstall-WhiskeyTool` function removes tools that were installed with `Install-WhiskeyTool`. It removes PowerShell modules, NuGet packages, Node, Node modules, and .NET Core SDKs that Whiskey installs into your build root. PowerShell modules are removed from the `Modules` direcory. NuGet packages are removed from the `packages` directory. Node and node modules are removed from the `.node` directory. The .NET Core SDK is removed from the `.dotnet` directory.
 
     When uninstalling a Node module, its name should be prefixed with `NodeModule::`, e.g. `NodeModule::rimraf`.
     
@@ -40,6 +40,11 @@ function Uninstall-WhiskeyTool
     Uninstall-WhiskeyTool -Name 'NodeModule::rimraf' -InstallRoot $TaskContext.BuildRoot
 
     Demonstrates how to uninstall the `rimraf` Node module from the `.node\node_modules` directory in your build root.
+
+    .EXAMPLE
+    Uninstall-WhiskeyTool -Name 'DotNet' -InstallRoot $TaskContext.BuildRoot
+
+    Demonstrates how to uninstall the .NET Core SDK from the `.dotnet` directory in your build root.
     #>
     [CmdletBinding()]
     param(
@@ -53,11 +58,6 @@ function Uninstall-WhiskeyTool
         # The directory where the tool should be uninstalled from.
         $InstallRoot,
 
-        [Parameter(Mandatory=$true,ParameterSetName='PowerShell')]
-        [string]
-        # The name of the PowerShell module to uninstall.
-        $ModuleName,
-
         [Parameter(Mandatory=$true,ParameterSetName='NuGet')]
         [string]
         # The name of the NuGet package to uninstall.
@@ -67,7 +67,6 @@ function Uninstall-WhiskeyTool
         # The version of the package to uninstall. Must be a three part number, i.e. it must have a MAJOR, MINOR, and BUILD number.
         $Version,
 
-        [Parameter(Mandatory=$true,ParameterSetName='PowerShell')]
         [Parameter(Mandatory=$true,ParameterSetName='NuGet')]
         [string]
         # The build root where the build is currently running. Tools are installed here.
@@ -77,27 +76,7 @@ function Uninstall-WhiskeyTool
     Set-StrictMode -Version 'Latest'
     Use-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
     
-    if( $PSCmdlet.ParameterSetName -eq 'PowerShell' )
-    {
-        $module = Resolve-WhiskeyPowerShellModule -Name $ModuleName -Version $Version
-        if( -not $module )
-        {
-            return
-        }
-        $modulesRoot = Join-Path -Path $BuildRoot -ChildPath 'Modules'
-        #Remove modules saved by either PowerShell4 or PowerShell5
-        $moduleRoots = @( ('{0}\{1}' -f $ModuleName, $module.Version), ('{0}' -f $ModuleName)  )
-        foreach ($item in $moduleRoots)
-        {
-            $removeModule = (Join-Path -Path $modulesRoot -ChildPath $item )
-            if( Test-Path -Path $removeModule -PathType Container )
-            {
-                Remove-Item $removeModule -Recurse -Force
-                return
-            }
-        }
-    }
-    elseif( $PSCmdlet.ParameterSetName -eq 'NuGet' )
+    if( $PSCmdlet.ParameterSetName -eq 'NuGet' )
     {
         $nugetPath = Join-Path -Path $PSScriptRoot -ChildPath '..\bin\NuGet.exe' -Resolve
         $Version = Resolve-WhiskeyNuGetPackageVersion -NuGetPackageName $NuGetPackageName -Version $Version -NugetPath $nugetPath
@@ -129,6 +108,10 @@ function Uninstall-WhiskeyTool
             {
                 # Don't do anything. All node modules require the Node tool to also be defined so they'll get deleted by the Node deletion.
             }
+            'PowerShellModule'
+            {
+                Uninstall-WhiskeyPowerShellModule -Name $Name
+            }
             default
             {
                 switch( $Name )
@@ -138,9 +121,14 @@ function Uninstall-WhiskeyTool
                         $dirToRemove = Join-Path -Path $InstallRoot -ChildPath '.node'
                         Remove-WhiskeyFileSystemItem -Path $dirToRemove
                     }
+                    'DotNet'
+                    {
+                        $dotnetToolRoot = Join-Path -Path $InstallRoot -ChildPath '.dotnet'
+                        Remove-WhiskeyFileSystemItem -Path $dotnetToolRoot
+                    }
                     default
                     {
-                        throw ('Unknown tool ''{0}''. The only supported tool is Node.' -f $Name)
+                        throw ('Unknown tool ''{0}''. The only supported tools are ''Node'' and ''DotNet''.' -f $Name)
                     }
                 }
             }

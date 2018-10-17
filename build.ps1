@@ -37,9 +37,9 @@ if( (Test-Path -Path 'env:APPVEYOR') )
 }
 
 $context = New-WhiskeyContext -Environment 'Dev' -ConfigurationPath $configPath
-if( (Test-Path -Path 'env:NUGET_ORG_API_KEY') )
+if( (Test-Path -Path 'env:GITHUB_ACCESS_TOKEN') )
 {
-    Add-WhiskeyApiKey -Context $context -ID 'nuget.org' -Value $env:NUGET_ORG_API_KEY
+    Add-WhiskeyApiKey -Context $context -ID 'github.com' -Value $env:GITHUB_ACCESS_TOKEN
 }
 if( (Test-Path -Path 'env:POWERSHELLGALLERY_COM_API_KEY') )
 {

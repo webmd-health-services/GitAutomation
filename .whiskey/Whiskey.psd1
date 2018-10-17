@@ -12,7 +12,7 @@
     RootModule = 'Whiskey.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.31.0'
+    ModuleVersion = '0.38.0'
 
     # ID used to uniquely identify this module
     GUID = '93bd40f1-dee5-45f7-ba98-cb38b7f5b897'
@@ -24,7 +24,7 @@
     CompanyName = 'WebMD Health Services'
 
     # Copyright statement for this module
-    Copyright = '(c) 2016 WebMD Health Services. All rights reserved.'
+    Copyright = '(c) 2016 - 2018 WebMD Health Services. All rights reserved.'
 
     # Description of the functionality provided by this module
     Description = 'Continuous Integration/Continuous Delivery module.'
@@ -61,20 +61,14 @@
 
     # Format files (.ps1xml) to be loaded when importing this module
     FormatsToProcess = @(
+                            'Formats\System.Exception.format.ps1xml',
                             'Formats\Whiskey.BuildInfo.format.ps1xml',
                             'Formats\Whiskey.BuildVersion.format.ps1xml',
                             'Formats\Whiskey.Context.format.ps1xml'
                         )
 
     # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
-    NestedModules = @(
-                        'BitbucketServerAutomation',
-                        'BuildMasterAutomation',
-                        'PackageManagement',
-                        'PowerShellGet',
-                        'ProGetAutomation',
-                        'VSSetup'
-                     )
+    NestedModules = @( )
 
     # Functions to export from this module
     FunctionsToExport = @(
@@ -89,6 +83,8 @@
                             'Get-WhiskeyApiKey',
                             'Get-WhiskeyTask',
                             'Get-WhiskeyCredential',
+                            'Get-WhiskeyMSBuildConfiguration',
+                            'Import-WhiskeyPowerShellModule',
                             'Install-WhiskeyTool',
                             'Invoke-WhiskeyNodeTask',
                             'Invoke-WhiskeyNpmCommand',
@@ -102,10 +98,10 @@
                             'Publish-WhiskeyBBServerTag',
                             'Register-WhiskeyEvent',
                             'Resolve-WhiskeyNuGetPackageVersion',
-                            'Resolve-WhiskeyPowerShellModule',
                             'Resolve-WhiskeyTaskPath',
                             'Resolve-WhiskeyVariable',
                             'Set-WhiskeyBuildStatus',
+                            'Set-WhiskeyMSBuildConfiguration',
                             'Stop-WhiskeyTask',
                             'Uninstall-WhiskeyTool',
                             'Unregister-WhiskeyEvent'
@@ -148,74 +144,18 @@
 
             # ReleaseNotes of this module
             ReleaseNotes = @'
-* Added `WHISKEY_BUILD_STARTED_AT` variable. It's a `[datetime]` object that is the date/time the build started.
-* Fixed: Whiskey fails builds if a version of Visual Studio 2017 is installed that doesn't have a MSBuild.
-* Created `Version` task to replace the `Version`, `VersionFrom`, and `PrereleaseMap` whiskey.yml properties.
-* Fixed: when a build that has an Exec task runs in a background job, the build immediately stops after the Exec task executes the process.
-* ***BREAKING CHANGE***: We've removed the `Version`, `VersionFrom`, and `PrereleaseMap` properties from whiskey.yml. Use the new `Version` task instead (see the "Upgrade Instructions" below).
-* ***BREAKING CHANGE***: Whiskey no longer automatically adds build metadata to your version. Use the new `Version` task to set your build metadata (see the "Upgrade Instructions" below).
-* ***BREAKING CHANGE***: Whiskey's default version number is now '0.0.0'. Use the new `Version` task to customize your version number (see the "Upgrade Instructions" below).
-
-## Upgrade Instructions
-
-### Removing `Version` and `PrereleaseMap` Properties
-
-To migrate your `Version` and/or `PrereleaseMap` properties, create a `Version` task as the first task in your pipeline. If your whiskey.yml file looks like this:
-
-    Version: 1.2.3
-
-    PrereleaseMap:
-    - feature/*: alpha.$(WHISKEY_BUILD_NUMBER)
-
-    BuildTasks:
-    - Pester:
-        Path: Tests\*.Tests.ps1
-
-your new whiskey.yml file should look like this:
-
-    BuildTasks:
-    - Version:
-        Version: 1.2.3
-        Prerelease:
-        - feature/*: alpha.$(WHISKEY_BUILD_NUMBER)
-    - Pester:
-        Path: Tests\*.Tests.ps1
-
-### Removing `VersionFrom` Property
-
-If you use the `VersionFrom` property, change your whiskey.yml file from this:
-
-    VersionFrom: Whiskey\Whiskey.psd1
-
-    BuildTasks:
-    - Pester:
-        Path: Tests\*.Tests.ps1
-
-to this:
-
-    BuildTasks:
-    - Version:
-        Path: Whiskey\Whiskey.psd1
-    - Pester:
-        Path: Tests\*.Tests.ps1
-
-### Preserving Default Version Number
-
-To preserve Whiskey's default version numbering, add a Version task to your build pipeline that looks like this:
-
-    BuildTasks:
-    - Version: 
-        Version: $(WHISKEY_BUILD_STARTED_AT.ToString('yyyy.Mdd')).$(WHISKEY_BUILD_NUMBER)
-
-### Preserving Build Metadata
-
-To preserve Whiskey's old default build metadata, add a Version task to your build pipeline whose "Build" property looks like this:
-
-    BuildTasks:
-    - Version:
-        Version: 1.2.3
-        Build: $(WHISKEY_SCM_BRANCH).$(WHISKEY_SCM_COMMIT_ID.Substring(0,7))
-
+* `Version` task now supports pulling a version number from a Chef Cookbook `metadata.rb` file.
+* Fixed: Detecting versions of installed MSBuild fails if expected registry keys exist but expected values don't exist.
+* Created `Import-WhiskeyPowerShellModule` function for importing a PowerShell module installed by Whiskey into the global scope.
+* Added support for PowerShell modules to the RequiresTool attribute.
+* Whiskey tasks that use PowerShell modules now use Whiskey's auto-download feature to download required modules during the build.
+* Fixed: publishing to the PowerShell Gallery released in September 2018 is failing. Updating to PowerShellGet 2.0.0 and PackageManagement 1.1.7.2.
+* Created `Npm` task for running NPM commands.
+* Deprecated the `NpmConfig`, `NpmInstall`, `NpmPrune`, and `NpmRunScript` tasks. They will be removed in a future version of Whiskey. Use the new `Npm` task instead.
+* The `NodeNspCheck` task is obsolete (and will actually stop working when the NSP project shuts down on 30 September 2018). Migrate to the `Npm` task and use it to run the `npm audit` command.
+* Created `DotNet` task for running dotnet.exe commands.
+* Deprecated the `DotNetBuild`, `DotNetPack`, `DotNetPublish`, and `DotNetTest` tasks. They will be removed in a future version of Whiskey. Use the new `DotNet` task instead.
+* Fixed: Pester output is duplicated.
 '@
         } # End of PSData hashtable
 
