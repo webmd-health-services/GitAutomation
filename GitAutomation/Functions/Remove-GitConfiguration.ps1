@@ -41,7 +41,6 @@ function Remove-GitConfiguration
 
     Demonstrates how to remove a setting from a specific repository. In this case, the `user.name` setting is removed from the `.git\config` file in the `C:\Projects\GitAutomation` repository.
 
-
     .EXAMPLE
     Remove-GitConfiguration -Name 'user.name' -Path 'C:\Projects\GitAutomation\template.gitconfig'
 
