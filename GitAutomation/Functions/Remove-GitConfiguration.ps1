@@ -66,7 +66,7 @@ function Remove-GitConfiguration
 
         [Parameter(ParameterSetName='ByScope')]
         [string]
-        # The path to the repository whose configuration variables to set. Defaults to the repository the current directory is in.
+        # The path to the repository whose configuration variables to remove. Defaults to the repository the current directory is in.
         $RepoRoot = (Get-Location).Path
     )
 
