@@ -145,7 +145,7 @@ function Set-GitConfiguration
         if( $searchPaths )
         {
             $scopeConfigFiles = $searchPaths | Where-Object { Test-Path -Path $_ -PathType Leaf }
-            if( $searchPaths -and -not $scopeConfigFiles )
+            if( -not $scopeConfigFiles )
             {
                 New-Item -Path $searchPaths[0] -ItemType 'File' -Force | Write-Verbose
             }
