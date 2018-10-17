@@ -90,8 +90,11 @@ function ThenValue
 {
     param(
         [Parameter(Mandatory,ParameterSetName='Is')]
-        [AllowNull()]
         $Is,
+
+        [Parameter(Mandatory,ParameterSetName='IsNull')]
+        [Switch]
+        $IsNull,
 
         [Parameter(Mandatory,ParameterSetName='Contains')]
         $Contains,
@@ -101,20 +104,18 @@ function ThenValue
         
     )
 
+    if( $IsNull )
+    {
+        It ('should return nothing') {
+            $result | Should -BeNullOrEmpty
+        }
+    }
+
     if( $Is )
     {
-        if( $Is -eq $null )
-        {
-            It ('should return nothing') {
-                $result | Should -BeNullOrEmpty
-            }
-        }
-        else
-        {
-            It ('should return the expected value') {
-                $result | Should -Not -BeNullOrEmpty
-                $result.Value | Should -Be $Is
-            }
+        It ('should return the expected value') {
+            $result | Should -Not -BeNullOrEmpty
+            $result.Value | Should -Be $Is
         }
     }
 
@@ -205,7 +206,7 @@ Describe 'Get-GitConfiguration.when getting configuration from a specific file' 
 Describe 'Get-GitConfiguration.when getting configuration from a file that doesn''t exist' {
     Init
     WhenGettingConfiguration 'user.name' -FromFile 'config'
-    ThenValue -Is $null
+    ThenValue -IsNull
     ThenFile 'config' -Exists
 }
 
