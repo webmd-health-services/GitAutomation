@@ -61,7 +61,7 @@ function Remove-GitConfiguration
 
         [Parameter(Mandatory=$true,ParameterSetName='ByPath')]
         [string]
-        # The path to a specific file whose configuration to update.
+        # The path to a specific file where a configuration value should be removed.
         $Path,
 
         [Parameter(ParameterSetName='ByScope')]
