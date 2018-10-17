@@ -51,7 +51,7 @@ function Remove-GitConfiguration
     param(
         [Parameter(Mandatory=$true,Position=0)]
         [string]
-        # The name of the configuration variable to set.
+        # The name of the configuration variable to remove.
         $Name,
 
         [Parameter(ParameterSetName='ByScope')]
