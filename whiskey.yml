@@ -67,7 +67,7 @@ Build:
                 ReleaseNotes: RELEASE_NOTES
                 Tags: TAGS
 
-- Exec: .whiskey\bin\7-Zip\7z.exe a $(WHISKEY_OUTPUT_DIRECTORY)\GitAutomation.zip .\GitAutomation .\LICENSE .\NOTICE '-xr!*.pdb' '-xr!*.orig
+- Exec: .whiskey\bin\7-Zip\7z.exe a $(WHISKEY_OUTPUT_DIRECTORY)\GitAutomation-$(WHISKEY_SEMVER2_NO_BUILD_METADATA).zip .\GitAutomation .\LICENSE .\NOTICE '-xr!*.pdb' '-xr!*.orig
 
 Publish:
 
@@ -85,6 +85,6 @@ Publish:
     Name: $(WHISKEY_SEMVER2_NO_BUILD_METADATA)
     Description: $(RELEASE_NOTES)
     Assets:
-    - Path: .output\GitAutomation.zip
+    - Path: .output\GitAutomation-$(WHISKEY_SEMVER2_NO_BUILD_METADATA).zip
       ContentType: application/zip
       Name: GitAutomation-$(WHISKEY_SEMVER2_NO_BUILD_METADATA).zip
