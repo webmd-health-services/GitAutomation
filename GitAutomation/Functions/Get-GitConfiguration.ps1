@@ -64,7 +64,7 @@ function Get-GitConfiguration
 
         [Parameter(ParameterSetName='ByScope')]
         [string]
-        # The path to the repository whose configuration variables to set. Defaults to the repository the current directory is in.
+        # The path to the repository whose configuration variables to get. Defaults to the repository the current directory is in.
         $RepoRoot
     )
 
