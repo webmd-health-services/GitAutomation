@@ -50,7 +50,7 @@ function Remove-GitConfiguration
     param(
         [Parameter(Mandatory=$true,Position=0)]
         [string]
-        # The name of the configuration variable to set.
+        # The name of the configuration variable to remove.
         $Name,
 
         [Parameter(ParameterSetName='ByScope')]
@@ -60,12 +60,12 @@ function Remove-GitConfiguration
 
         [Parameter(Mandatory=$true,ParameterSetName='ByPath')]
         [string]
-        # The path to a specific file whose configuration to update.
+        # The path to a specific file where a configuration value should be removed.
         $Path,
 
         [Parameter(ParameterSetName='ByScope')]
         [string]
-        # The path to the repository whose configuration variables to set. Defaults to the repository the current directory is in.
+        # The path to the repository whose configuration variables to remove. Defaults to the repository the current directory is in.
         $RepoRoot = (Get-Location).Path
     )
 
