@@ -58,7 +58,7 @@ function Find-GitRepository
     $Path = Resolve-Path -Path $Path -ErrorAction Ignore | Select-Object -ExpandProperty 'ProviderPath'
     if( -not $Path )
     {
-        Write-Error -Message ('Can''t find a repository in ''{0}'' because it does not exist.' -f $PSBoundParameters['Path'])
+        Write-Error -Message ('Can''t find a repository in ''{0}'' because it does not exist.' -f $PSBoundParameters['Path']) -ErrorAction $ErrorActionPreference
         return
     }
     
@@ -73,7 +73,7 @@ function Find-GitRepository
     {
         if( $Verify )
         {
-            Write-Error -Message ('Path ''{0}'' not in a Git repository.' -f $startedAt)
+            Write-Error -Message ('Path ''{0}'' not in a Git repository.' -f $startedAt) -ErrorAction $ErrorActionPreference
         }
         return
     }

@@ -17,38 +17,3 @@ param(
 
 #Requires -Version 4
 Set-StrictMode -Version 'Latest'
-
-Install-PackageProvider -Name NuGet -Force -Scope CurrentUser
-
-$moduleNames = @( 'Pester', 'Silk', 'Carbon' )
-foreach( $moduleName in $moduleNames )
-{
-    $modulePath = Join-Path -Path $PSScriptRoot -ChildPath $moduleName
-    if( (Test-Path -Path $modulePath -PathType Container) )
-    {
-        if( $Clean )
-        {
-            Remove-Item -Path $modulePath -Recurse -Force
-        }
-
-        continue
-    }
-
-    Save-Module -Name $moduleName -Path $PSScriptRoot -Force
-
-    $versionDir = Join-Path -Path $modulePath -ChildPath '*.*.*'
-    if( (Test-Path -Path $versionDir -PathType Container) )
-    {
-        $versionDir = Get-Item -Path $versionDir
-        Get-ChildItem -Path $versionDir -Force | Move-Item -Destination $modulePath -Verbose
-        Remove-Item -Path $versionDir
-    }
-}
-
-
-$nugetPath = Join-Path -Path $PSScriptRoot -ChildPath '.\Silk\bin\NuGet.exe' -Resolve
-
-$sourceRoot = Join-Path -Path $PSScriptRoot -ChildPath 'Source'
-
-Get-ChildItem -Path $sourceRoot -Filter 'packages.config' -Recurse |
-    ForEach-Object { & $nugetPath restore $_.FullName -SolutionDirectory $sourceRoot }

@@ -1,7 +1,7 @@
 PublishOn:
 - master
 
-BuildTasks:
+Build:
 # The Version task sets the current build's version number. You should almost always 
 # have one of these.
 - Version:
@@ -51,33 +51,40 @@ BuildTasks:
     - appveyor@example.com
 
 - Pester4:
-    OnlyBy: BuildServer
     Path: Tests\*.Tests.ps1
 
-- GetPowerShellModule:
-    Name: Silk
+- CopyFile:
+    Path:
+    - LICENSE
+    - NOTICE
+    DestinationDirectory: GitAutomation
 
-- PowerShell:
-    OnlyBy: BuildServer
-    Path: New-Package.ps1
-    Argument:
-        Version: $(WHISKEY_VERSION)
-        BuildMetadata: $(WHISKEY_SEMVER2.Build)
+- SetVariableFromPowerShellDataFile:
+    Path: GitAutomation\GitAutomation.psd1
+    Variables:
+        PrivateData:
+            PSData:
+                ReleaseNotes: RELEASE_NOTES
+                Tags: TAGS
 
-PublishTasks:
+- Exec: .whiskey\bin\7-Zip\7z.exe a $(WHISKEY_OUTPUT_DIRECTORY)\GitAutomation-$(WHISKEY_SEMVER2_NO_BUILD_METADATA).zip .\GitAutomation .\LICENSE .\NOTICE '-xr!*.pdb' '-xr!*.orig
 
-- NuGetPush:
-    Uri: https://nuget.org/api/v2/package
-    ApiKeyID: nuget.org
-    Version: 4.1.0
-    Path: .output\nuget.org\*.nupkg
-    SkipUploadedCheck: true
-
-- PowerShell:
-    Path: Publish-GitAutomation.ps1
+Publish:
 
 - PublishPowerShellModule:
     RepositoryName: PSGallery
     RepositoryUri: https://www.powershellgallery.com/api/v2/
     ApiKeyID: powershellgallery.com
     Path: GitAutomation
+
+- GitHubRelease:
+    RepositoryName: webmd-health-services/GitAutomation
+    ApiKeyID: github.com
+    Tag: $(WHISKEY_SEMVER2_NO_BUILD_METADATA)
+    Commitish: $(WHISKEY_SCM_COMMIT_ID)
+    Name: $(WHISKEY_SEMVER2_NO_BUILD_METADATA)
+    Description: $(RELEASE_NOTES)
+    Assets:
+    - Path: .output\GitAutomation-$(WHISKEY_SEMVER2_NO_BUILD_METADATA).zip
+      ContentType: application/zip
+      Name: GitAutomation-$(WHISKEY_SEMVER2_NO_BUILD_METADATA).zip

@@ -1,14 +1,11 @@
 *.pdb
 packages/
-Carbon/
-Silk/
-Pester/
-Modules
+PSModules
 get-libgit2.org/
 *.suo
 **/bin/**
 **/obj/**
-Output/
 **/*.user
-.output
+.output/**
 .vs
+*.orig

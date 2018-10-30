@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="BranchInfo.cs" />
     <Compile Include="CommitInfo.cs" />
+    <Compile Include="ConfigurationExtensions.cs" />
     <Compile Include="ConfigurationLoader.cs" />
     <Compile Include="Diff.cs" />
     <Compile Include="MergeResult.cs" />

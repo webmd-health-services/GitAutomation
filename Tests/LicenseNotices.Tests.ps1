@@ -76,7 +76,7 @@ Describe 'License Notices' {
     
     [object[]]$filesMissingLicense = Get-ChildItem -Path $projectRoot -Exclude $exclude |
         Get-ChildItem -Recurse -File -Exclude $filesToSkip |
-        Where-Object { $_.FullName -notlike '*\obj\*' -and $_.FullName -notmatch '\\(packages|Carbon|Pester|Silk)\\' } |
+        Where-Object { $_.FullName -notlike '*\obj\*' -and $_.FullName -notmatch '\\(packages|PSModules)\\' } |
         Where-Object { $name = $_.Name; -not ($filesToSkip | Where-Object { $name -like $_ }) } |
         ForEach-Object {
             $fileInfo = $_
