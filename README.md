@@ -37,6 +37,6 @@ If you want to run only specific tests, first import `Pester`:
 
 Then invoke a single test script:
 
-    Invoke-Pester -Path .\Tests\New-BBServerRepository.Tests.ps1
+    Invoke-Pester -Path .\Tests\Get-GitCommit.Tests.ps1
 
 Test scripts go in the `Tests` directory. New module functions go in the `GitAutomation\Functions` directory.
