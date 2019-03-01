@@ -32,7 +32,7 @@ function ConvertTo-GitFullPath
     {
         if( $Uri.Scheme )
         {
-            return $Uri.ToString()
+            return $Uri.AbsoluteUri
         }
 
         $Path = $Uri.ToString()
