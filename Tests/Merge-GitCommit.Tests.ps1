@@ -309,7 +309,7 @@ Describe 'Merge-GitCommit.when there are conflicts' {
     GivenFile 'conflict' 'master'
     WhenMerging 'develop' 
     ThenMergeStatus -Is ([LibGit2Sharp.MergeStatus]::Conflicts)
-    ThenFileContentIs 'conflict' ("<<<<<<< HEAD`nmaster`n=======`ndevelop`n>>>>>>> {0}`n" -f (Get-GitCommit -RepoRoot (Get-RepoRoot) -Revision 'develop').Sha)
+    ThenFileContentIs 'conflict' ("<<<<<<< HEAD`r`nmaster`r`n=======`r`ndevelop`r`n>>>>>>> {0}`r`n" -f (Get-GitCommit -RepoRoot (Get-RepoRoot) -Revision 'develop').Sha)
     ThenCommitCountIs 3
 }
 
