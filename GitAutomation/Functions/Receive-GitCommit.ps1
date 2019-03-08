@@ -32,7 +32,11 @@ function Receive-GitCommit
     param(
         [string]
         # The repository to fetch updates for. Defaults to the current directory.
-        $RepoRoot = (Get-Location).ProviderPath
+        $RepoRoot = (Get-Location).ProviderPath,
+
+        [pscredential]
+        # The credentials to use to connect to the source repository.
+        $Credential
     )
 
     Set-StrictMode -Version 'Latest'
@@ -44,13 +48,21 @@ function Receive-GitCommit
         return
     }
 
+    $options = New-Object 'libgit2sharp.FetchOptions'
+    if( $Credential )
+    {
+        $gitCredential = New-Object 'LibGit2Sharp.SecureUsernamePasswordCredentials'
+        $gitCredential.Username = $Credential.UserName
+        $gitCredential.Password = $Credential.Password
+        $options.CredentialsProvider = { return $gitCredential }
+    }
+
     try
     {
-        $fetchOptions = New-Object 'LibGit2Sharp.FetchOptions'
         foreach( $remote in $repo.Network.Remotes )
         {
             [string[]]$refspecs = $remote.FetchRefSpecs | Select-Object -ExpandProperty 'Specification'
-            [LibGit2Sharp.Commands]::Fetch($repo, $remote.Name, $refspecs, $fetchOptions, $null)
+            [LibGit2Sharp.Commands]::Fetch($repo, $remote.Name, $refspecs, $options, $null)
         } 
     }
     finally
