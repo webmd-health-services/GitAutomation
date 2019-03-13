@@ -26,7 +26,12 @@ if( $gitCmd )
 
 if( -not $registeredSsh )
 {
-    Write-Warning -Message ('SSH support is disabled. To enable SSH, please install Git for Windows. GitAutomation uses the version of SSH that ships with Git for Windows.')
+    $local:Message = 'SSH support is disabled. To enable SSH, please install Git for Windows. GitAutomation uses the version of SSH that ships with Git for Windows.'
+    if ($env:AUTOMATION_ASSET_ENDPOINT) {
+        Write-Verbose -Message ($local:Message)
+    } else {
+        Write-Warning -Message ($local:Message)
+    }
 }
 
 Get-ChildItem -Path (Join-Path -Path $PSScriptRoot -ChildPath 'Functions' -Resolve) -Filter '*.ps1' |
