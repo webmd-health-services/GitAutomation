@@ -18,20 +18,15 @@ if( $gitCmd )
     $sshExePath = Join-Path -Path $sshExePath -ChildPath '..\usr\bin\ssh.exe' -Resolve -ErrorAction Ignore
     if( $sshExePath )
     {
-       [Git.Automation.SshExeTransport]::Unregister()
-       [Git.Automation.SshExeTransport]::Register($sshExePath)
-       $registeredSsh = $true
+        [Git.Automation.SshExeTransport]::Unregister()
+        [Git.Automation.SshExeTransport]::Register($sshExePath)
+        $registeredSsh = $true
     }
 }
 
 if( -not $registeredSsh )
 {
-    $local:Message = 'SSH support is disabled. To enable SSH, please install Git for Windows. GitAutomation uses the version of SSH that ships with Git for Windows.'
-    if ($env:AUTOMATION_ASSET_ENDPOINT) {
-        Write-Verbose -Message ($local:Message)
-    } else {
-        Write-Warning -Message ($local:Message)
-    }
+    Write-Warning -Message 'SSH support is disabled. To enable SSH, please install Git for Windows. GitAutomation uses the version of SSH that ships with Git for Windows.'
 }
 
 Get-ChildItem -Path (Join-Path -Path $PSScriptRoot -ChildPath 'Functions' -Resolve) -Filter '*.ps1' |

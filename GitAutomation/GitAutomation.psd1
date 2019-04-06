@@ -16,7 +16,7 @@
     RootModule = 'GitAutomation.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.12.5'
+    ModuleVersion = '0.13.0'
 
     # ID used to uniquely identify this module
     GUID = '119a2511-62d9-4626-9728-0c8ec7068c57'
@@ -149,8 +149,6 @@
 
             ReleaseNotes = @'
 * Fixed: `ConvertTo-GitFullPath` doesn't properly encode the returned Uri string. (thanks @thorbenw)
-  * as described in Issue #32
-* Fixed: `Merge-GitCommit`'.when there are conflicts'-test fails spuriously due to different line terminators when run in Windows-based environments. (thanks @thorbenw)
 * Added `Credential` parameter to the `Receive-GitCommit` function. (thanks @thorbenw)
 * Added check if running in Azure Automation Runbook. (thanks @thorbenw)
   * If so, prevent ssh warning message on module load (only) to keep job logs clean, retaining message as debug-level information.
