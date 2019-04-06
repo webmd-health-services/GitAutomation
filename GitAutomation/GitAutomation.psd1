@@ -150,8 +150,6 @@
             ReleaseNotes = @'
 * Fixed: `ConvertTo-GitFullPath` doesn't properly encode the returned Uri string. (thanks @thorbenw)
 * Added `Credential` parameter to the `Receive-GitCommit` function. (thanks @thorbenw)
-* Added check if running in Azure Automation Runbook. (thanks @thorbenw)
-  * If so, prevent ssh warning message on module load (only) to keep job logs clean, retaining message as debug-level information.
 '@
 
         } # End of PSData hashtable

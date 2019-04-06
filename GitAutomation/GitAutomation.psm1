@@ -18,9 +18,9 @@ if( $gitCmd )
     $sshExePath = Join-Path -Path $sshExePath -ChildPath '..\usr\bin\ssh.exe' -Resolve -ErrorAction Ignore
     if( $sshExePath )
     {
-        [Git.Automation.SshExeTransport]::Unregister()
-        [Git.Automation.SshExeTransport]::Register($sshExePath)
-        $registeredSsh = $true
+       [Git.Automation.SshExeTransport]::Unregister()
+       [Git.Automation.SshExeTransport]::Register($sshExePath)
+       $registeredSsh = $true
     }
 }
 
