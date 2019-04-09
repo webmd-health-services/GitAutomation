@@ -116,6 +116,19 @@ function ThenFileContentIs
     }
 }
 
+function ThenFileContentMatch
+{
+    param(
+        $Name,
+        $ExpectedRegex
+    )
+
+    It 'should have file with correct content' {
+        $path = Join-Path -Path (Get-RepoRoot) -ChildPath $Name
+        Get-Content -Raw -Path $path | Should -Match $ExpectedRegex
+    }
+}
+
 function ThenFileDoesNotExist
 {
     param(
@@ -309,7 +322,7 @@ Describe 'Merge-GitCommit.when there are conflicts' {
     GivenFile 'conflict' 'master'
     WhenMerging 'develop' 
     ThenMergeStatus -Is ([LibGit2Sharp.MergeStatus]::Conflicts)
-    ThenFileContentIs 'conflict' ("<<<<<<< HEAD`nmaster`n=======`ndevelop`n>>>>>>> {0}`n" -f (Get-GitCommit -RepoRoot (Get-RepoRoot) -Revision 'develop').Sha)
+    ThenFileContentMatch 'conflict' (Get-GitCommit -RepoRoot (Get-RepoRoot) -Revision 'develop').Sha
     ThenCommitCountIs 3
 }
 

@@ -2,7 +2,7 @@ PublishOn:
 - master
 
 Build:
-# The Version task sets the current build's version number. You should almost always 
+# The Version task sets the current build's version number. You should almost always
 # have one of these.
 - Version:
     Path: GitAutomation\GitAutomation.psd1
@@ -13,20 +13,20 @@ Build:
 
 - Delete:
     OnlyBy: BuildServer
-    Path: 
+    Path:
     - GitAutomation\bin\*.pdb
 
-- Exec: 
+- Exec:
     OnlyDuring: Build
-    Path: robocopy 
+    Path: robocopy
     Argument:
     - Source\Git.Automation\bin\$(WHISKEY_MSBUILD_CONFIGURATION)
     - GitAutomation\bin
-    - /MIR 
-    - /NJH 
-    - /NJS 
-    - /NP 
-    - /NDL 
+    - /MIR
+    - /NJH
+    - /NJS
+    - /NP
+    - /NDL
     - /R:0
     - /XF
     - $(WHISKEY_BUILD_ROOT)\GitAutomation\bin\gitconfig
@@ -36,19 +36,23 @@ Build:
     OnlyBy: BuildServer
     Path: git
     Argument:
-    - config 
-    - --global 
-    - user.name 
+    - config
+    - --global
+    - user.name
     - AppVeyor
 
 - Exec:
     OnlyBy: BuildServer
     Path: git
     Argument:
-    - config 
-    - --global 
-    - user.email 
+    - config
+    - --global
+    - user.email
     - appveyor@example.com
+
+- GetPowerShellModule:
+    Name: Glob
+    Version: 0.*
 
 - Pester4:
     Path: Tests\*.Tests.ps1
