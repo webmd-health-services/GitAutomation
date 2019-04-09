@@ -16,7 +16,7 @@
     RootModule = 'GitAutomation.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.12.0'
+    ModuleVersion = '0.13.0'
 
     # ID used to uniquely identify this module
     GUID = '119a2511-62d9-4626-9728-0c8ec7068c57'
@@ -148,8 +148,8 @@
             # ReleaseNotes of this module
 
             ReleaseNotes = @'
-* Added `Get-GitConfiguration` function for getting Git configuration values.
-* Added `Remove-GitConfiguration` function for removing/unsetting Git configuration values.
+* Fixed: `ConvertTo-GitFullPath` doesn't properly encode the returned Uri string. (thanks @thorbenw)
+* Added `Credential` parameter to the `Receive-GitCommit` function. (thanks @thorbenw)
 '@
 
         } # End of PSData hashtable
