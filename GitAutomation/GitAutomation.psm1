@@ -29,6 +29,7 @@ if( -not $registeredSsh )
     Write-Warning -Message 'SSH support is disabled. To enable SSH, please install Git for Windows. GitAutomation uses the version of SSH that ships with Git for Windows.'
 }
 
-Get-ChildItem -Path (Join-Path -Path $PSScriptRoot -ChildPath 'Functions' -Resolve) -Filter '*.ps1' |
-    Where-Object { $_.Name -notlike '*.Tests.ps1' } |
+Join-Path -Path $PSScriptRoot -ChildPath 'Functions' |
+    Where-Object { Test-Path -Path $_ -PathType Container } |
+    Get-ChildItem -Filter '*.ps1' |
     ForEach-Object { . $_.FullName }

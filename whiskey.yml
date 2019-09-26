@@ -11,11 +11,6 @@ Build:
 - MSBuild:
     Path: Source\Git.Automation.sln
 
-- Delete:
-    OnlyBy: BuildServer
-    Path:
-    - GitAutomation\bin\*.pdb
-
 - Exec:
     OnlyDuring: Build
     Path: robocopy
@@ -31,6 +26,11 @@ Build:
     - /XF
     - $(WHISKEY_BUILD_ROOT)\GitAutomation\bin\gitconfig
     SuccessExitCode: <8
+
+- Delete:
+    OnlyBy: BuildServer
+    Path:
+    - GitAutomation\bin\*.pdb
 
 - Exec:
     OnlyBy: BuildServer
@@ -54,6 +54,13 @@ Build:
     Name: Glob
     Version: 0.*
 
+- MergeFile:
+    OnlyBy: BuildServer
+    Path: GitAutomation\Functions\*
+    DestinationPath: GitAutomation\GitAutomation.psm1
+    DeleteSourceFiles: true
+    TextSeparator: "$(NewLine)$(NewLine)"
+    
 - Pester4:
     Path: Tests\*.Tests.ps1
 
@@ -71,7 +78,12 @@ Build:
                 ReleaseNotes: RELEASE_NOTES
                 Tags: TAGS
 
-- Exec: .whiskey\bin\7-Zip\7z.exe a $(WHISKEY_OUTPUT_DIRECTORY)\GitAutomation-$(WHISKEY_SEMVER2_NO_BUILD_METADATA).zip .\GitAutomation .\LICENSE .\NOTICE '-xr!*.pdb' '-xr!*.orig
+- Zip:
+    ArchivePath: .output\GitAutomation-$(WHISKEY_SEMVER2_NO_BUILD_METADATA).zip
+    Path:
+    - GitAutomation
+    - LICENSE
+    - NOTICE 
 
 Publish:
 
