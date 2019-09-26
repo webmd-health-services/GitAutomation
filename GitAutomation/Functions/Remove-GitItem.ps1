@@ -57,7 +57,7 @@ function Remove-GitItem
         {
             $pathItem = Join-Path -Path $repo.Info.WorkingDirectory -ChildPath $pathItem
         }
-        $repo.Remove($pathItem, $true, $null)
+        [LibGit2Sharp.Commands]::Remove($repo, $pathItem, $true, $null)
     }
     $repo.Dispose()
 }

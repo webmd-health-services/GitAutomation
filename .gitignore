@@ -12,3 +12,4 @@ get-libgit2.org/
 *.orig
 /GitAutomation/LICENSE
 /GitAutomation/NOTICE
+/.vscode/**

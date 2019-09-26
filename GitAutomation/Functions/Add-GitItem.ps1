@@ -110,7 +110,7 @@ function Add-GitItem
                 continue
             }
 
-            $repo.Stage( $pathItem, $null )
+            [LibGit2Sharp.Commands]::Stage($repo, $pathItem, $null)
 
             if( $PassThru )
             {

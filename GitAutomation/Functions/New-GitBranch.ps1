@@ -71,7 +71,7 @@ function New-GitBranch
 
         $newBranch = $repo.Branches.Add($Name, $Revision)
         $checkoutOptions = New-Object LibGit2Sharp.CheckoutOptions
-        $repo.Checkout($newBranch, $checkoutOptions)
+        [LibGit2Sharp.Commands]::Checkout($repo, $newBranch, $checkoutOptions)
     }
     catch [LibGit2Sharp.LibGit2SharpException]
     {

@@ -97,7 +97,7 @@ Describe 'Get-GitRepositoryStatus when items are ignored' {
             $status | Where-Object { $_.FilePath -eq 'file1' } | Should Not BeNullOrEmpty
         }
         It 'should show files under ignored directories' {
-            $status | Where-Object { $_.FilePath -eq 'dir1\file2' } | Should Not BeNullOrEmpty
+            $status | Where-Object { $_.FilePath -eq 'dir1/file2' } | Should Not BeNullOrEmpty
         }
     }
 }
@@ -114,7 +114,7 @@ Describe 'Get-GitRepositoryStatus when run without a repo root parameter' {
         $status = Get-GitRepositoryStatus
         It 'should get the status of all files in the repository' {
             $status | Where-Object { $_.FilePath -eq 'file1' } | Should Not BeNullOrEmpty
-            $status | Where-Object { $_.FilePath -eq 'dir1\file2' } | Should Not BeNullOrEmpty
+            $status | Where-Object { $_.FilePath -eq 'dir1/file2' } | Should Not BeNullOrEmpty
         }
     }
     finally
@@ -167,7 +167,7 @@ Describe 'Get-GitRepositoryStatus when getting status of explicit paths' {
             {
                 '' | Set-Content -Path 'file4'
                 It 'should only get paths under that directory' {
-                    Get-GitRepositoryStatus '.' | Select-Object -ExpandProperty 'FilePath' | Should Be 'dir1\file4'
+                    Get-GitRepositoryStatus '.' | Select-Object -ExpandProperty 'FilePath' | Should Be 'dir1/file4'
                 }
 
                 It 'should get paths under parent directory' {
@@ -197,7 +197,7 @@ Describe 'Get-GitRepositoryStatus when getting status of explicit paths' {
         New-Item -Path $dir1Path -ItemType 'directory'
         '' | Set-Content -Path (Join-Path -Path $dir1Path -ChildPath 'file4')
         It 'should only get paths under that directory' {
-            Get-GitRepositoryStatus 'dir1' -RepoRoot $repoRoot | Select-Object -ExpandProperty 'FilePath' | Should Be 'dir1\file4'
+            Get-GitRepositoryStatus 'dir1' -RepoRoot $repoRoot | Select-Object -ExpandProperty 'FilePath' | Should Be 'dir1/file4'
         }
     }
 }

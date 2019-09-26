@@ -72,7 +72,7 @@ function AddMerge
         New-GitBranch -RepoRoot $repoRoot -Name $testBranch
 
         GivenCommit -NumberOfCommits 1
-        $repo.Checkout('master', (New-Object LibGit2Sharp.CheckoutOptions))
+        [LibGit2Sharp.Commands]::Checkout($repo, 'master', (New-Object LibGit2Sharp.CheckoutOptions))
 
         $mergeOptions = New-Object LibGit2Sharp.MergeOptions
         $mergeOptions.FastForwardStrategy = 'NoFastForward'
