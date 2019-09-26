@@ -58,7 +58,9 @@ Describe 'License Notices' {
         'build.ps1'
         'NOTICE'
         'tags.json'
-        'whiskey.yml'
+        'whiskey.yml',
+        'GitAutomation/NOTICE',
+        'GitAutomation/LICENSE'
     )
 
     [object[]]$filesMissingLicense =

@@ -1,11 +1,14 @@
 *.pdb
-packages/
-PSModules
+/packages/**
+/Source/packages/**
+/PSModules/**
 get-libgit2.org/
 *.suo
 **/bin/**
 **/obj/**
 **/*.user
-.output/**
+/.output/**
 .vs
 *.orig
+/GitAutomation/LICENSE
+/GitAutomation/NOTICE
