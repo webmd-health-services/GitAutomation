@@ -99,6 +99,8 @@ function Remove-GitConfiguration
         $pathParam['Path'] = $RepoRoot
     }
 
+    Write-Verbose -Message ('Removing configuration "{0}".' -f $Name)
+
     if( $Scope -eq [LibGit2Sharp.ConfigurationLevel]::Local )
     {
         $repo = Find-GitRepository @pathParam -Verify -ErrorAction Ignore
