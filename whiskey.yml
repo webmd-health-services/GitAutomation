@@ -25,6 +25,8 @@ Build:
     - /R:0
     - /XF
     - $(WHISKEY_BUILD_ROOT)\GitAutomation\bin\gitconfig
+    - /XF
+    - "*.pdb"
     SuccessExitCode: <8
 
 - Delete:
