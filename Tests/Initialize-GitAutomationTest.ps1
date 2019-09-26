@@ -12,4 +12,18 @@
 
 & (Join-Path -Path $PSScriptRoot -ChildPath '..\GitAutomation\Import-GitAutomation.ps1' -Resolve)
 
-Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'GitAutomationTest' -Resolve) -Force
+$originalVerbosePref = $Global:VerbosePreference
+$originalWhatIfPref = $Global:WhatIfPreference
+
+$Global:VerbosePreference = $VerbosePreference = 'SilentlyContinue'
+$Global:WhatIfPreference = $WhatIfPreference = $false
+
+try
+{
+    Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'GitAutomationTest' -Resolve) -Force
+}
+finally
+{
+    $Global:VerbosePreference = $originalVerbosePref
+    $Global:WhatIfPreference = $originalWhatIfPref
+}

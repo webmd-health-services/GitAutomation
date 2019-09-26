@@ -150,6 +150,7 @@
             ReleaseNotes = @'
 * Added a verbose message to `Remove-GitConfiguration`
 * Fixing typo in about_GitAutomation_Installation help topic.
+* `Import-GitAutomation.ps1` no longer shows `Import-Module` and `Remove-Module` verbose messages.
 '@
 
         } # End of PSData hashtable
