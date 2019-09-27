@@ -60,7 +60,8 @@ Describe 'License Notices' {
         'whiskey.yml',
         'GitAutomation/NOTICE',
         'GitAutomation/LICENSE',
-        '.dotnet/**'
+        '.dotnet/**',
+        'GitAutomation/Functions/**'
     )
 
     [object[]]$filesMissingLicense =
