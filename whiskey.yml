@@ -1,10 +1,12 @@
 PublishOn:
+- prerelease
 - master
 
 Build:
 - Version:
     Path: GitAutomation\GitAutomation.psd1
-    Build: $(WHISKEY_BUILD_NUMBER).$(WHISKEY_SCM_BRANCH).$(WHISKEY_SCM_COMMIT_ID)
+    Prerelease:
+    - prerelease: rc$(WHISKEY_BUILD_NUMBER)
 
 - DotNet:
     WorkingDirectory: Source
@@ -76,14 +78,6 @@ Build:
     - NOTICE
     DestinationDirectory: GitAutomation
 
-- SetVariableFromPowerShellDataFile:
-    Path: GitAutomation\GitAutomation.psd1
-    Variables:
-        PrivateData:
-            PSData:
-                ReleaseNotes: RELEASE_NOTES
-                Tags: TAGS
-
 - Zip:
     ArchivePath: .output\GitAutomation-$(WHISKEY_SEMVER2_NO_BUILD_METADATA).zip
     Path:
@@ -94,12 +88,22 @@ Build:
 Publish:
 
 - PublishPowerShellModule:
+    UnlessExists: env:APPVEYOR_PULL_REQUEST_NUMBER
     RepositoryName: PSGallery
     RepositoryUri: https://www.powershellgallery.com/api/v2/
     ApiKeyID: powershellgallery.com
     Path: GitAutomation
 
+- SetVariableFromPowerShellDataFile:
+    Path: GitAutomation\GitAutomation.psd1
+    Variables:
+        PrivateData:
+            PSData:
+                ReleaseNotes: RELEASE_NOTES
+                Tags: TAGS
+
 - GitHubRelease:
+    UnlessExists: env:APPVEYOR_PULL_REQUEST_NUMBER
     RepositoryName: webmd-health-services/GitAutomation
     ApiKeyID: github.com
     Tag: $(WHISKEY_SEMVER2_NO_BUILD_METADATA)
