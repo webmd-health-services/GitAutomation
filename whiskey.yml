@@ -38,8 +38,6 @@ Build:
     - GitAutomation\bin\lib\*64
     - GitAutomation\bin\lib\osx
     
-Fubar:
-    
 - Exec:
     OnlyBy: BuildServer
     Path: git
