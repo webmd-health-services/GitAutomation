@@ -30,7 +30,7 @@ if( -not $registeredSsh )
 }
 
 $moduleRoot = $PSScriptRoot
-$binPath = Join-Path -Path $PSScriptRoot -ChildPath 'bin'
+$moduleBinRoot = Join-Path -Path $moduleRoot -ChildPath 'bin'
 
 $oldLibGit2Sharp = 
     [AppDomain]::CurrentDomain.GetAssemblies() |

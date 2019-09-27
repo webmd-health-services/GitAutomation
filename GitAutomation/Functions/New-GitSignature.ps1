@@ -83,7 +83,7 @@ function New-GitSignature
 
     if( $PSCmdlet.ParameterSetName -eq 'FromConfiguration' )
     {
-        $blankGitConfigPath = Join-Path -Path $binRoot -ChildPath 'gitconfig' -Resolve
+        $blankGitConfigPath = Join-Path -Path $moduleBinRoot -ChildPath 'gitconfig' -Resolve
         [LibGit2Sharp.Configuration]$config = [LibGit2Sharp.Configuration]::BuildFrom($blankGitConfigPath)
 
         try
