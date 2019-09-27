@@ -29,6 +29,9 @@ if( -not $registeredSsh )
     Write-Warning -Message 'SSH support is disabled. To enable SSH, please install Git for Windows. GitAutomation uses the version of SSH that ships with Git for Windows.'
 }
 
+$moduleRoot = $PSScriptRoot
+$binPath = Join-Path -Path $PSScriptRoot -ChildPath 'bin'
+
 $oldLibGit2Sharp = 
     [AppDomain]::CurrentDomain.GetAssemblies() |
     Where-Object { $_.FullName -like 'LibGit2Sharp*' } |
