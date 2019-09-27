@@ -24,13 +24,21 @@ Build:
     - --framework=netstandard2.0
     - --output=..\..\GitAutomation\bin
 
+# These are all files we don't want in our package.
 - Delete:
     Path:
     - GitAutomation\bin\*.json
     - GitAutomation\bin\*.pdb
     - GitAutomation\bin\*.config
     - GitAutomation\bin\*.xml
+    # Way too big.
     - GitAutomation\bin\*\*\*\*.pdb
+    # LibGit2Sharp doesn't support shipping all the native binaries together and loading the correct ones at runtime so get rid of them.
+    - GitAutomation\bin\runtimes
+    - GitAutomation\bin\lib\*64
+    - GitAutomation\bin\lib\osx
+    
+Fubar:
     
 - Exec:
     OnlyBy: BuildServer
