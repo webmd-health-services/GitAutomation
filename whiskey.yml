@@ -2,38 +2,36 @@ PublishOn:
 - master
 
 Build:
-# The Version task sets the current build's version number. You should almost always
-# have one of these.
 - Version:
     Path: GitAutomation\GitAutomation.psd1
     Build: $(WHISKEY_BUILD_NUMBER).$(WHISKEY_SCM_BRANCH).$(WHISKEY_SCM_COMMIT_ID)
 
-- MSBuild:
-    Path: Source\Git.Automation.sln
-
-- Exec:
-    OnlyDuring: Build
-    Path: robocopy
+- DotNet:
+    WorkingDirectory: Source
+    Command: build
     Argument:
-    - Source\Git.Automation\bin\$(WHISKEY_MSBUILD_CONFIGURATION)
-    - GitAutomation\bin
-    - /MIR
-    - /NJH
-    - /NJS
-    - /NP
-    - /NDL
-    - /R:0
-    - /XF
-    - $(WHISKEY_BUILD_ROOT)\GitAutomation\bin\gitconfig
-    - /XF
-    - "*.pdb"
-    SuccessExitCode: <8
+    - --configuration=$(WHISKEY_MSBUILD_CONFIGURATION)
+    - -p:Version=$(WHISKEY_SEMVER2)
+    - --framework=net46
+    - --output=..\..\GitAutomation\bin
+
+- DotNet:
+    WorkingDirectory: Source
+    Command: publish
+    Argument:
+    - --configuration=$(WHISKEY_MSBUILD_CONFIGURATION)
+    - -p:Version=$(WHISKEY_SEMVER2)
+    - --framework=netstandard2.0
+    - --output=..\..\GitAutomation\bin
 
 - Delete:
-    OnlyBy: BuildServer
     Path:
+    - GitAutomation\bin\*.json
     - GitAutomation\bin\*.pdb
-
+    - GitAutomation\bin\*.config
+    - GitAutomation\bin\*.xml
+    - GitAutomation\bin\*\*\*\*.pdb
+    
 - Exec:
     OnlyBy: BuildServer
     Path: git
