@@ -29,6 +29,21 @@ if( -not $registeredSsh )
     Write-Warning -Message 'SSH support is disabled. To enable SSH, please install Git for Windows. GitAutomation uses the version of SSH that ships with Git for Windows.'
 }
 
-Get-ChildItem -Path (Join-Path -Path $PSScriptRoot -ChildPath 'Functions' -Resolve) -Filter '*.ps1' |
-    Where-Object { $_.Name -notlike '*.Tests.ps1' } |
+$moduleRoot = $PSScriptRoot
+$moduleBinRoot = Join-Path -Path $moduleRoot -ChildPath 'bin'
+
+$oldLibGit2Sharp = 
+    [AppDomain]::CurrentDomain.GetAssemblies() |
+    Where-Object { $_.FullName -like 'LibGit2Sharp*' } |
+    ForEach-Object { $_.GetName() } |
+    Where-Object { $_.Name -eq 'LibGit2Sharp' -and $_.Version -lt [version]'0.26.0' }
+if( $oldLibGit2Sharp )
+{
+    Write-Error -Message ('Unable to load GitAutomation: an older version has already been loaded. Please restart your PowerShell session.') -ErrorAction Stop
+}
+
+
+Join-Path -Path $PSScriptRoot -ChildPath 'Functions' |
+    Where-Object { Test-Path -Path $_ -PathType Container } |
+    Get-ChildItem -Filter '*.ps1' |
     ForEach-Object { . $_.FullName }
