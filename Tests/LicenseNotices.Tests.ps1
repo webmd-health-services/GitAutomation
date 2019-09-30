@@ -35,30 +35,33 @@ Describe 'License Notices' {
     $licenseNoticeRegex | Write-Debug
 
     $pathsToIgnore = @(
-        'GitAutomation/bin/**'
-        'GitAutomation/en-us/**'
-        'GitAutomation/packages/**'
-        'Source/packages/**'
-        'Source/Git.Automation/bin/**'
-        'Source/Git.Automation/obj/**'
-        '.github/**'
-        '.output/**'
-        '.whiskey/**'
-        '.vscode/**'
-        'packages/**'
-        'PSModules/**'
-        '**/*.dll'
-        '**/*.dll.config'
-        '**/*.pdb'
-        '**/*.md'
-        '**/*.sln'
-        '**/*.csproj'
-        '**/packages.config'
-        '.gitignore'
-        'build.ps1'
-        'NOTICE'
-        'tags.json'
-        'whiskey.yml'
+        'GitAutomation/bin/**',
+        'GitAutomation/en-us/**',
+        'GitAutomation/packages/**',
+        'Source/packages/**',
+        'Source/Git.Automation/bin/**',
+        'Source/Git.Automation/obj/**',
+        '.github/**',
+        '.output/**',
+        '.vscode/**',
+        'packages/**',
+        'PSModules/**',
+        '**/*.dll',
+        '**/*.dll.config',
+        '**/*.pdb',
+        '**/*.md',
+        '**/*.sln',
+        '**/*.csproj',
+        '**/packages.config',
+        '.gitignore',
+        'build.ps1',
+        'NOTICE',
+        '*.json',
+        'whiskey.yml',
+        'GitAutomation/NOTICE',
+        'GitAutomation/LICENSE',
+        '.dotnet/**',
+        'GitAutomation/Functions/**'
     )
 
     [object[]]$filesMissingLicense =

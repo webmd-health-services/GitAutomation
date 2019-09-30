@@ -32,7 +32,7 @@ INSTALL WITH NUGET
     
     This will create a `GitAutomation.X.Y.Z` directory in your current directory (or the 
     output directory you specified with Nuget's `OutputDirectory` parameter). You can
-    import GitAutomation from that directory using the `Import-GitAutomation.ps1 script:
+    import GitAutomation from that directory using the `Import-GitAutomation.ps1` script:
     
         PS> .\GitAutomation.X.Y.Z\GitAutomation\Import-GitAutomation.ps1
      

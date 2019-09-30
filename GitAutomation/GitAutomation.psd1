@@ -16,7 +16,7 @@
     RootModule = 'GitAutomation.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.13.0'
+    ModuleVersion = '0.14.0'
 
     # ID used to uniquely identify this module
     GUID = '119a2511-62d9-4626-9728-0c8ec7068c57'
@@ -145,11 +145,15 @@
             # A URL to an icon representing this module.
             # IconUri = ''
 
+            Prerelease = ''
+
             # ReleaseNotes of this module
 
             ReleaseNotes = @'
-* Fixed: `ConvertTo-GitFullPath` doesn't properly encode the returned Uri string. (thanks @thorbenw)
-* Added `Credential` parameter to the `Receive-GitCommit` function. (thanks @thorbenw)
+* Added a verbose message to `Remove-GitConfiguration`
+* Fixing typo in about_GitAutomation_Installation help topic.
+* `Import-GitAutomation.ps1` no longer shows `Import-Module` and `Remove-Module` verbose messages.
+* Upgrading to LibGitSharp 0.26.1 (from 0.24.0). GitAutomation now requires .NET Framework 4.6 or later.
 '@
 
         } # End of PSData hashtable

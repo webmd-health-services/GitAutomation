@@ -25,9 +25,23 @@ param(
 #Requires -Version 4
 Set-StrictMode -Version 'Latest'
 
-if( (Get-Module -Name 'GitAutomation') )
-{
-    Remove-Module -Name 'GitAutomation' -Force
-}
+$originalVerbosePref = $Global:VerbosePreference
+$originalWhatIfPref = $Global:WhatIfPreference
 
-Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'GitAutomation.psd1')
+$Global:VerbosePreference = $VerbosePreference = 'SilentlyContinue'
+$Global:WhatIfPreference = $WhatIfPreference = $false
+
+try
+{
+    if( (Get-Module -Name 'GitAutomation') )
+    {
+        Remove-Module -Name 'GitAutomation' -Force
+    }
+
+    Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'GitAutomation.psd1')
+}
+finally
+{
+    $Global:VerbosePreference = $originalVerbosePref
+    $Global:WhatIfPreference = $originalWhatIfPref
+}

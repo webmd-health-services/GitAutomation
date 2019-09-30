@@ -1,37 +1,45 @@
 PublishOn:
+- prerelease
 - master
 
 Build:
-# The Version task sets the current build's version number. You should almost always
-# have one of these.
 - Version:
     Path: GitAutomation\GitAutomation.psd1
-    Build: $(WHISKEY_BUILD_NUMBER).$(WHISKEY_SCM_BRANCH).$(WHISKEY_SCM_COMMIT_ID)
+    Prerelease:
+    - prerelease: rc$(WHISKEY_BUILD_NUMBER)
 
-- MSBuild:
-    Path: Source\Git.Automation.sln
-
-- Delete:
-    OnlyBy: BuildServer
-    Path:
-    - GitAutomation\bin\*.pdb
-
-- Exec:
-    OnlyDuring: Build
-    Path: robocopy
+- DotNet:
+    WorkingDirectory: Source
+    Command: build
     Argument:
-    - Source\Git.Automation\bin\$(WHISKEY_MSBUILD_CONFIGURATION)
-    - GitAutomation\bin
-    - /MIR
-    - /NJH
-    - /NJS
-    - /NP
-    - /NDL
-    - /R:0
-    - /XF
-    - $(WHISKEY_BUILD_ROOT)\GitAutomation\bin\gitconfig
-    SuccessExitCode: <8
+    - --configuration=$(WHISKEY_MSBUILD_CONFIGURATION)
+    - -p:Version=$(WHISKEY_SEMVER2)
+    - --framework=net46
+    - --output=..\..\GitAutomation\bin
 
+- DotNet:
+    WorkingDirectory: Source
+    Command: publish
+    Argument:
+    - --configuration=$(WHISKEY_MSBUILD_CONFIGURATION)
+    - -p:Version=$(WHISKEY_SEMVER2)
+    - --framework=netstandard2.0
+    - --output=..\..\GitAutomation\bin
+
+# These are all files we don't want in our package.
+- Delete:
+    Path:
+    - GitAutomation\bin\*.json
+    - GitAutomation\bin\*.pdb
+    - GitAutomation\bin\*.config
+    - GitAutomation\bin\*.xml
+    # Way too big.
+    - GitAutomation\bin\*\*\*\*.pdb
+    # LibGit2Sharp doesn't support shipping all the native binaries together and loading the correct ones at runtime so get rid of them.
+    - GitAutomation\bin\runtimes
+    - GitAutomation\bin\lib\*64
+    - GitAutomation\bin\lib\osx
+    
 - Exec:
     OnlyBy: BuildServer
     Path: git
@@ -54,6 +62,13 @@ Build:
     Name: Glob
     Version: 0.*
 
+- MergeFile:
+    OnlyBy: BuildServer
+    Path: GitAutomation\Functions\*
+    DestinationPath: GitAutomation\GitAutomation.psm1
+    DeleteSourceFiles: true
+    TextSeparator: "$(NewLine)$(NewLine)"
+    
 - Pester4:
     Path: Tests\*.Tests.ps1
 
@@ -63,6 +78,22 @@ Build:
     - NOTICE
     DestinationDirectory: GitAutomation
 
+- Zip:
+    ArchivePath: .output\GitAutomation-$(WHISKEY_SEMVER2_NO_BUILD_METADATA).zip
+    Path:
+    - GitAutomation
+    - LICENSE
+    - NOTICE 
+
+Publish:
+
+- PublishPowerShellModule:
+    UnlessExists: env:APPVEYOR_PULL_REQUEST_NUMBER
+    RepositoryName: PSGallery
+    RepositoryUri: https://www.powershellgallery.com/api/v2/
+    ApiKeyID: powershellgallery.com
+    Path: GitAutomation
+
 - SetVariableFromPowerShellDataFile:
     Path: GitAutomation\GitAutomation.psd1
     Variables:
@@ -71,17 +102,8 @@ Build:
                 ReleaseNotes: RELEASE_NOTES
                 Tags: TAGS
 
-- Exec: .whiskey\bin\7-Zip\7z.exe a $(WHISKEY_OUTPUT_DIRECTORY)\GitAutomation-$(WHISKEY_SEMVER2_NO_BUILD_METADATA).zip .\GitAutomation .\LICENSE .\NOTICE '-xr!*.pdb' '-xr!*.orig
-
-Publish:
-
-- PublishPowerShellModule:
-    RepositoryName: PSGallery
-    RepositoryUri: https://www.powershellgallery.com/api/v2/
-    ApiKeyID: powershellgallery.com
-    Path: GitAutomation
-
 - GitHubRelease:
+    UnlessExists: env:APPVEYOR_PULL_REQUEST_NUMBER
     RepositoryName: webmd-health-services/GitAutomation
     ApiKeyID: github.com
     Tag: $(WHISKEY_SEMVER2_NO_BUILD_METADATA)
