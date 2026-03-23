@@ -61,7 +61,8 @@ Describe 'License Notices' {
         'GitAutomation/NOTICE',
         'GitAutomation/LICENSE',
         '.dotnet/**',
-        'GitAutomation/Functions/**'
+        'GitAutomation/Functions/**',
+        'appveyor.yml'
     )
 
     [object[]]$filesMissingLicense =

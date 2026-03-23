@@ -1,15 +1,17 @@
-PublishOn:
-- prerelease
-- master
 
 Build:
 - Version:
     Path: GitAutomation\GitAutomation.psd1
     Prerelease:
-    - prerelease: rc$(WHISKEY_BUILD_NUMBER)
+    - "*": rc$(WHISKEY_BUILD_NUMBER)
+    - main: ""
+    IncrementPrereleaseVersion: true
+
+- Exec: appveyor UpdateBuild -Version "$(WHISKEY_SEMVER2)+$(WHISKEY_BUILD_NUMBER)"
+  .OnlyBy: BuildServer
 
 - DotNet:
-    WorkingDirectory: Source
+    .WorkingDirectory: Source
     Command: build
     Argument:
     - --configuration=$(WHISKEY_MSBUILD_CONFIGURATION)
@@ -18,7 +20,7 @@ Build:
     - --output=..\..\GitAutomation\bin
 
 - DotNet:
-    WorkingDirectory: Source
+    .WorkingDirectory: Source
     Command: publish
     Argument:
     - --configuration=$(WHISKEY_MSBUILD_CONFIGURATION)
@@ -35,82 +37,46 @@ Build:
     - GitAutomation\bin\*.xml
     # Way too big.
     - GitAutomation\bin\*\*\*\*.pdb
-    # LibGit2Sharp doesn't support shipping all the native binaries together and loading the correct ones at runtime so get rid of them.
+    # LibGit2Sharp doesn't support shipping all the native binaries together and loading the correct ones at runtime so
+    # get rid of them.
     - GitAutomation\bin\runtimes
     - GitAutomation\bin\lib\*64
     - GitAutomation\bin\lib\osx
-    
-- Exec:
-    OnlyBy: BuildServer
-    Path: git
-    Argument:
-    - config
-    - --global
-    - user.name
-    - AppVeyor
 
-- Exec:
-    OnlyBy: BuildServer
-    Path: git
-    Argument:
-    - config
-    - --global
-    - user.email
-    - appveyor@example.com
-
-- GetPowerShellModule:
-    Name: Glob
-    Version: 0.*
+- PowerShell: prism install | Format-Table
 
 - MergeFile:
-    OnlyBy: BuildServer
+    .OnlyBy: BuildServer
     Path: GitAutomation\Functions\*
     DestinationPath: GitAutomation\GitAutomation.psm1
     DeleteSourceFiles: true
     TextSeparator: "$(NewLine)$(NewLine)"
-    
-- Pester4:
-    Path: Tests\*.Tests.ps1
 
 - CopyFile:
     Path:
+    - RELEASE_NOTES.md
     - LICENSE
     - NOTICE
+    - README.md
     DestinationDirectory: GitAutomation
 
+# Create package for GitHub
 - Zip:
     ArchivePath: .output\GitAutomation-$(WHISKEY_SEMVER2_NO_BUILD_METADATA).zip
     Path:
     - GitAutomation
-    - LICENSE
-    - NOTICE 
+- Exec: appveyor 'PushArtifact' '.output/GitAutomation-$(WHISKEY_SEMVER2).zip' '-DeploymentName' 'GitHub'
+  .OnlyBy: BuildServer
 
-Publish:
-
+# Create package for PowerShell Gallery
 - PublishPowerShellModule:
-    UnlessExists: env:APPVEYOR_PULL_REQUEST_NUMBER
-    RepositoryName: PSGallery
-    RepositoryUri: https://www.powershellgallery.com/api/v2/
-    ApiKeyID: powershellgallery.com
     Path: GitAutomation
+- Exec: appveyor 'PushArtifact' '.output/GitAutomation.$(WHISKEY_SEMVER2_NO_BUILD_METADATA).nupkg' -DeploymentName 'PowerShellGallery'
+  .OnlyBy: BuildServer
 
-- SetVariableFromPowerShellDataFile:
-    Path: GitAutomation\GitAutomation.psd1
-    Variables:
-        PrivateData:
-            PSData:
-                ReleaseNotes: RELEASE_NOTES
-                Tags: TAGS
-
-- GitHubRelease:
-    UnlessExists: env:APPVEYOR_PULL_REQUEST_NUMBER
-    RepositoryName: webmd-health-services/GitAutomation
-    ApiKeyID: github.com
-    Tag: $(WHISKEY_SEMVER2_NO_BUILD_METADATA)
-    Commitish: $(WHISKEY_SCM_COMMIT_ID)
-    Name: $(WHISKEY_SEMVER2_NO_BUILD_METADATA)
-    Description: $(RELEASE_NOTES)
-    Assets:
-    - Path: .output\GitAutomation-$(WHISKEY_SEMVER2_NO_BUILD_METADATA).zip
-      ContentType: application/zip
-      Name: GitAutomation-$(WHISKEY_SEMVER2_NO_BUILD_METADATA).zip
+- Exec: git config --global user.name AppVeyor
+  .OnlyBy: BuildServer
+- Exec: git config --global user.email appveyor@example.com
+  .OnlyBy: BuildServer
+- Pester4:
+    Script: Tests\*.Tests.ps1

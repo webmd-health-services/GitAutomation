@@ -1,0 +1,8 @@
+{
+    "PSModules": [
+        {
+            "Name": "Glob",
+            "Version": "0.1.*"
+        }
+    ]
+}
