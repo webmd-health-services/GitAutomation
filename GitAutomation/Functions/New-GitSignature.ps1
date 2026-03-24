@@ -54,7 +54,7 @@ function New-GitSignature
         if( -not $signature )
         {
             Write-Error -Message ('Failed to build author signature from Git configuration files. Please pass custom author information to the "Name" and "EmailAddress" parameters or set author information in Git''s user-level configuration files by running these commands:
- 
+
     git config --global user.name "GIVEN_NAME SURNAME"
     git config --global user.email "email@example.com"
  ') -ErrorAction $ErrorActionPreference
@@ -68,7 +68,7 @@ function New-GitSignature
         $repo = Get-GitRepository -RepoRoot $RepoRoot
         if( -not $repo )
         {
-            return 
+            return
         }
 
         try
@@ -83,7 +83,7 @@ function New-GitSignature
 
     if( $PSCmdlet.ParameterSetName -eq 'FromConfiguration' )
     {
-        $blankGitConfigPath = Join-Path -Path $moduleBinRoot -ChildPath 'gitconfig' -Resolve
+        $blankGitConfigPath = Join-Path -Path $moduleDirPath -ChildPath 'gitconfig' -Resolve
         [LibGit2Sharp.Configuration]$config = [LibGit2Sharp.Configuration]::BuildFrom($blankGitConfigPath)
 
         try

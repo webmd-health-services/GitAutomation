@@ -16,32 +16,12 @@ Build:
     Argument:
     - --configuration=$(WHISKEY_MSBUILD_CONFIGURATION)
     - -p:Version=$(WHISKEY_SEMVER2)
-    - --framework=net46
-    - --output=..\..\GitAutomation\bin
 
-- DotNet:
-    .WorkingDirectory: Source
-    Command: publish
-    Argument:
-    - --configuration=$(WHISKEY_MSBUILD_CONFIGURATION)
-    - -p:Version=$(WHISKEY_SEMVER2)
-    - --framework=netstandard2.0
-    - --output=..\..\GitAutomation\bin
-
-# These are all files we don't want in our package.
 - Delete:
     Path:
-    - GitAutomation\bin\*.json
-    - GitAutomation\bin\*.pdb
-    - GitAutomation\bin\*.config
-    - GitAutomation\bin\*.xml
-    # Way too big.
-    - GitAutomation\bin\*\*\*\*.pdb
-    # LibGit2Sharp doesn't support shipping all the native binaries together and loading the correct ones at runtime so
-    # get rid of them.
-    - GitAutomation\bin\runtimes
-    - GitAutomation\bin\lib\*64
-    - GitAutomation\bin\lib\osx
+    - GitAutomation\bin\net472\lib\linux*
+    - GitAutomation\bin\net472\lib\osx*
+    - GitAutomation\bin\net8.0\runtimes
 
 - PowerShell: prism install | Format-Table
 

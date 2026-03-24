@@ -81,7 +81,7 @@ Describe 'New-GitSignature' {
     }
 
     It 'reading configuration from global files' {
-        $blankGitConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\GitAutomation\bin\gitconfig'
+        $blankGitConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\GitAutomation\gitconfig'
         $config = [LibGit2Sharp.Configuration]::BuildFrom($blankGitConfigPath)
         $script:name = $config | Where-Object { $_.Key -eq 'user.name' } | Select-Object -ExpandProperty 'Value'
         $clearName = $false
@@ -130,7 +130,7 @@ Describe 'New-GitSignature' {
     }
 
     It 'configuration is missing' {
-        $blankGitConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\GitAutomation\bin\gitconfig'
+        $blankGitConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\GitAutomation\gitconfig'
         $config = [LibGit2Sharp.Configuration]::BuildFrom($blankGitConfigPath)
         $script:name = $config | Where-Object { $_.Key -eq 'user.name' } | Select-Object -ExpandProperty 'Value'
         $script:email = $config | Where-Object { $_.Key -eq 'user.email' } | Select-Object -ExpandProperty 'Value'

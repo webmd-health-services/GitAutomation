@@ -49,7 +49,7 @@ function Copy-GitRepository
     }
 
     $cancelClone = $false
-    $options.OnProgress = { 
+    $options.OnCheckoutProgress = {
         param(
             $Output
         )
@@ -58,8 +58,10 @@ function Copy-GitRepository
         return -not $cancelClone
     }
 
+    $activity = "Cloning ${Source} -> ${DestinationPath}"
+
     $lastUpdated = Get-Date
-    $options.OnTransferProgress = { 
+    $options.FetchOptions.OnTransferProgress = {
         param(
             [LibGit2Sharp.TransferProgress]
             $TransferProgress
@@ -70,7 +72,7 @@ function Copy-GitRepository
         {
             return $true
         }
-         
+
         $numBytes = $TransferProgress.ReceivedBytes
         if( $numBytes -lt 1kb )
         {
@@ -102,7 +104,7 @@ function Copy-GitRepository
             $numBytes = $numBytes / 1pb
         }
 
-        Write-Progress -Activity ('Cloning {0} -> {1}' -f $Source,$DestinationPath) `
+        Write-Progress -Activity $activity `
                        -Status ('{0}/{1} objects, {2:n0} {3}' -f $TransferProgress.ReceivedObjects,$TransferProgress.TotalObjects, $numBytes,$unit) `
                        -PercentComplete (($TransferProgress.ReceivedObjects / $TransferProgress.TotalObjects) * 100)
         Set-Variable -Name 'lastUpdated' -Value (Get-Date) -Scope 1
@@ -121,6 +123,7 @@ function Copy-GitRepository
     }
     finally
     {
+        Write-Progress -Activity $activity -Completed
         if( -not $cloneCompleted )
         {
             $cancelClone = $true
