@@ -2,6 +2,10 @@
 #Requires -Version 5.1
 Set-StrictMode -Version 'Latest'
 
+BeforeDiscovery {
+    & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
+}
+
 BeforeAll {
     Set-StrictMode -Version 'Latest'
 
@@ -121,8 +125,6 @@ BeforeAll {
             $InFile
         )
 
-        $Global:Error.Clear()
-
         if( -not $InWorkingDirectory )
         {
             $InWorkingDirectory = Get-TestRepoPath
@@ -166,33 +168,124 @@ Describe 'Remove-GitConfiguration' {
         {
             Remove-GitConfiguration -Name $setting.Key -Scope $setting.Level
         }
+
+        $Global:Error.Clear()
     }
 
-    $levels = [Enum]::GetValues([LibGit2Sharp.ConfigurationLevel])
-    Context "<_> scope" -ForEach $levels {
+    function Test-CfgPermission
+    {
+        param(
+            [LibGit2Sharp.ConfigurationLevel]$Scope
+        )
 
-        $level = $_
-
-        if( $level -eq [LibGit2Sharp.ConfigurationLevel]::Xdg -and `
-            -not ([LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths($level)) )
+        $globalScopes = @([LibGit2Sharp.ConfigurationLevel]::ProgramData,[LibGit2Sharp.ConfigurationLevel]::System)
+        if ($scope -notin $globalScopes)
         {
-            $msg = "Remove-GitConfiguration: unable to test ""${level}"" scope: looks like there are no XDG-level " +
-                   'configuration files so LibGit2Sharp won''t load them. Create these files and reload your ' +
-                   'PowerShell session.'
-            Write-Warning -Message $msg
-            continue
+            return $true
         }
 
-        It 'removes' -ForEach $level {
-            GivenConfiguration 'gitautomation.removegitconfiguration' -AtScope $_
-            WhenRemoving 'gitautomation.removegitconfiguration' -AtScope $_
-            ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists
+        $cfgDirPaths = [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths($Scope)
+        if (-not $cfgDirPaths)
+        {
+            $msg = "[$($PSCommandPath | Split-Path -Leaf)]  Skipping tests for ${Scope} scope because there are no " +
+                   'configured directories at that scope on this system.'
+            Write-Warning $msg
+            return $false
         }
 
-        It 'handles missing setting' -ForEach $_ {
-            WhenRemoving 'gitautomation.removegitconfiguration' -AtScope $_
-            ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists
-            ThenError -IsEmpty
+        foreach ($cfgDirPath in $cfgDirPaths)
+        {
+            $testFilePath = Join-Path -Path $cfgDirPath -ChildPath '.gitautomation'
+
+            $canModify = $false
+            try
+            {
+                New-Item -Path $testFilePath -ItemType File -Force -ErrorAction Ignore
+            }
+            finally
+            {
+                if (Test-Path -Path $testFilePath)
+                {
+                    $canModify = $true
+                    Remove-Item -Path $testFilePath -Force -ErrorAction Ignore
+                }
+            }
+
+            if ($canModify)
+            {
+                break
+            }
+        }
+
+        if (-not $canModify)
+        {
+            $msg = "[$($PSCommandPath | Split-Path -Leaf)]  Skipping tests for ${Scope} scope because you don't have " +
+                   "permission to write to config files in ""$($testFilePath | Split-Path -Parent)"". To run these " +
+                   'tests, run PowerShell as administrator.'
+            Write-Warning $msg
+        }
+
+        return $canModify
+    }
+
+    $cfg = [LibGit2Sharp.Configuration]::BuildFrom([NullString]::Value)
+
+    $scopes = [Enum]::GetValues([LibGit2Sharp.ConfigurationLevel])
+    Context "<_> scope" -ForEach $scopes {
+
+        $scope = $_
+        $hasCfgAtScope = $cfg.HasConfig($scope)
+        $hasCfgDir = $false
+        try
+        {
+            if ([LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths($scope))
+            {
+                $hasCfgDir = $true
+            }
+        }
+        catch
+        {
+        }
+        $canWriteCfg = Test-CfgPermission -Scope $scope
+        $skip = -not $canWriteCfg
+
+        if ($hasCfgAtScope -or $Scope -eq [LibGit2Sharp.ConfigurationLevel]::Local)
+        {
+            It 'removes' -ForEach $scope -Skip:$skip {
+                GivenConfiguration 'gitautomation.removegitconfiguration' -AtScope $_
+                WhenRemoving 'gitautomation.removegitconfiguration' -AtScope $_
+                ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists
+            }
+
+            It 'handles missing setting' -ForEach $_ {
+                WhenRemoving 'gitautomation.removegitconfiguration' -AtScope $_
+                ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists
+                ThenError -IsEmpty
+            }
+        }
+        elseif ($hasCfgDir)
+        {
+            It 'writes an error' -ForEach $scope {
+                { WhenRemoving 'gitautomation.removegitconfiguration' -AtScope $_ } |
+                    Should -Throw "*No ${_} configuration file*"
+                ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists
+            }
+        }
+        elseif ($scope -eq [LibGit2Sharp.ConfigurationLevel]::Worktree)
+        {
+            It 'fails' -ForEach $scope {
+                { WhenRemoving 'gitautomation.removegitconfiguration' -AtScope $_ } |
+                    Should -Throw "*invalid config path selector*"
+                ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists
+            }
+        }
+        else
+        {
+            It 'writes an error' -ForEach $scope {
+                WhenRemoving 'gitautomation.removegitconfiguration' -AtScope $_ -ErrorAction SilentlyContinue
+                ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists
+                ThenError -Matches "\b${_}\b.*no directories are configured"
+            }
         }
     }
 

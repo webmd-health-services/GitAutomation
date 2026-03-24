@@ -9,6 +9,8 @@
   * LibGitSharp 0.26.1 to 0.31.0
   * LibGit2Sharp.NativeLibraries 2.0.289 to 2.0.323
   * libgit2 0.28.3 to 1.8.4
+* Fixed: `Set-GitConfiguration` and `Remove-GitConfiguration` threw exceptions if attempting to set config at scopes
+  that don't have any configured locations or don't exist. They now instead write non-terminating errors.
 
 ## 0.14.0
 

@@ -1,17 +1,10 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 #Requires -Version 5.1
 Set-StrictMode -Version 'Latest'
+
+BeforeDiscovery {
+    & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
+}
 
 BeforeAll {
     Set-StrictMode -Version 'Latest'
@@ -239,7 +232,48 @@ Describe 'Get-GitConfiguration' {
         ThenValue -Is $value
     }
 
-    It 'gets system configuration from inside a repository' {
+    $cfg = [LibGit2Sharp.Configuration]::BuildFrom([NullString]::Value)
+
+    $hasSystemCfg = $cfg.HasConfig([LibGit2Sharp.ConfigurationLevel]::System)
+    $canModifySystemCfg = $false
+
+    if ($hasSystemCfg)
+    {
+        foreach ($cfgDirPath in [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::System))
+        {
+            $testFilePath = Join-Path -Path $cfgDirPath -ChildPath '.gitautomation'
+
+            try
+            {
+                New-Item -Path $testFilePath -ItemType File -Force -ErrorAction Ignore
+            }
+            finally
+            {
+                if (Test-Path -Path $testFilePath)
+                {
+                    $canModifySystemCfg = $true
+                    Remove-Item -Path $testFilePath -Force -ErrorAction Ignore
+                }
+            }
+
+            if ($canModifySystemCfg)
+            {
+                break
+            }
+        }
+
+        if (-not $canModifySystemCfg)
+        {
+            $msg = "[$($PSCommandPath | Split-Path -Leaf)]  Skipping tests for System scope because you don't have " +
+                    "permission to write to config files in ""$($testFilePath | Split-Path -Parent)"". To run these " +
+                    'tests, run PowerShell as administrator.'
+            Write-Warning $msg
+        }
+    }
+
+    $skipSystemCfgTest = -not $hasSystemCfg -or -not $canModifySystemCfg
+
+    It 'gets system configuration from inside a repository' -Skip:$skipSystemCfgTest {
         $value = [Guid]::NewGuid()
         GivenRepository 'repo'
         GivenConfiguration 'fubar.snafu' -HasValue $value -AtScope System
@@ -247,7 +281,7 @@ Describe 'Get-GitConfiguration' {
         ThenValue -Is $value
     }
 
-    It 'gets system configuration from outside a repository' {
+    It 'gets system configuration from outside a repository' -Skip:$skipSystemCfgTest {
         $value = [Guid]::NewGuid()
         GivenConfiguration 'fubar.snafu' -HasValue $value -AtScope System
         Push-Location $script:testDirPath
@@ -272,7 +306,7 @@ Describe 'Get-GitConfiguration' {
         ThenValue -Contains 'fubar.value2' -WithValue $value2
     }
 
-    It 'gets all configuration in a specific file' {
+    It 'gets all configuration in a specific file' -Skip:$skipSystemCfgTest {
         $local = [Guid]::NewGuid()
         $global = [Guid]::NewGuid()
         $system = [Guid]::NewGuid()
