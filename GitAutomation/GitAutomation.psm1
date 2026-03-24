@@ -10,6 +10,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+if (-not (Test-Path -Path 'variable:IsWindows'))
+{
+    $script:IsWindows = $true
+    $script:IsLinux = $false
+    $script:IsMacOS = $false
+}
+
 $oldLibGit2Sharp =
     [AppDomain]::CurrentDomain.GetAssemblies() |
     Where-Object { $_.FullName -like 'LibGit2Sharp*' } |
@@ -35,25 +42,44 @@ $binDirPath = Join-Path -Path $binDirPath -ChildPath $frameworkDirName -Resolve 
 Add-Type -Path (Join-Path -Path $binDirPath -ChildPath 'LibGit2Sharp.dll' -Resolve -ErrorAction Stop)
 Add-Type -Path (Join-Path -Path $binDirPath -ChildPath 'Git.Automation.dll' -Resolve -ErrorAction Stop)
 
-$registeredSsh = $false
-$gitCmd = Get-Command -Name 'git.exe' -ErrorAction Ignore
-if( $gitCmd )
+$sshCmdPath = ''
+$sshCmd = Get-Command -Name 'ssh' -ErrorAction Ignore
+if ($sshCmd)
 {
-    $sshExePath = Split-Path -Path $gitCmd.Path -Parent
-    $sshExePath = Join-Path -Path $sshExePath -ChildPath '..\usr\bin\ssh.exe' -Resolve -ErrorAction Ignore
-    if( $sshExePath )
+    $sshCmdPath = $sshCmd.Source
+}
+
+# Prefer Git for Windows if it is installed.
+if ($IsWindows)
+{
+    $gitCmd = Get-Command -Name 'git.exe' -ErrorAction Ignore
+    $gitSshCmdPath = ''
+    if ($gitCmd)
     {
-       [Git.Automation.SshExeTransport]::Unregister()
-       [Git.Automation.SshExeTransport]::Register($sshExePath)
-       $registeredSsh = $true
+        $gitSshCmdPath = Split-Path -Path $gitCmd.Path -Parent
+        $gitSshCmdPath = Join-Path -Path $gitSshCmdPath -ChildPath '..\usr\bin\ssh.exe' -Resolve -ErrorAction Ignore
+    }
+
+    if ($gitSshCmdPath)
+    {
+        $sshCmdPath = $gitSshCmdPath
     }
 }
 
-if( -not $registeredSsh )
+if ($sshCmdPath)
 {
-    $msg = 'SSH support is disabled. To enable SSH, please install Git for Windows. GitAutomation uses the version ' +
-           'of SSH that ships with Git for Windows.'
-    Write-Warning -Message $msg
+    [Git.Automation.SshExeTransport]::Unregister()
+    Write-Verbose "Registering SSH transport with command ""${sshCmdPath}""."
+    [Git.Automation.SshExeTransport]::Register($sshCmdPath)
+}
+else
+{
+    $msg =  "SSH support is unavailable because the ""ssh"" command does not exist."
+    if ($IsWindows)
+    {
+        $msg += " Consider installing Git for Windows to get SSH support."
+    }
+    Write-Verbose -Message $msg
 }
 
 Join-Path -Path $PSScriptRoot -ChildPath 'Functions' |

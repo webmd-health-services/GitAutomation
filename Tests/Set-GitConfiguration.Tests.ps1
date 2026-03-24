@@ -139,7 +139,9 @@ Describe 'Set-GitConfiguration' {
     }
 
     It 'HOME environment variable exists' {
-        [LibGit2Sharp.GlobalSettings]::SetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global, ($env:TEMP -replace '\\','/') )
+        $tempDirPath = [IO.Path]::GetTempPath()
+
+        [LibGit2Sharp.GlobalSettings]::SetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global, ($tempDirPath -replace '\\','/') )
         $tempRoot = (Get-Item -Path 'TestDrive:').FullName
         Mock -CommandName 'Test-Path' -ModuleName 'GitAutomation' -ParameterFilter { $Path -eq 'env:HOME' } -MockWith { return $true }
         Mock -CommandName 'Get-Item' -ModuleName 'GitAutomation' -ParameterFilter { $Path -eq 'env:HOME' } -MockWith { return [pscustomobject]@{ Name = 'HOME' ; Value = (Get-Item -Path 'TestDrive:').FullName } }
@@ -148,6 +150,6 @@ Describe 'Set-GitConfiguration' {
         Assert-ConfigurationVariableSet -Path (Join-Path -Path $tempRoot -ChildPath '.gitconfig')
         $errors | Should -BeNullOrEmpty
 
-        Join-Path -Path $env:TEMP -ChildPath '.gitconfig' | Should -Not -Exist
+        Join-Path -Path $tempDirPath -ChildPath '.gitconfig' | Should -Not -Exist
     }
 }

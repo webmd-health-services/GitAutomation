@@ -21,6 +21,6 @@ Describe 'Test-GitRemoteUri'{
     }
 
     It 'returns false for an invalid uri'{
-        Test-GitRemoteUri -Uri 'ssh://git@stash.portal.webmd.com:7999/whs/bleeeh.git' | Should -BeFalse
+        Test-GitRemoteUri -Uri 'ssh://git@github.com:webmd-health-services/IDoNotExist.git' | Should -BeFalse
     }
 }

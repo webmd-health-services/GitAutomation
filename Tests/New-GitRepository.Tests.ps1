@@ -20,7 +20,7 @@ BeforeAll {
 
         $Repository | Should -Not -BeNullOrEmpty
         $Repository | Should -BeOfType ([Git.Automation.RepositoryInfo])
-        $Repository.WorkingDirectory.TrimEnd('\') | Should -Be $CreatedAt.TrimEnd('\')
+        $Repository.WorkingDirectory.TrimEnd('\', '/') | Should -Be $CreatedAt.TrimEnd('\', '/')
         $Repository.Path | Should -Be (Join-Path -Path $CreatedAt -ChildPath '.git\')
     }
 

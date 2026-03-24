@@ -48,7 +48,7 @@ Describe 'Find-GitRepository' {
     }
 
     It 'the current directory has no repository' {
-        Push-Location -Path $env:TEMP
+        Push-Location -Path ([IO.Path]::GetTempPath())
         try
         {
             $repo = Find-GitRepository
@@ -101,14 +101,14 @@ Describe 'Find-GitRepository' {
     }
 
     It '-Verify switch is used and a repository isn''t found' {
-        $repo = Find-GitRepository -Path $env:TEMP -Verify -ErrorAction SilentlyContinue
+        $repo = Find-GitRepository -Path ([IO.Path]::GetTempPath()) -Verify -ErrorAction SilentlyContinue
         Assert-NoRepositoryReturned -Repository $repo
         $Global:Error | Should -Match 'not in a Git repository'
-        $Global:Error | Should -Match ([regex]::Escape($env:TEMP))
+        $Global:Error | Should -Match ([regex]::Escape(([IO.Path]::GetTempPath())))
     }
 
     It '-Verify switch is used and a repository in current directory isn''t found' {
-        Push-Location -Path $env:TEMP
+        Push-Location -Path ([IO.Path]::GetTempPath())
         try
         {
             $repo = Find-GitRepository -Verify -ErrorAction SilentlyContinue

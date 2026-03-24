@@ -17,6 +17,10 @@ Build:
     - --configuration=$(WHISKEY_MSBUILD_CONFIGURATION)
     - -p:Version=$(WHISKEY_SEMVER2)
 
+# Shape the native libraries in the way LibGit2Sharp looks for them.
+- PowerShell: .\Repair-LibGit2SharpBin.ps1
+  .IfExists: .\GitAutomation\bin\net8.0\runtimes\
+
 - Delete:
     Path:
     - GitAutomation\bin\net472\lib\linux*
