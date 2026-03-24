@@ -3,6 +3,7 @@
 /.vscode/**
 /GitAutomation/LICENSE
 /GitAutomation/NOTICE
+/GitAutomation/*.md
 /packages/**
 /PSModules/**
 /Source/packages/**
@@ -13,3 +14,4 @@
 **/*.user
 .vs
 *.orig
+

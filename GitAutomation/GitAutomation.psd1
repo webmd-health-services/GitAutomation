@@ -149,12 +149,7 @@
 
             # ReleaseNotes of this module
 
-            ReleaseNotes = @'
-* Added a verbose message to `Remove-GitConfiguration`
-* Fixing typo in about_GitAutomation_Installation help topic.
-* `Import-GitAutomation.ps1` no longer shows `Import-Module` and `Remove-Module` verbose messages.
-* Upgrading to LibGitSharp 0.26.1 (from 0.24.0). GitAutomation now requires .NET Framework 4.6 or later.
-'@
+            ReleaseNotes = 'https://github.com/webmd-health-services/GitAutomation/blob/main/CHANGELOG.md'
 
         } # End of PSData hashtable
 

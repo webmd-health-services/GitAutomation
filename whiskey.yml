@@ -34,7 +34,7 @@ Build:
 
 - CopyFile:
     Path:
-    - RELEASE_NOTES.md
+    - CHANGELOG.md
     - LICENSE
     - NOTICE
     - README.md
