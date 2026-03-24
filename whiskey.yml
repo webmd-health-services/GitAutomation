@@ -52,11 +52,13 @@ Build:
 - Exec: appveyor 'PushArtifact' '.output/GitAutomation-$(WHISKEY_SEMVER2).zip' '-DeploymentName' 'GitHub'
   .OnlyBy: BuildServer
 
-# Create package for PowerShell Gallery
+# Create package for PowerShell Gallery. PowerShellGet requires .NET on non-Windows operating systems!
 - PublishPowerShellModule:
     Path: GitAutomation
+    .OnlyOnPlatform: Windows
 - Exec: appveyor 'PushArtifact' '.output/GitAutomation.$(WHISKEY_SEMVER2_NO_BUILD_METADATA).nupkg' -DeploymentName 'PowerShellGallery'
   .OnlyBy: BuildServer
+  .OnlyOnPlatform: Windows
 
 - Exec: git config --global user.name AppVeyor
   .OnlyBy: BuildServer
