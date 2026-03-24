@@ -37,14 +37,15 @@ for:
     only:
     - job_group: ps
   build_script:
-  - ps: &build_script |
+  - ps: &init_script |
         $ProgressPreference = 'SilentlyContinue'
         iwr https://raw.githubusercontent.com/webmd-health-services/Prism/main/Scripts/init.ps1 | iex | Format-Table
-        .\build.ps1
+  - ps: &build_script .\build.ps1
 
 # Build in PowerShell
 - matrix:
     only:
     - job_group: pwsh
   build_script:
+  - pwsh: *init_script
   - pwsh: *build_script
