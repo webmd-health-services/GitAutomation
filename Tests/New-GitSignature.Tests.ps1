@@ -1,176 +1,165 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-# 
-#     http://www.apache.org/licenses/LICENSE-2.0
-# 
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
+#Requires -Version 5.1
+Set-StrictMode -Version 'Latest'
 
-$name = $null
-$email = $null
-$when = $null
+BeforeAll {
+    Set-StrictMode -Version 'Latest'
 
-function GivenRepositoryConfig
-{
-    param(
-        $Config
-    )
+    & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
-    New-GitRepository -Path $TestDrive.FullName
-    $Config | Set-Content -Path (Join-Path -Path $TestDrive.FullName -ChildPath '.git\config')
-}
-
-function Init
-{
+    $script:repoDirPath = $null
+    $script:repoNum = 0
     $script:name = $null
     $script:email = $null
     $script:when = $null
-}
 
-function ThenSignatureIs
-{
-    param(
-        $Name,
-        $Email
-    )
+    function GivenRepositoryConfig
+    {
+        param(
+            $Config
+        )
 
-    It ('should set name') {
+        $script:repoDirPath = Join-Path -Path $TestDrive -ChildPath ($script:repoNum++)
+        New-GitRepository -Path $script:repoDirPath
+        $Config | Set-Content -Path (Join-Path -Path $script:repoDirPath -ChildPath '.git\config')
+    }
+
+    function Init
+    {
+        $script:name = $null
+        $script:email = $null
+        $script:when = $null
+    }
+
+    function ThenSignatureIs
+    {
+        param(
+            $Name,
+            $Email
+        )
+
         $signature.Name | Should -Be $Name
-    }
-    It ('should set email') {
         $signature.Email | Should -Be $Email
+        $signature.When | Should -BeGreaterOrEqual $script:when
     }
-    It ('should set When') {
-        $signature.When | Should -BeGreaterOrEqual $when
-    }
-}
 
-function WhenCreatingSignature
-{
-    [CmdletBinding()]
-    param(
-        $Name,
-        $Email,
-        $RepoRoot
-    )
-
-    $parameters = @{ }
-    if( $Name )
+    function WhenCreatingSignature
     {
-        $parameters['Name'] = $Name
-    }
+        [CmdletBinding()]
+        param(
+            $Name,
+            $Email,
+            $RepoRoot
+        )
 
-    if( $Email )
-    {
-        $parameters['Email'] = $Email
-    }
-
-    if( $RepoRoot )
-    {
-        $parameters['RepoRoot'] = $RepoRoot
-    }
-
-    $script:when = [DateTimeOffset]::Now
-    $Global:Error.Clear()
-    $script:signature = New-GitSignature @parameters
-}
-
-Describe 'New-GitSignature.when passing author information' {
-    WhenCreatingSignature 'Fubar Snafu' 'fizzbuzz@example.com'
-    ThenSignatureIs 'Fubar Snafu' 'fizzbuzz@example.com'
-}
-
-Describe 'New-GitSignature.when reading configuration from global files' {
-    $blankGitConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\GitAutomation\bin\gitconfig'
-    $config = [LibGit2Sharp.Configuration]::BuildFrom($blankGitConfigPath)
-    $name = $config | Where-Object { $_.Key -eq 'user.name' } | Select-Object -ExpandProperty 'Value'
-    $clearName = $false
-    if( -not $name )
-    {
-        $name = 'name name'
-        $config.Set('user.name',$name,[LibGit2Sharp.ConfigurationLevel]::Global)
-        $clearName = $true
-    }
-    $email = $config | Where-Object { $_.Key -eq 'user.email' } | Select-Object -ExpandProperty 'Value'
-    $clearEmail = $false
-    if( -not $email )
-    {
-        $email = 'email@example.com'
-        $config.Set('user.email',$email,[LibGit2Sharp.ConfigurationLevel]::Global)
-        $clearEmail = $true
-    }
-
-    try
-    {
-        WhenCreatingSignature
-        ThenSignatureIs $name $email
-    }
-    finally
-    {
-        if( $clearName )
+        $parameters = @{ }
+        if( $Name )
         {
-            $config.Unset('user.name',[LibGit2Sharp.ConfigurationLevel]::Global)
+            $parameters['Name'] = $Name
         }
-        if( $clearEmail )
+
+        if( $Email )
         {
-            $config.Unset('user.email',[LibGit2Sharp.ConfigurationLevel]::Global)
+            $parameters['Email'] = $Email
         }
-        $config.Dispose()
+
+        if( $RepoRoot )
+        {
+            $parameters['RepoRoot'] = $RepoRoot
+        }
+
+        $script:when = [DateTimeOffset]::Now
+        $Global:Error.Clear()
+        $script:signature = New-GitSignature @parameters
     }
 }
 
-Describe 'New-GitSignature.when reading configuration from repository' {
-    GivenRepositoryConfig '
-[user]
-	name = Repo Repo
-    email = repo@example.com
-'
-    WhenCreatingSignature -RepoRoot $TestDrive.FullName
-    ThenSignatureIs 'Repo Repo' 'repo@example.com'
-}
+Describe 'New-GitSignature' {
+    It 'passing author information' {
+        WhenCreatingSignature 'Fubar Snafu' 'fizzbuzz@example.com'
+        ThenSignatureIs 'Fubar Snafu' 'fizzbuzz@example.com'
+    }
 
-Describe 'New-GitSignature.when configuration is missing' {
-    $blankGitConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\GitAutomation\bin\gitconfig'
-    $config = [LibGit2Sharp.Configuration]::BuildFrom($blankGitConfigPath)
-    $name = $config | Where-Object { $_.Key -eq 'user.name' } | Select-Object -ExpandProperty 'Value'
-    $email = $config | Where-Object { $_.Key -eq 'user.email' } | Select-Object -ExpandProperty 'Value'
+    It 'reading configuration from global files' {
+        $blankGitConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\GitAutomation\bin\gitconfig'
+        $config = [LibGit2Sharp.Configuration]::BuildFrom($blankGitConfigPath)
+        $script:name = $config | Where-Object { $_.Key -eq 'user.name' } | Select-Object -ExpandProperty 'Value'
+        $clearName = $false
+        if( -not $script:name )
+        {
+            $script:name = 'name name'
+            $config.Set('user.name',$script:name,[LibGit2Sharp.ConfigurationLevel]::Global)
+            $clearName = $true
+        }
+        $script:email = $config | Where-Object { $_.Key -eq 'user.email' } | Select-Object -ExpandProperty 'Value'
+        $clearEmail = $false
+        if( -not $script:email )
+        {
+            $script:email = 'email@example.com'
+            $config.Set('user.email',$script:email,[LibGit2Sharp.ConfigurationLevel]::Global)
+            $clearEmail = $true
+        }
 
-    $config.Unset('user.name','Global')
-    $config.Unset('user.email','Global')
+        try
+        {
+            WhenCreatingSignature
+            ThenSignatureIs $script:name $script:email
+        }
+        finally
+        {
+            if( $clearName )
+            {
+                $config.Unset('user.name',[LibGit2Sharp.ConfigurationLevel]::Global)
+            }
+            if( $clearEmail )
+            {
+                $config.Unset('user.email',[LibGit2Sharp.ConfigurationLevel]::Global)
+            }
+            $config.Dispose()
+        }
+    }
 
-    try
-    {
-        WhenCreatingSignature -ErrorAction SilentlyContinue
-        It ('should return nothing') {
+    It 'reading configuration from repository' {
+        GivenRepositoryConfig '
+    [user]
+        name = Repo Repo
+        email = repo@example.com
+        '
+        WhenCreatingSignature -RepoRoot $script:repoDirPath
+        ThenSignatureIs 'Repo Repo' 'repo@example.com'
+    }
+
+    It 'configuration is missing' {
+        $blankGitConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\GitAutomation\bin\gitconfig'
+        $config = [LibGit2Sharp.Configuration]::BuildFrom($blankGitConfigPath)
+        $script:name = $config | Where-Object { $_.Key -eq 'user.name' } | Select-Object -ExpandProperty 'Value'
+        $script:email = $config | Where-Object { $_.Key -eq 'user.email' } | Select-Object -ExpandProperty 'Value'
+
+        $config.Unset('user.name','Global')
+        $config.Unset('user.email','Global')
+
+        try
+        {
+            WhenCreatingSignature -ErrorAction SilentlyContinue
             $script:signature | Should -BeNullOrEmpty
-        }
 
-        It ('should write error') {
             $Global:Error |  Should -Match 'Failed\ to\ build\ author\ signature'
-        }
 
-        WhenCreatingSignature -ErrorAction Ignore
-        It ('should ignore errors without throwing an error') {
+            WhenCreatingSignature -ErrorAction Ignore
             $Global:Error.Count | Should -Be 0
-        }
 
-    }
-    finally
-    {
-        if( $name )
-        {
-            $config.Set('user.name',$name,'Global')
         }
-        if( $email )
+        finally
         {
-            $config.Set('user.email',$email,'Global')
+            if( $script:name )
+            {
+                $config.Set('user.name',$script:name,'Global')
+            }
+            if( $script:email )
+            {
+                $config.Set('user.email',$script:email,'Global')
+            }
+            $config.Dispose()
         }
-        $config.Dispose()
     }
 }

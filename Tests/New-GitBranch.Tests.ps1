@@ -1,130 +1,115 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-# 
-#     http://www.apache.org/licenses/LICENSE-2.0
-# 
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
+#Requires -Version 5.1
+Set-StrictMode -Version 'Latest'
 
-Describe 'New-GitBranch when creating a new unique branch' {
-    Clear-Error
+BeforeAll {
+    Set-StrictMode -Version 'Latest'
 
-    $repo = New-GitTestRepo
-    Add-GitTestFile -RepoRoot $repo -Path 'file1'
-    Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
+    & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
-    $branchName = 'newBranch'
-    Test-GitBranch -RepoRoot $repo -Name $branchName | Should Be $false
-    New-GitBranch -RepoRoot $repo -Name $branchName
+    $script:testDirPath = $null
+    $script:testNum = 0
+    $script:repoNum = 0
 
-    It 'should create the branch' {
-        Test-GitBranch -RepoRoot $repo -Name $branchName | Should Be $true
+    function GivenRepo
+    {
+        $repoRoot = Join-Path -Path $script:testDirPath -ChildPath $script:repoNum
+        New-GitRepository -Path $repoRoot | Format-List | Out-String | Write-Debug
+        return $repoRoot
+    }
+}
+
+Describe 'New-GitBranch' {
+    BeforeEach {
+        $script:testDirPath = Join-Path -Path $TestDrive -ChildPath ($script:testNum++)
+        New-Item -Path $script:testDirPath -ItemType Directory
+        $Global:Error.Clear()
     }
 
-    It 'should checkout that branch'{
-        (Get-GitBranch -RepoRoot $repo -Current).Name | Should Be $branchName
-    }
+    It 'creating a new unique branch' {
+        $repo = GivenRepo
+        Add-GitTestFile -RepoRoot $repo -Path 'file1'
+        Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
+        Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
-    It 'should be pointing at the current HEAD' {
+        $branchName = 'newBranch'
+        Test-GitBranch -RepoRoot $repo -Name $branchName | Should -BeFalse
+        New-GitBranch -RepoRoot $repo -Name $branchName
+
+        Test-GitBranch -RepoRoot $repo -Name $branchName | Should -BeTrue
+
+        (Get-GitBranch -RepoRoot $repo -Current).Name | Should -Be $branchName
+
         $r = Find-GitRepository -Path $repo
         try
         {
-            (Get-GitBranch -RepoRoot $repo -Current).Name | Should Be $r.Head.FriendlyName
+            (Get-GitBranch -RepoRoot $repo -Current).Name | Should -Be $r.Head.FriendlyName
         }
         finally
         {
             $r.Dispose()
         }
-    }
-    
-    Assert-ThereAreNoErrors    
-}
 
-Describe 'New-GitBranch when trying to create an existing branch name' {
-    Clear-Error
-
-    $repo = New-GitTestRepo
-    Add-GitTestFile -RepoRoot $repo -Path 'file1'
-    Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
-
-    $branchName = 'master'
-    Test-GitBranch -RepoRoot $repo -Name $branchName | Should Be $true
-    New-GitBranch -RepoRoot $repo -Name $branchName -WarningVariable warning
-
-    It 'should only throw a warning' {
-        $warning | Should Match 'already exists'
-        Test-GitBranch -RepoRoot $repo -Name $branchName | Should Be $true
+        $Global:Error | Should -BeNullOrEmpty
     }
 
-    Assert-ThereAreNoErrors
-}
+    It 'trying to create an existing branch name' {
+        $repo = GivenRepo
+        Add-GitTestFile -RepoRoot $repo -Path 'file1'
+        Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
+        Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
-Describe 'New-GitBranch when ran with an invalid git repository' {
-    Clear-Error
+        $branchName = 'master'
+        Test-GitBranch -RepoRoot $repo -Name $branchName | Should -BeTrue
+        New-GitBranch -RepoRoot $repo -Name $branchName -WarningVariable warning
 
-    New-GitBranch -RepoRoot 'C:/I/do/not/exist' -Name 'whocares' -ErrorAction SilentlyContinue
+        $warning | Should -Match 'already exists'
+        Test-GitBranch -RepoRoot $repo -Name $branchName | Should -BeTrue
 
-    It 'should throw an error' {
-        $Global:Error.Count | Should Be 1
-        $Global:Error | Should Match 'does not exist'
-    }
-}
-
-Describe 'New-GitBranch when passing a start point that is not head' {
-    Clear-Error
-
-    $repo = New-GitTestRepo
-    Add-GitTestFile -RepoRoot $repo -Path 'file1'
-    Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    $c1 = Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
-
-    Add-GitTestFile -RepoRoot $repo -Path 'file2'
-    Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
-    $c2 = Save-GitCommit -RepoRoot $repo -Message 'file2 commit'
-
-    $branchName = 'newBranch'
-    Test-GitBranch -RepoRoot $repo -Name $branchName | Should Be $false
-    New-GitBranch -RepoRoot $repo -Name $branchName -Revision 'HEAD~1'
-
-    It 'should create the branch' {
-        Test-GitBranch -RepoRoot $repo -Name $branchName | Should Be $true
+        $Global:Error | Should -BeNullOrEmpty
     }
 
-    It 'should checkout that branch'{
-        (Get-GitBranch -RepoRoot $repo -Current).Name | Should Be $branchName
+    It 'ran with an invalid git repository' {
+        New-GitBranch -RepoRoot 'C:/I/do/not/exist' -Name 'whocares' -ErrorAction SilentlyContinue
+
+        $Global:Error.Count | Should -Be 1
+        $Global:Error | Should -Match 'does not exist'
     }
 
-    It 'should be at the starting point'{
-        (Get-GitBranch -RepoRoot $repo -Current).Tip.Sha | Should Be $c1.Sha
+    It 'passing a start point that is not head' {
+        $repo = GivenRepo
+        Add-GitTestFile -RepoRoot $repo -Path 'file1'
+        Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
+        $c1 = Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
+
+        Add-GitTestFile -RepoRoot $repo -Path 'file2'
+        Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file2') -RepoRoot $repo
+        $c2 = Save-GitCommit -RepoRoot $repo -Message 'file2 commit'
+
+        $branchName = 'newBranch'
+        Test-GitBranch -RepoRoot $repo -Name $branchName | Should -BeFalse
+        New-GitBranch -RepoRoot $repo -Name $branchName -Revision 'HEAD~1'
+
+        Test-GitBranch -RepoRoot $repo -Name $branchName | Should -BeTrue
+
+        (Get-GitBranch -RepoRoot $repo -Current).Name | Should -Be $branchName
+
+        (Get-GitBranch -RepoRoot $repo -Current).Tip.Sha | Should -Be $c1.Sha
     }
-}
 
-Describe 'New-GitBranch when passing an invalid start point'{
-    Clear-Error
+    It 'passing an invalid start point'{
+        $repo = GivenRepo
+        Add-GitTestFile -RepoRoot $repo -Path 'file1'
+        Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
+        Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
 
-    $repo = New-GitTestRepo
-    Add-GitTestFile -RepoRoot $repo -Path 'file1'
-    Add-GitItem -Path (Join-Path -Path $repo -ChildPath 'file1') -RepoRoot $repo
-    Save-GitCommit -RepoRoot $repo -Message 'file1 commit'
+        $branchName = 'newBranch'
+        $startPoint = 'IDONOTEXIST'
+        Test-GitBranch -RepoRoot $repo -Name $branchName | Should -BeFalse
+        New-GitBranch -RepoRoot $repo -Name $branchName -Revision $startPoint -ErrorAction SilentlyContinue
 
-    $branchName = 'newBranch'
-    $startPoint = 'IDONOTEXIST'
-    Test-GitBranch -RepoRoot $repo -Name $branchName | Should Be $false
-    New-GitBranch -RepoRoot $repo -Name $branchName -Revision $startPoint -ErrorAction SilentlyContinue
+        $Global:Error[0] | Should -Match 'invalid starting point'
 
-    It 'should throw an error'{
-        $Global:Error[0] | Should Match 'invalid starting point'
-    }
-
-    It 'should not create the branch'{
-        Test-GitBranch -RepoRoot $repo -Name $branchName | Should Be $false
+        Test-GitBranch -RepoRoot $repo -Name $branchName | Should -BeFalse
     }
 }

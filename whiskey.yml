@@ -78,5 +78,15 @@ Build:
   .OnlyBy: BuildServer
 - Exec: git config --global user.email appveyor@example.com
   .OnlyBy: BuildServer
-- Pester4:
-    Script: Tests\*.Tests.ps1
+- Pester:
+    Configuration:
+        Run:
+            Path: Tests\*.Tests.ps1
+            Exit: true
+            Throw: true
+        TestResult:
+            Enabled: true
+            OutputPath: .output\pester.xml
+            TestSuiteName: GitAutomation
+        Output:
+            Verbosity: Detailed
