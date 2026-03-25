@@ -1,5 +1,7 @@
 
 Build:
+- PowerShell: Get-Module -ListAvailable
+  .OnlyBy: BuildServer
 - Version:
     Path: GitAutomation\GitAutomation.psd1
     Prerelease:
@@ -28,6 +30,9 @@ Build:
     - GitAutomation\bin\net8.0\runtimes
 
 - PowerShell: prism install | Format-Table
+  .Verbose: true
+  .Debug: true
+  .InformationAction: Continue
 
 - MergeFile:
     .OnlyBy: BuildServer

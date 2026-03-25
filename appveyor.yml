@@ -40,7 +40,17 @@ for:
   - ps: &init_script |
         $ProgressPreference = 'SilentlyContinue'
         iwr https://raw.githubusercontent.com/webmd-health-services/Prism/main/Scripts/init.ps1 | iex | Format-Table
-  - ps: &build_script .\build.ps1
+  - ps: &build_script |
+      try
+      {
+        .\build.ps1
+      }
+      catch
+      {
+        Get-Module
+        $_ | Format-List * -Force
+        exit 1
+      }
 
 # Build in PowerShell
 - matrix:
