@@ -1,46 +1,91 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-# 
-#     http://www.apache.org/licenses/LICENSE-2.0
-# 
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-#Requires -Version 4
-#Requires -RunAsAdministrator
+#Requires -Version 5.1
 Set-StrictMode -Version 'Latest'
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
-
-$globalSearchPaths = [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global)
-
-function Get-TestRepoPath
-{
-    Join-Path -Path $TestDrive.FullName -ChildPath 'repo'
+BeforeDiscovery {
+    & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 }
 
-function GivenConfiguration
-{
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory,Position=0)]
-        $Name,
-        [Parameter(Mandatory,ParameterSetName='AtScope')]
-        $AtScope,
-        [Parameter(Mandatory,ParameterSetName='InFile')]
-        $InFile
-    )
+BeforeAll {
+    Set-StrictMode -Version 'Latest'
 
-    if( $AtScope )
+    & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
+
+    $script:testDirPath = $null
+    $script:testNum = 0
+    $script:globalSearchPaths =
+        [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global)
+
+    function Get-TestRepoPath
     {
+        Join-Path -Path $script:testDirPath -ChildPath 'repo'
+    }
+
+    function GivenConfiguration
+    {
+        [CmdletBinding()]
+        param(
+            [Parameter(Mandatory,Position=0)]
+            $Name,
+            [Parameter(Mandatory,ParameterSetName='AtScope')]
+            $AtScope,
+            [Parameter(Mandatory,ParameterSetName='InFile')]
+            $InFile
+        )
+
+        if( $AtScope )
+        {
+            Push-Location -Path (Get-TestRepoPath)
+            try
+            {
+                Set-GitConfiguration -Name $Name -Value ([Guid]::NewGuid()) -Scope $AtScope
+            }
+            finally
+            {
+                Pop-Location
+            }
+        }
+
+        if( $InFile )
+        {
+            Set-GitConfiguration -Name $Name `
+                                 -Value ([Guid]::NewGuid()) `
+                                 -Path (Join-Path -Path $script:testDirPath -ChildPath $InFile)
+        }
+    }
+
+    function ThenConfiguration
+    {
+        param(
+            $Name,
+
+            [Switch]
+            $Not,
+
+            [Parameter(Mandatory)]
+            [Switch]
+            $Exists,
+
+            $InFile
+        )
+
+        $optionalParams = @{ }
+        if( $InFile )
+        {
+            $optionalParams['Path'] = Join-Path -Path $script:testDirPath -ChildPath $InFile
+        }
+
         Push-Location -Path (Get-TestRepoPath)
         try
         {
-            Set-GitConfiguration -Name $Name -Value ([Guid]::NewGuid()) -Scope $AtScope
+            if( $Not )
+            {
+                Get-GitConfiguration -Name $name @optionalParams | Should -BeNullOrEmpty
+            }
+            else
+            {
+                Get-GitConfiguration -Name $name @optionalParams | Should -Not -BeNullOrEmpty
+            }
         }
         finally
         {
@@ -48,178 +93,225 @@ function GivenConfiguration
         }
     }
 
-    if( $InFile )
+    function ThenError
     {
-        Set-GitConfiguration -Name $Name -Value ([Guid]::NewGuid()) -Path (Join-Path -Path $TestDrive.FullName -ChildPath $InFile)
-    }
-}
+        param(
+            [Parameter(Mandatory,ParameterSetName='IsEmpty')]
+            [Switch]
+            $IsEmpty,
 
-function Init
-{
-    New-GitRepository -Path (Get-TestRepoPath)
+            [Parameter(Mandatory,ParameterSetName='Matches')]
+            $Matches
+        )
 
-    foreach( $setting in (Get-GitConfiguration | Where-Object { $_.Key -like 'gitautomation.*' }) )
-    {
-        Remove-GitConfiguration -Name $setting.Key -Scope $setting.Level
-    }
-}
-
-function ThenConfiguration
-{
-    param(
-        $Name,
-
-        [Switch]
-        $Not,
-
-        [Parameter(Mandatory)]
-        [Switch]
-        $Exists,
-
-        $InFile
-    )
-
-    $optionalParams = @{ }
-    if( $InFile )
-    {
-        $optionalParams['Path'] = Join-Path -Path $TestDrive.FullName -ChildPath $InFile
-    }
-
-    Push-Location -Path (Get-TestRepoPath)
-    try
-    {
-        if( $Not )
+        if( $IsEmpty )
         {
-            It ('should remove configuration') {
-                Get-GitConfiguration -Name $name @optionalParams | Should -BeNullOrEmpty
+            $Global:Error | Should -BeNullOrEmpty
+        }
+
+        if( $Matches )
+        {
+            $Global:Error | Should -Match $Matches
+        }
+    }
+
+    function WhenRemoving
+    {
+        [CmdletBinding()]
+        param(
+            $Name,
+            $AtScope,
+            $InWorkingDirectory,
+            $InFile
+        )
+
+        if( -not $InWorkingDirectory )
+        {
+            $InWorkingDirectory = Get-TestRepoPath
+        }
+
+        $optionalParams = @{ }
+        if( $AtScope )
+        {
+            $optionalParams['Scope'] = $AtScope
+        }
+
+        if( $InFile )
+        {
+            $optionalParams['Path'] = Join-Path -Path $script:testDirPath -ChildPath $InFile
+        }
+
+        Push-Location -Path $InWorkingDirectory
+        try
+        {
+            Remove-GitConfiguration -Name $Name @optionalParams
+        }
+        finally
+        {
+            Pop-Location
+        }
+    }
+}
+
+AfterAll {
+    [LibGit2Sharp.GlobalSettings]::SetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global, $script:globalSearchPaths)
+}
+
+Describe 'Remove-GitConfiguration' {
+    BeforeEach {
+        $script:testDirPath = Join-Path -Path $TestDrive -ChildPath ($script:testNum++)
+        New-Item -Path $script:testDirPath -ItemType Directory
+
+        New-GitRepository -Path (Get-TestRepoPath)
+
+        foreach( $setting in (Get-GitConfiguration | Where-Object { $_.Key -like 'gitautomation.*' }) )
+        {
+            Remove-GitConfiguration -Name $setting.Key -Scope $setting.Level
+        }
+
+        $Global:Error.Clear()
+    }
+
+    function Test-CfgPermission
+    {
+        param(
+            [LibGit2Sharp.ConfigurationLevel]$Scope
+        )
+
+        $globalScopes = @([LibGit2Sharp.ConfigurationLevel]::ProgramData,[LibGit2Sharp.ConfigurationLevel]::System)
+        if ($scope -notin $globalScopes)
+        {
+            return $true
+        }
+
+        $cfgDirPaths = [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths($Scope)
+        if (-not $cfgDirPaths)
+        {
+            $msg = "[$($PSCommandPath | Split-Path -Leaf)]  Skipping tests for ${Scope} scope because there are no " +
+                   'configured directories at that scope on this system.'
+            Write-Warning $msg
+            return $false
+        }
+
+        foreach ($cfgDirPath in $cfgDirPaths)
+        {
+            $testFilePath = Join-Path -Path $cfgDirPath -ChildPath '.gitautomation'
+
+            $canModify = $false
+            try
+            {
+                New-Item -Path $testFilePath -ItemType File -Force -ErrorAction Ignore
+            }
+            finally
+            {
+                if (Test-Path -Path $testFilePath)
+                {
+                    $canModify = $true
+                    Remove-Item -Path $testFilePath -Force -ErrorAction Ignore
+                }
+            }
+
+            if ($canModify)
+            {
+                break
+            }
+        }
+
+        if (-not $canModify)
+        {
+            $msg = "[$($PSCommandPath | Split-Path -Leaf)]  Skipping tests for ${Scope} scope because you don't have " +
+                   "permission to write to config files in ""$($testFilePath | Split-Path -Parent)"". To run these " +
+                   'tests, run PowerShell as administrator.'
+            Write-Warning $msg
+        }
+
+        return $canModify
+    }
+
+    $cfg = [LibGit2Sharp.Configuration]::BuildFrom([NullString]::Value)
+
+    $scopes = [Enum]::GetValues([LibGit2Sharp.ConfigurationLevel])
+    Context "<_> scope" -ForEach $scopes {
+
+        $scope = $_
+        $hasCfgAtScope = $cfg.HasConfig($scope)
+        $hasCfgDir = $false
+        try
+        {
+            if ([LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths($scope))
+            {
+                $hasCfgDir = $true
+            }
+        }
+        catch
+        {
+        }
+        $canWriteCfg = Test-CfgPermission -Scope $scope
+        $skip = -not $canWriteCfg
+
+        if ($hasCfgAtScope -or $Scope -eq [LibGit2Sharp.ConfigurationLevel]::Local)
+        {
+            It 'removes' -ForEach $scope -Skip:$skip {
+                GivenConfiguration 'gitautomation.removegitconfiguration' -AtScope $_
+                WhenRemoving 'gitautomation.removegitconfiguration' -AtScope $_
+                ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists
+            }
+
+            It 'handles missing setting' -ForEach $_ {
+                WhenRemoving 'gitautomation.removegitconfiguration' -AtScope $_
+                ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists
+                ThenError -IsEmpty
+            }
+        }
+        elseif ($hasCfgDir)
+        {
+            It 'writes an error' -ForEach $scope {
+                { WhenRemoving 'gitautomation.removegitconfiguration' -AtScope $_ } |
+                    Should -Throw "*No ${_} configuration file*"
+                ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists
+            }
+        }
+        elseif ($scope -eq [LibGit2Sharp.ConfigurationLevel]::Worktree)
+        {
+            It 'fails' -ForEach $scope {
+                { WhenRemoving 'gitautomation.removegitconfiguration' -AtScope $_ } |
+                    Should -Throw "*invalid config path selector*"
+                ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists
             }
         }
         else
         {
-            It ('should not remove configuration') {
-                Get-GitConfiguration -Name $name @optionalParams | Should -Not -BeNullOrEmpty
+            It 'writes an error' -ForEach $scope {
+                WhenRemoving 'gitautomation.removegitconfiguration' -AtScope $_ -ErrorAction SilentlyContinue
+                ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists
+                ThenError -Matches "\b${_}\b.*no directories are configured"
             }
         }
     }
-    finally
-    {
-        Pop-Location
-    }
-}
 
-function ThenError
-{
-    param(
-        [Parameter(Mandatory,ParameterSetName='IsEmpty')]
-        [Switch]
-        $IsEmpty,
-
-        [Parameter(Mandatory,ParameterSetName='Matches')]
-        $Matches
-    )
-
-    if( $IsEmpty )
-    {
-        It ('should not write an error') {
-            $Global:Error | Should -BeNullOrEmpty
-        }
+    It 'removes from lower scope but set at higher scope' {
+        GivenConfiguration 'gitautomation.removegitconfiguration' -AtScope Global
+        WhenRemoving 'gitautomation.removegitconfiguration' -AtScope Local
+        ThenConfiguration 'gitautomation.removegitconfiguration' -Exists
     }
 
-    if( $Matches )
-    {
-        It ('should write an error') {
-            $Global:Error | Should -Match $Matches
-        }
-    }
-}
-
-function WhenRemoving
-{
-    [CmdletBinding()]
-    param(
-        $Name,
-        $AtScope,
-        $InWorkingDirectory,
-        $InFile
-    )
-
-    $Global:Error.Clear()
-
-    if( -not $InWorkingDirectory )
-    {
-        $InWorkingDirectory = Get-TestRepoPath
+    It 'removes from local scope but there is no local repository' {
+        WhenRemoving 'gitautomation.removegitconfiguration' `
+                     -AtScope Local `
+                     -InWorkingDirectory $script:testDirPath `
+                     -ErrorAction SilentlyContinue
+        ThenError -Matches 'there\ is\ no\ Git\ repository'
     }
 
-    $optionalParams = @{ }
-    if( $AtScope )
-    {
-        $optionalParams['Scope'] = $AtScope
-    }
-
-    if( $InFile )
-    {
-        $optionalParams['Path'] = Join-Path -Path $TestDrive.FullName -ChildPath $InFile
-    }
-
-    Push-Location -Path $InWorkingDirectory
-    try
-    {
-        Remove-GitConfiguration -Name $Name @optionalParams
-    }
-    finally
-    {
-        Pop-Location
-    }
-}
-
-foreach( $level in [Enum]::GetValues([LibGit2Sharp.ConfigurationLevel]) )
-{
-    if( $level -eq [LibGit2Sharp.ConfigurationLevel]::Xdg -and -not ([LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths($level)) )
-    {
-        Write-Warning -Message ('Remove-GitConfiguration: unable to test "{0}" scope: looks like there are no XDG-level configuration files so LibGit2Sharp won''t load them. Create these files and reload your PowerShell session.' -f $level)
-        continue
-    }
-
-    Describe ('Remove-GitConfiguration.when removing from "{0}" scope' -f $level) {
-        Init
-        GivenConfiguration 'gitautomation.removegitconfiguration' -AtScope $level
-        WhenRemoving 'gitautomation.removegitconfiguration' -AtScope $level
+    It 'removes at default scope' {
+        GivenConfiguration 'gitautomation.removegitconfiguration' -AtScope Local
+        WhenRemoving 'gitautomation.removegitconfiguration'
         ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists
     }
 
-    Describe ('Remove-GitConfiguration.when removing from "{0}" scope and setting does not exist' -f $level) {
-        Init
-        WhenRemoving 'gitautomation.removegitconfiguration' -AtScope $level
-        ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists
-        ThenError -IsEmpty
+    It 'removes from a specific file' {
+        GivenConfiguration 'gitautomation.removegitconfiguration' -InFile 'mygitconfig'
+        WhenRemoving 'gitautomation.removegitconfiguration' -InFile 'mygitconfig'
+        ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists -InFile 'mygitconfig'
     }
 }
-
-Describe ('Remove-GitConfiguration.when removing from lower scope but set at higher scope') {
-    Init
-    GivenConfiguration 'gitautomation.removegitconfiguration' -AtScope Global
-    WhenRemoving 'gitautomation.removegitconfiguration' -AtScope Local
-    ThenConfiguration 'gitautomation.removegitconfiguration' -Exists
-}
-
-Describe ('Remove-GitConfiguration.when removing from local scope but there is no local repository') {
-    Init
-    WhenRemoving 'gitautomation.removegitconfiguration' -AtScope Local -InWorkingDirectory $TestDrive.FullName -ErrorAction SilentlyContinue
-    ThenError -Matches 'there\ is\ no\ Git\ repository'
-}
-
-Describe ('Remove-GitConfiguration.when removing at default scope') {
-    Init
-    GivenConfiguration 'gitautomation.removegitconfiguration' -AtScope Local
-    WhenRemoving 'gitautomation.removegitconfiguration'
-    ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists
-}
-
-Describe ('Remove-GitConfiguration.when removing from a specific file') {
-    Init
-    GivenConfiguration 'gitautomation.removegitconfiguration' -InFile 'mygitconfig'
-    WhenRemoving 'gitautomation.removegitconfiguration' -InFile 'mygitconfig'
-    ThenConfiguration 'gitautomation.removegitconfiguration' -Not -Exists -InFile 'mygitconfig'
-}
-
-[LibGit2Sharp.GlobalSettings]::SetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global, $globalSearchPaths)

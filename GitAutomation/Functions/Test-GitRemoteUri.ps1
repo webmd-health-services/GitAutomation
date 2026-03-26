@@ -11,7 +11,7 @@ function Test-GitRemoteUri
     This function is similar to `git ls-remote` but returns a bool based on if there is any output
 
     .EXAMPLE
-    Test-GitRemoteUri -Uri 'ssh://git@stash.portal.webmd.com:7999/whs/blah.git'
+    Test-GitRemoteUri -Uri 'ssh://git@github.com:webmd-health-services/GitAutomation.git'
 
     Demonstrates how to check if there is a repo at the specified uri
     #>

@@ -1,295 +1,322 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-# 
-#     http://www.apache.org/licenses/LICENSE-2.0
-# 
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-#Requires -Version 4
-#Requires -RunAsAdministrator
+#Requires -Version 5.1
 Set-StrictMode -Version 'Latest'
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
-
-$globalSearchPaths = [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global)
-$result = $null
-
-function GivenConfiguration
-{
-    param(
-        [Parameter(Mandatory,Position=0)]
-        $Named,
-        $HasValue,
-        [Parameter(Mandatory,ParameterSetName='AtScope')]
-        $AtScope,
-        [Parameter(Mandatory,ParameterSetName='InFile')]
-        $InFile
-    )
-
-
-    $config = [LibGit2Sharp.Configuration]::BuildFrom([nullstring]::Value,[nullstring]::Value)
-    $config.Unset($Named, [LibGit2Sharp.ConfigurationLevel]::Global)
-    $config.Dispose()
-    
-    if( $AtScope )
-    {
-        Set-GitConfiguration -Name $Named -Value $HasValue -Scope $AtScope
-    }
-
-    if( $InFile )
-    {
-        Set-GitConfiguration -Name $Named -Value $HasValue -Path (Join-Path -Path $TestDrive.FullName -ChildPath $InFile)
-    }        
+BeforeDiscovery {
+    & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 }
 
-function GivenFile
-{
-    param(
-        $Named,
-        $Content
-    )
+BeforeAll {
+    Set-StrictMode -Version 'Latest'
 
-    $Content | Set-Content -Path (Join-Path -Path $TestDrive.FullName -ChildPath $Named)
-}
+    & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
-function GivenRepository
-{
-    param(
-        $At
-    )
-
-    New-GitRepository -Path (Join-Path -Path $TestDrive.FullName -ChildPath $At)
-}
-
-function Init
-{
+    $script:testDirPath = $null
+    $script:testNum = 0
+    $script:globalSearchPaths =
+        [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global)
     $script:result = $null
-}
 
-function ThenFile
-{
-    param(
-        $Named,
-
-        [Parameter(Mandatory)]
-        [Switch]
-        $Exists
-    )
-
-    It ('should create configuration file') {
-        Join-Path -Path $TestDrive.FullName -ChildPath $Named | Should -Exist
-    }
-}
-
-function ThenValue
-{
-    param(
-        [Parameter(Mandatory,ParameterSetName='Is')]
-        $Is,
-
-        [Parameter(Mandatory,ParameterSetName='IsNull')]
-        [Switch]
-        $IsNull,
-
-        [Parameter(Mandatory,ParameterSetName='Contains')]
-        $Contains,
-        
-        [Parameter(Mandatory,ParameterSetName='Contains')]
-        $WithValue
-        
-    )
-
-    if( $IsNull )
+    function GivenConfiguration
     {
-        It ('should return nothing') {
-            $result | Should -BeNullOrEmpty
+        param(
+            [Parameter(Mandatory,Position=0)]
+            $Named,
+            $HasValue,
+            [Parameter(Mandatory,ParameterSetName='AtScope')]
+            $AtScope,
+            [Parameter(Mandatory,ParameterSetName='InFile')]
+            $InFile
+        )
+
+
+        $config = [LibGit2Sharp.Configuration]::BuildFrom([nullstring]::Value,[nullstring]::Value)
+        $config.Unset($Named, [LibGit2Sharp.ConfigurationLevel]::Global)
+        $config.Dispose()
+
+        if( $AtScope )
+        {
+            Set-GitConfiguration -Name $Named -Value $HasValue -Scope $AtScope
+        }
+
+        if( $InFile )
+        {
+            Set-GitConfiguration -Name $Named -Value $HasValue -Path (Join-Path -Path $script:testDirPath -ChildPath $InFile)
         }
     }
 
-    if( $Is )
+    function GivenFile
     {
-        It ('should return the expected value') {
-            $result | Should -Not -BeNullOrEmpty
-            $result.Value | Should -Be $Is
-        }
+        param(
+            $Named,
+            $Content
+        )
+
+        $Content | Set-Content -Path (Join-Path -Path $script:testDirPath -ChildPath $Named)
     }
 
-    if( $Contains )
+    function GivenRepository
     {
-        It ('should return multiple results') {
-            $result | 
+        param(
+            $At
+        )
+
+        New-GitRepository -Path (Join-Path -Path $script:testDirPath -ChildPath $At)
+    }
+
+    function ThenFile
+    {
+        param(
+            $Named,
+
+            [Parameter(Mandatory)]
+            [Switch]
+            $Exists
+        )
+
+        Join-Path -Path $script:testDirPath -ChildPath $Named | Should -Exist
+    }
+
+    function ThenValue
+    {
+        param(
+            [Parameter(Mandatory,ParameterSetName='Is')]
+            $Is,
+
+            [Parameter(Mandatory,ParameterSetName='IsNull')]
+            [Switch]
+            $IsNull,
+
+            [Parameter(Mandatory,ParameterSetName='Contains')]
+            $Contains,
+
+            [Parameter(Mandatory,ParameterSetName='Contains')]
+            $WithValue
+
+        )
+
+        if( $IsNull )
+        {
+            $script:result | Should -BeNullOrEmpty
+        }
+
+        if( $Is )
+        {
+            $script:result | Should -Not -BeNullOrEmpty
+            $script:result.Value | Should -Be $Is
+        }
+
+        if( $Contains )
+        {
+            $script:result |
                 ForEach-Object { $_ } |
-                Where-Object { $_.Key -eq $Contains -and $_.Value -eq $WithValue } | 
+                Where-Object { $_.Key -eq $Contains -and $_.Value -eq $WithValue } |
                 Should -Not -BeNullOrEmpty
         }
     }
-}
 
-function WhenGettingConfiguration
-{
-    [CmdletBinding(DefaultParameterSetName='Default')]
-    param(
-        [Parameter(Position=0)]
-        $Named,
-
-        [Parameter(Mandatory,ParameterSetName='FromFile')]
-        $FromFile,
-
-        [Parameter(Mandatory,ParameterSetName='InRepo')]
-        $InRepo,
-
-        [Parameter(Mandatory,ParameterSetName='InWorkingDirectory')]
-        $InWorkingDirectory,
-
-        [Parameter()]
-        $AtScope
-    )
-
-    $optionalParams = @{ }
-
-    if( $FromFile )
+    function WhenGettingConfiguration
     {
-        $optionalParams['Path'] = Join-Path -Path $TestDrive.FullName -ChildPath $FromFile
-    }
+        [CmdletBinding(DefaultParameterSetName='Default')]
+        param(
+            [Parameter(Position=0)]
+            $Named,
 
-    if( $InRepo )
-    {
-        $optionalParams['RepoRoot'] = Join-Path -Path $TestDrive.FullName -ChildPath $InRepo
-    }
+            [Parameter(Mandatory,ParameterSetName='FromFile')]
+            $FromFile,
 
-    if( $AtScope )
-    {
-        $optionalParams['Scope'] = $AtScope
-    }
+            [Parameter(Mandatory,ParameterSetName='InRepo')]
+            $InRepo,
 
-    if( $InWorkingDirectory )
-    {
-        Push-Location -Path (Join-Path -Path $TestDrive.FullName -ChildPath $InWorkingDirectory -Resolve)
-    }
+            [Parameter(Mandatory,ParameterSetName='InWorkingDirectory')]
+            $InWorkingDirectory,
 
-    if( $Named )
-    {
-        $optionalParams['Name'] = $Named
-    }
+            [Parameter()]
+            $AtScope
+        )
 
-    try
-    {
-        $script:result = Get-GitConfiguration @optionalParams
-    }
-    finally
-    {
+        $optionalParams = @{ }
+
+        if( $FromFile )
+        {
+            $optionalParams['Path'] = Join-Path -Path $script:testDirPath -ChildPath $FromFile
+        }
+
+        if( $InRepo )
+        {
+            $optionalParams['RepoRoot'] = Join-Path -Path $script:testDirPath -ChildPath $InRepo
+        }
+
+        if( $AtScope )
+        {
+            $optionalParams['Scope'] = $AtScope
+        }
+
         if( $InWorkingDirectory )
         {
-            Pop-Location
+            Push-Location -Path (Join-Path -Path $script:testDirPath -ChildPath $InWorkingDirectory -Resolve)
+        }
+
+        if( $Named )
+        {
+            $optionalParams['Name'] = $Named
+        }
+
+        try
+        {
+            $script:result = Get-GitConfiguration @optionalParams
+        }
+        finally
+        {
+            if( $InWorkingDirectory )
+            {
+                Pop-Location
+            }
         }
     }
 }
 
-Describe 'Get-GitConfiguration.when getting configuration from a specific file' {
-    Init
-    GivenFile 'config' @'
-[user]
-    name = Fubar
-    email = fubar@example.com
-'@
-    WhenGettingConfiguration 'user.name' -FromFile 'config'
-    ThenValue -Is 'Fubar'
-    WhenGettingConfiguration 'user.email' -FromFile 'config'
-    ThenValue -Is 'fubar@example.com'
+AfterAll {
+    [LibGit2Sharp.GlobalSettings]::SetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global, $globalSearchPaths)
 }
 
-Describe 'Get-GitConfiguration.when getting configuration from a file that doesn''t exist' {
-    Init
-    WhenGettingConfiguration 'user.name' -FromFile 'config'
-    ThenValue -IsNull
-    ThenFile 'config' -Exists
-}
-
-Describe 'Get-GitConfiguration.when getting repository configuration' {
-    Init
-    GivenRepository 'repo'
-    GivenFile 'repo\.git\config' @'
-[fubar]
-    snafu = fizzbuzz
-'@
-    WhenGettingConfiguration 'fubar.snafu' -InRepo 'repo'
-    ThenValue -Is 'fizzbuzz'
-}
-
-Describe 'Get-GitConfiguration.when getting repository configuration when in a repository' {
-    Init
-    GivenRepository 'repo'
-    GivenFile 'repo\.git\config' @'
-[fubar]
-    snafu = fizzbuzz
-'@
-    WhenGettingConfiguration 'fubar.snafu' -InWorkingDirectory 'repo'
-    ThenValue -Is 'fizzbuzz'
-}
-
-Describe 'Get-GitConfiguraiton.when getting global configuration' {
-    $value = [Guid]::NewGuid()
-    Init
-    GivenConfiguration 'fubar.snafu' -HasValue $value -AtScope Global
-    WhenGettingConfiguration 'fubar.snafu'
-    ThenValue -Is $value
-}
-
-Describe 'Get-GitConfiguraiton.when getting system configuration from inside a repository' {
-    $value = [Guid]::NewGuid()
-    Init
-    GivenRepository 'repo'
-    GivenConfiguration 'fubar.snafu' -HasValue $value -AtScope System
-    WhenGettingConfiguration 'fubar.snafu' -InWorkingDirectory 'repo'
-    ThenValue -Is $value
-}
-
-Describe 'Get-GitConfiguraiton.when getting system configuration from outside a repository' {
-    $value = [Guid]::NewGuid()
-    Init
-    GivenConfiguration 'fubar.snafu' -HasValue $value -AtScope System
-    Push-Location $TestDrive.FullName
-    try
-    {
-        WhenGettingConfiguration 'fubar.snafu' 
+Describe 'Get-GitConfiguration' {
+    BeforeEach {
+        $script:testDirPath = Join-Path -Path $TestDrive -ChildPath ($script:testNum++)
+        New-Item -Path $script:testDirPath -ItemType Directory
+        $script:result = $null
     }
-    finally
-    {
-        Pop-Location
+
+    It 'gets configuration from a specific file' {
+        GivenFile 'config' @'
+    [user]
+        name = Fubar
+        email = fubar@example.com
+'@
+        WhenGettingConfiguration 'user.name' -FromFile 'config'
+        ThenValue -Is 'Fubar'
+        WhenGettingConfiguration 'user.email' -FromFile 'config'
+        ThenValue -Is 'fubar@example.com'
     }
-    ThenValue -Is $value
+
+    It 'gets configuration from a file that doesn''t exist' {
+        WhenGettingConfiguration 'user.name' -FromFile 'config'
+        ThenValue -IsNull
+        ThenFile 'config' -Exists
+    }
+
+    It 'gets repository configuration' {
+        GivenRepository 'repo'
+        GivenFile 'repo\.git\config' @'
+    [fubar]
+        snafu = fizzbuzz
+'@
+        WhenGettingConfiguration 'fubar.snafu' -InRepo 'repo'
+        ThenValue -Is 'fizzbuzz'
+    }
+
+    It 'gets repository configuration when in a repository' {
+        GivenRepository 'repo'
+        GivenFile 'repo\.git\config' @'
+    [fubar]
+        snafu = fizzbuzz
+'@
+        WhenGettingConfiguration 'fubar.snafu' -InWorkingDirectory 'repo'
+        ThenValue -Is 'fizzbuzz'
+    }
+
+    It 'gets global configuration' {
+        $value = [Guid]::NewGuid()
+        GivenConfiguration 'fubar.snafu' -HasValue $value -AtScope Global
+        WhenGettingConfiguration 'fubar.snafu'
+        ThenValue -Is $value
+    }
+
+    $cfg = [LibGit2Sharp.Configuration]::BuildFrom([NullString]::Value)
+
+    $hasSystemCfg = $cfg.HasConfig([LibGit2Sharp.ConfigurationLevel]::System)
+    $canModifySystemCfg = $false
+
+    if ($hasSystemCfg)
+    {
+        foreach ($cfgDirPath in [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::System))
+        {
+            $testFilePath = Join-Path -Path $cfgDirPath -ChildPath '.gitautomation'
+
+            try
+            {
+                New-Item -Path $testFilePath -ItemType File -Force -ErrorAction Ignore
+            }
+            finally
+            {
+                if (Test-Path -Path $testFilePath)
+                {
+                    $canModifySystemCfg = $true
+                    Remove-Item -Path $testFilePath -Force -ErrorAction Ignore
+                }
+            }
+
+            if ($canModifySystemCfg)
+            {
+                break
+            }
+        }
+
+        if (-not $canModifySystemCfg)
+        {
+            $msg = "[$($PSCommandPath | Split-Path -Leaf)]  Skipping tests for System scope because you don't have " +
+                    "permission to write to config files in ""$($testFilePath | Split-Path -Parent)"". To run these " +
+                    'tests, run PowerShell as administrator.'
+            Write-Warning $msg
+        }
+    }
+
+    $skipSystemCfgTest = -not $hasSystemCfg -or -not $canModifySystemCfg
+
+    It 'gets system configuration from inside a repository' -Skip:$skipSystemCfgTest {
+        $value = [Guid]::NewGuid()
+        GivenRepository 'repo'
+        GivenConfiguration 'fubar.snafu' -HasValue $value -AtScope System
+        WhenGettingConfiguration 'fubar.snafu' -InWorkingDirectory 'repo'
+        ThenValue -Is $value
+    }
+
+    It 'gets system configuration from outside a repository' -Skip:$skipSystemCfgTest {
+        $value = [Guid]::NewGuid()
+        GivenConfiguration 'fubar.snafu' -HasValue $value -AtScope System
+        Push-Location $script:testDirPath
+        try
+        {
+            WhenGettingConfiguration 'fubar.snafu'
+        }
+        finally
+        {
+            Pop-Location
+        }
+        ThenValue -Is $value
+    }
+
+    It 'gets all configuration in a specific file' {
+        $value1 = [Guid]::NewGuid()
+        $value2 = [guid]::NewGuid()
+        GivenConfiguration -Named 'fubar.value1' -HasValue $value1 -InFile 'config'
+        GivenConfiguration -Named 'fubar.value2' -HasValue $value2 -InFile 'config'
+        WhenGettingConfiguration -FromFile 'config'
+        ThenValue -Contains 'fubar.value1' -WithValue $value1
+        ThenValue -Contains 'fubar.value2' -WithValue $value2
+    }
+
+    It 'gets all configuration in a specific file' -Skip:$skipSystemCfgTest {
+        $local = [Guid]::NewGuid()
+        $global = [Guid]::NewGuid()
+        $system = [Guid]::NewGuid()
+        GivenRepository 'repo'
+        GivenConfiguration -Named 'gitautomation.local' -HasValue $local -InFile 'repo\.git\config'
+        GivenConfiguration -Named 'gitautomation.local' -HasValue $system -AtScope System
+        GivenConfiguration -Named 'gitautomation.local' -HasValue $global -AtScope Global
+        WhenGettingConfiguration -InRepo 'repo'
+        ThenValue -Contains 'gitautomation.local' -WithValue $local
+        WhenGettingConfiguration -InWorkingDirectory '.'
+        ThenValue -Contains 'gitautomation.local' -WithValue $global
+    }
 }
-
-Describe 'Get-GitConfiguration.when getting all configuration in a specific file' {
-    $value1 = [Guid]::NewGuid()
-    $value2 = [guid]::NewGuid()
-    Init
-    GivenConfiguration -Named 'fubar.value1' -HasValue $value1 -InFile 'config'
-    GivenConfiguration -Named 'fubar.value2' -HasValue $value2 -InFile 'config'
-    WhenGettingConfiguration -FromFile 'config'
-    ThenValue -Contains 'fubar.value1' -WithValue $value1
-    ThenValue -Contains 'fubar.value2' -WithValue $value2
-}
-
-
-Describe 'Get-GitConfiguration.when getting all configuration in a specific file' {
-    $local = [Guid]::NewGuid()
-    $global = [Guid]::NewGuid()
-    $system = [Guid]::NewGuid()
-    Init
-    GivenRepository 'repo'
-    GivenConfiguration -Named 'gitautomation.local' -HasValue $local -InFile 'repo\.git\config'
-    GivenConfiguration -Named 'gitautomation.local' -HasValue $system -AtScope System
-    GivenConfiguration -Named 'gitautomation.local' -HasValue $global -AtScope Global
-    WhenGettingConfiguration -InRepo 'repo'
-    ThenValue -Contains 'gitautomation.local' -WithValue $local
-    WhenGettingConfiguration -InWorkingDirectory '.'
-    ThenValue -Contains 'gitautomation.local' -WithValue $global
-}
-
-[LibGit2Sharp.GlobalSettings]::SetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global, $globalSearchPaths)

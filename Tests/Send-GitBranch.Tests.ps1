@@ -1,194 +1,166 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-# 
-#     http://www.apache.org/licenses/LICENSE-2.0
-# 
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
+#Requires -Version 5.1
+Set-StrictMode -Version 'Latest'
 
-$serverWorkingDirectory = $null
-$serverBareDirectory = $null
-$clientDirectory = $null
-[Git.Automation.CommitInfo]$lastCommit = $null
-[Git.Automation.SendBranchResult]$result = $null
+BeforeAll {
+    Set-StrictMode -Version 'Latest'
 
-function GivenBranch
-{
-    param(
-        $BranchName
-    )
+    & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
-    New-GitBranch -RepoRoot $clientDirectory -Name $BranchName
-}
+    $script:testDirPath = $null
+    $script:testNum = 0
+    $script:serverWorkingDirectory = $null
+    $script:serverBareDirectory = $null
+    $script:clientDirectory = $null
+    [Git.Automation.CommitInfo]$script:lastCommit = $null
+    [Git.Automation.SendBranchResult]$script:result = $null
 
-function GivenCheckedOut
-{
-    param(
-        $Revision
-    )
-
-    Update-GitRepository -RepoRoot $clientDirectory -Revision $Revision
-}
-
-function GivenConflicts
-{
-    foreach( $dir in @( $serverWorkingDirectory, $clientDirectory ) )
+    function GivenBranch
     {
-        $filePath = Join-Path -Path $dir -ChildPath 'first'
-        [Guid]::NewGuid() | Set-Content -Path $filePath
-        Add-GitItem -Path $filePath -RepoRoot $dir
-        $script:lastCommit = Save-GitCommit -RepoRoot $dir -Message 'conflict first'
+        param(
+            $BranchName
+        )
+
+        New-GitBranch -RepoRoot $script:clientDirectory -Name $BranchName
     }
 
-    Send-GitCommit -RepoRoot $serverWorkingDirectory
-}
-
-function GivenNewCommitIn
-{
-    param(
-        $Directory,
-        [Switch]
-        $AndPushed
-    )
-
-    Push-Location -Path $Directory
-    try
+    function GivenCheckedOut
     {
-        $filePath = [IO.Path]::GetRandomFileName()
-        New-Item -Path $filePath -ItemType 'File'
-        Add-GitItem -Path $filePath
-        $script:lastCommit = Save-GitCommit -Message $filePath
+        param(
+            $Revision
+        )
 
-        if( $AndPushed )
+        Update-GitRepository -RepoRoot $script:clientDirectory -Revision $Revision
+    }
+
+    function GivenConflicts
+    {
+        foreach( $dir in @( $script:serverWorkingDirectory, $script:clientDirectory ) )
         {
-            Send-GitCommit
+            $filePath = Join-Path -Path $dir -ChildPath 'first'
+            [Guid]::NewGuid() | Set-Content -Path $filePath
+            Add-GitItem -Path $filePath -RepoRoot $dir
+            $script:lastCommit = Save-GitCommit -RepoRoot $dir -Message 'conflict first'
         }
+
+        Send-GitCommit -RepoRoot $script:serverWorkingDirectory
     }
-    finally
+
+    function GivenNewCommitIn
     {
-        Pop-Location
-    }
-}
+        param(
+            $Directory,
+            [Switch]
+            $AndPushed
+        )
 
-function GivenNoUpstreamBranchFor
-{
-    param(
-        $BranchName
-    )
-
-    $repo = Get-GitRepository -RepoRoot $clientDirectory
-    try
-    {
-        $branch = $repo.Branches | Where-Object { $_.FriendlyName -eq $BranchName }
-        $repo.Branches.Update($branch, {
-            param(
-                [LibGit2Sharp.BranchUpdater]
-                $Updater
-            )
-
-            $Updater.TrackedBranch = ''
-            $Updater.Remote = ''
-            $Updater.UpstreamBranch = ''
-        })
-    }
-    finally
-    {
-        $repo.Dispose()
-    }
-}
-
-function Init
-{
-    Clear-Error
-
-    $script:serverBareDirectory = Join-Path -Path $TestDrive.FullName -ChildPath 'Server'
-    New-GitRepository -Path $serverBareDirectory -Bare
-
-    $script:serverWorkingDirectory = Join-Path -Path $TestDrive.FullName -ChildPath 'Server.Working'
-    Copy-GitRepository -Source $serverBareDirectory -DestinationPath $serverWorkingDirectory
-
-    Push-Location -Path $serverWorkingDirectory
-    try
-    {
-        '' | Set-Content -Path 'master'
-        Add-GitItem 'master'
-        $script:lastCommit = Save-GitCommit -Message 'first'
-        Send-GitCommit
-    }
-    finally
-    {
-        Pop-Location
-    }
-
-    $script:clientDirectory = Join-Path -Path $TestDrive.FullName -ChildPath 'Client'
-    Copy-GitRepository -Source $serverBareDirectory -DestinationPath $clientDirectory
-}
-
-function ThenErrorIs
-{
-    param(
-        $Pattern
-    )
-
-    It ('should write an error') {
-        $Global:Error | Should -Match $Pattern
-    }
-}
-
-function ThenHeadIsLastCommit
-{
-    param(
-        $BranchName = 'master'
-    )
-
-    $repo = Get-GitRepository -RepoRoot $clientDirectory
-    try
-    {
-        It ('should not create new commit') {
-            $repo.Branches[$BranchName].Tip.Sha | Should -Be $lastCommit.Sha
-        }
-    }
-    finally
-    {
-        $repo.Dispose()
-    }
-}
-
-function ThenHeadIsNewCommit
-{
-    $repo = Get-GitRepository -RepoRoot $clientDirectory
-    try
-    {
-        It ('should create new commit') {
-            $head = $repo.Branches['master'].Tip
-            $head.Sha | Should -Not -Be $lastCommit.Sha
-            $head.Parents | Where-Object { $_.Sha -eq $lastCommit.Sha } | Should -Not -BeNullOrEmpty
-        }
-    }
-    finally
-    {
-        $repo.Dispose()
-    }
-}
-
-function ThenHeadsDifferent
-{
-    param(
-        $BranchName = 'master'
-    )
-
-    It ('should not push changes to remote repository') {
-        $serverRepo = Get-GitRepository $serverBareDirectory
-        $clientRepo = Get-GitRepository $clientDirectory
+        Push-Location -Path $Directory
         try
         {
-            $serverRepo.Branches[$BranchName].Tip.Sha | Should -Not -Be $clientRepo.Branches[$BranchName].Tip.Sha
+            $filePath = [IO.Path]::GetRandomFileName()
+            New-Item -Path $filePath -ItemType 'File'
+            Add-GitItem -Path $filePath
+            $script:lastCommit = Save-GitCommit -Message $filePath
+
+            if( $AndPushed )
+            {
+                Send-GitCommit
+            }
+        }
+        finally
+        {
+            Pop-Location
+        }
+    }
+
+    function GivenNoUpstreamBranchFor
+    {
+        param(
+            $BranchName
+        )
+
+        $repo = Get-GitRepository -RepoRoot $script:clientDirectory
+        try
+        {
+            $branch = $repo.Branches | Where-Object { $_.FriendlyName -eq $BranchName }
+            $repo.Branches.Update($branch, {
+                param(
+                    [LibGit2Sharp.BranchUpdater]
+                    $Updater
+                )
+
+                $Updater.TrackedBranch = ''
+                $Updater.Remote = ''
+                $Updater.UpstreamBranch = ''
+            })
+        }
+        finally
+        {
+            $repo.Dispose()
+        }
+    }
+
+    function ThenErrorIs
+    {
+        param(
+            $Pattern
+        )
+
+        $Global:Error | Should -Match $Pattern
+    }
+
+    function ThenHeadIsLastCommit
+    {
+        param(
+            $BranchName = 'master'
+        )
+
+        $repo = Get-GitRepository -RepoRoot $script:clientDirectory
+        try
+        {
+            $repo.Branches[$BranchName].Tip.Sha | Should -Be $script:lastCommit.Sha
+        }
+        finally
+        {
+            $repo.Dispose()
+        }
+    }
+
+    function ThenHeadIsNewCommit
+    {
+        $repo = Get-GitRepository -RepoRoot $script:clientDirectory
+        try
+        {
+            $head = $repo.Branches['master'].Tip
+            $head.Sha | Should -Not -Be $script:lastCommit.Sha
+            $head.Parents | Where-Object { $_.Sha -eq $script:lastCommit.Sha } | Should -Not -BeNullOrEmpty
+        }
+        finally
+        {
+            $repo.Dispose()
+        }
+    }
+
+    function ThenHeadsDifferent
+    {
+        param(
+            $BranchName = 'master'
+        )
+
+        $serverRepo = Get-GitRepository $script:serverBareDirectory
+        $clientRepo = Get-GitRepository $script:clientDirectory
+        try
+        {
+            $serverBranchCommit = $serverRepo.Branches[$BranchName]
+            $clientBranchCommit = $clientRepo.Branches[$BranchName]
+            if ($serverBranchCommit)
+            {
+                $serverBranchCommit.Tip.Sha | Should -Not -Be $clientBranchCommit.Tip.Sha
+            }
+            else
+            {
+                $null -eq $serverBranchCommit -and $null -eq $clientBranchCommit | Should -BeFalse
+            }
         }
         finally
         {
@@ -196,17 +168,15 @@ function ThenHeadsDifferent
             $serverRepo.Dispose()
         }
     }
-}
 
-function ThenHeadsSame
-{
-    param(
-        $BranchName = 'master'
-    )
+    function ThenHeadsSame
+    {
+        param(
+            $BranchName = 'master'
+        )
 
-    It ('should push changes to remote repository') {
-        $serverRepo = Get-GitRepository $serverBareDirectory
-        $clientRepo = Get-GitRepository $clientDirectory
+        $serverRepo = Get-GitRepository $script:serverBareDirectory
+        $clientRepo = Get-GitRepository $script:clientDirectory
         try
         {
             $serverRepo.Branches[$BranchName].Tip.Sha | Should -Be $clientRepo.Branches[$BranchName].Tip.Sha
@@ -217,185 +187,192 @@ function ThenHeadsSame
             $serverRepo.Dispose()
         }
     }
-}
 
-function ThenMergeStatusIs
-{
-    param(
-        [LibGit2Sharp.MergeStatus]
-        $ExpectedStatus
-    )
-    
-    It ('should result in "{0}" merge' -f $ExpectedStatus) {
-        $result.LastMergeResult.Status | Should -Be $ExpectedStatus
-    }
-}
-
-function ThenPushStatus
-{
-    param(
-        [Parameter(Mandatory=$true,ParameterSetName='Is')]
-        [Git.Automation.PushResult]
-        $Is,
-
-        [Parameter(Mandatory=$true,ParameterSetName='IsNull')]
-        [Switch]
-        $IsNull
-    )
-    
-    if( $PSCmdlet.ParameterSetName -eq 'Is' )
+    function ThenMergeStatusIs
     {
-        It ('should result in "{0}" push' -f $Is) {
-            $result.LastPushResult | Should -Be $Is
+        param(
+            [LibGit2Sharp.MergeStatus]
+            $ExpectedStatus
+        )
+
+        $script:result.LastMergeResult.Status | Should -Be $ExpectedStatus
+    }
+
+    function ThenPushStatus
+    {
+        param(
+            [Parameter(Mandatory=$true,ParameterSetName='Is')]
+            [Git.Automation.PushResult]
+            $Is,
+
+            [Parameter(Mandatory=$true,ParameterSetName='IsNull')]
+            [Switch]
+            $IsNull
+        )
+
+        if( $PSCmdlet.ParameterSetName -eq 'Is' )
+        {
+            $script:result.LastPushResult | Should -Be $Is
+        }
+        else
+        {
+            $script:result.LastPushResult | Should -BeNullOrEmpty
         }
     }
-    else
-    {
-        It ('should not push') {
-            $result.LastPushResult | Should -BeNullOrEmpty
-        }
-    }
-}
 
-function ThenUpdateFailed
-{
-    It ('should fail the update') {
-        $result | Should -BeNullOrEmpty
+    function ThenUpdateFailed
+    {
+        $script:result | Should -BeNullOrEmpty
         $Global:Error | Should -Not -BeNullOrEmpty
     }
-}
 
-function WhenUpdated
-{
-    [CmdletBinding()]
-    param(
-        $RepoRoot,
-        $AndMergeStrategyIs
-    )
-
-    $mergeStrategyArg = @{}
-    if( $AndMergeStrategyIs )
+    function WhenUpdated
     {
-        $mergeStrategyArg['MergeStrategy'] = $AndMergeStrategyIs
-    }
+        [CmdletBinding()]
+        param(
+            $RepoRoot,
+            $AndMergeStrategyIs
+        )
 
-    $script:result = Send-GitBranch -RepoRoot $RepoRoot @mergeStrategyArg
-}
+        $mergeStrategyArg = @{}
+        if( $AndMergeStrategyIs )
+        {
+            $mergeStrategyArg['MergeStrategy'] = $AndMergeStrategyIs
+        }
 
-Describe 'Send-GitBranch.when no new commits on the server' {
-    Init
-    GivenNewCommitIn $clientDirectory
-    WhenUpdated -RepoRoot $clientDirectory
-    ThenMergeStatusIs 'UpToDate'
-    ThenPushStatus -Is Ok
-    ThenHeadIsLastCommit
-    ThenHeadsSame
-}
-
-Describe 'Send-GitBranch.when no new commits local and no new commits on server' {
-    Init
-    WhenUpdated -RepoRoot $clientDirectory
-    ThenMergeStatusIs 'UpToDate'
-    ThenPushStatus -Is Ok
-    ThenHeadIsLastCommit
-    ThenHeadsSame
-}
-
-Describe 'Send-GitBranch.when no new commits local and new commits on server and fast forwarding' {
-    Init
-    GivenNewCommitIn $serverWorkingDirectory -AndPushed
-    WhenUpdated -RepoRoot $clientDirectory
-    ThenMergeStatusIs 'FastForward'
-    ThenPushStatus -Is Ok
-    ThenHeadIsLastCommit
-    ThenHeadsSame
-}
-
-Describe 'Send-GitBranch.when no new commits local and new commits on server and merging' {
-    Init
-    GivenNewCommitIn $serverWorkingDirectory -AndPushed
-    WhenUpdated -RepoRoot $clientDirectory -AndMergeStrategyIs 'Merge'
-    ThenMergeStatusIs 'NonFastForward'
-    ThenPushStatus -Is Ok
-    ThenHeadIsNewCommit
-    ThenHeadsSame
-}
-
-Describe 'Send-GitBranch.when new commits local and new commits on server' {
-    Init
-    GivenNewCommitIn $serverWorkingDirectory -AndPushed
-    GivenNewCommitIn $clientDirectory
-    WhenUpdated -RepoRoot $clientDirectory
-    ThenMergeStatusIs 'NonFastForward'
-    ThenPushStatus -Is Ok
-    ThenHeadIsNewCommit
-    ThenHeadsSame
-}
-
-Describe 'Send-GitBranch.when new commits local and new commits on server and merge must be fast-forwarded' {
-    Init
-    GivenNewCommitIn $serverWorkingDirectory -AndPushed
-    GivenNewCommitIn $clientDirectory
-    WhenUpdated -RepoRoot $clientDirectory -AndMergeStrategyIs 'FastForward' -ErrorAction SilentlyContinue
-    ThenPushStatus -IsNull
-    ThenUpdateFailed
-    ThenErrorIs 'Cannot\ perform\ fast-forward\ merge'
-    ThenHeadIsLastCommit
-    ThenHeadsDifferent
-}
-
-Describe 'Send-GitBranch.when no local branch' {
-    Init
-    GivenNewCommitIn $clientDirectory
-    GivenCheckedOut $lastCommit.Sha
-    WhenUpdated -RepoRoot $clientDirectory -ErrorAction SilentlyContinue
-    ThenPushStatus -IsNull
-    ThenUpdateFailed
-    ThenErrorIs 'isn''t\ on\ a\ branch'
-    ThenHeadIsLastCommit
-    ThenHeadsDifferent
-}
-
-Describe 'Send-GitBranch.when no tracking branch and there is a remote equivalent' {
-    Init
-    GivenNewCommitIn $clientDirectory
-    GivenNewCommitIn $serverWorkingDirectory -AndPushed
-    GivenNoUpstreamBranchFor 'master'
-    WhenUpdated -RepoRoot $clientDirectory
-    ThenMergeStatusIs 'NonFastForward'
-    ThenPushStatus -Is Ok
-    ThenHeadIsNewCommit
-    ThenHeadsSame
-}
-
-Describe 'Send-GitBranch.when no tracking branch and there is no remote equivalent' {
-    Init
-    GivenBranch 'develop'
-    GivenNewCommitIn $clientDirectory
-    WhenUpdated -RepoRoot $clientDirectory -ErrorAction SilentlyContinue
-    ThenPushStatus -IsNull
-    ThenUpdateFailed
-    ThenErrorIs 'unable\ to\ find\ a\ remote\ branch\ named\ "develop"'
-    ThenHeadIsLastCommit 'develop'
-    ThenHeadsDifferent 'develop'
-}
-
-Describe 'Send-GitBranch.when the given repo doesn''t exist' {
-    Clear-Error
-
-    Send-GitBranch -RepoRoot 'C:\I\do\not\exist' -ErrorAction SilentlyContinue
-    It 'should write an error' {
-        $Global:Error.Count | Should Be 1
-        $Global:Error | Should Match 'does not exist'
+        $script:result = Send-GitBranch -RepoRoot $RepoRoot @mergeStrategyArg
     }
 }
 
-Describe 'Send-GitBranch.when there are conflicts between local and remote' {
-    Init
-    GivenConflicts
-    WhenUpdated -RepoRoot $clientDirectory -ErrorAction SilentlyContinue
-    ThenPushStatus -IsNull
-    ThenMergeStatusIs 'Conflicts'
-    ThenHeadIsLastCommit
-    ThenHeadsDifferent
+Describe 'Send-GitBranch' {
+    BeforeEach {
+        $Global:Error.Clear()
+
+        $script:testDirPath = Join-Path -Path $TestDrive -ChildPath ($script:testNum++)
+        $script:serverBareDirectory = Join-Path -Path $script:testDirPath -ChildPath 'Server'
+        New-GitRepository -Path $script:serverBareDirectory -Bare
+
+        $script:serverWorkingDirectory = Join-Path -Path $script:testDirPath -ChildPath 'Server.Working'
+        Copy-GitRepository -Source $script:serverBareDirectory -DestinationPath $script:serverWorkingDirectory
+
+        Push-Location -Path $script:serverWorkingDirectory
+        try
+        {
+            '' | Set-Content -Path 'master'
+            Add-GitItem 'master'
+            $script:lastCommit = Save-GitCommit -Message 'first'
+            Send-GitCommit
+        }
+        finally
+        {
+            Pop-Location
+        }
+
+        $script:clientDirectory = Join-Path -Path $script:testDirPath -ChildPath 'Client'
+        Copy-GitRepository -Source $script:serverBareDirectory -DestinationPath $script:clientDirectory
+    }
+
+    It 'no new commits on the server' {
+        GivenNewCommitIn $script:clientDirectory
+        WhenUpdated -RepoRoot $script:clientDirectory
+        ThenMergeStatusIs 'UpToDate'
+        ThenPushStatus -Is Ok
+        ThenHeadIsLastCommit
+        ThenHeadsSame
+    }
+
+    It 'no new commits local and no new commits on server' {
+        WhenUpdated -RepoRoot $script:clientDirectory
+        ThenMergeStatusIs 'UpToDate'
+        ThenPushStatus -Is Ok
+        ThenHeadIsLastCommit
+        ThenHeadsSame
+    }
+
+    It 'no new commits local and new commits on server and fast forwarding' {
+        GivenNewCommitIn $script:serverWorkingDirectory -AndPushed
+        WhenUpdated -RepoRoot $script:clientDirectory
+        ThenMergeStatusIs 'FastForward'
+        ThenPushStatus -Is Ok
+        ThenHeadIsLastCommit
+        ThenHeadsSame
+    }
+
+    It 'no new commits local and new commits on server and merging' {
+        GivenNewCommitIn $script:serverWorkingDirectory -AndPushed
+        WhenUpdated -RepoRoot $script:clientDirectory -AndMergeStrategyIs 'Merge'
+        ThenMergeStatusIs 'NonFastForward'
+        ThenPushStatus -Is Ok
+        ThenHeadIsNewCommit
+        ThenHeadsSame
+    }
+
+    It 'new commits local and new commits on server' {
+        GivenNewCommitIn $script:serverWorkingDirectory -AndPushed
+        GivenNewCommitIn $script:clientDirectory
+        WhenUpdated -RepoRoot $script:clientDirectory
+        ThenMergeStatusIs 'NonFastForward'
+        ThenPushStatus -Is Ok
+        ThenHeadIsNewCommit
+        ThenHeadsSame
+    }
+
+    It 'new commits local and new commits on server and merge must be fast-forwarded' {
+        GivenNewCommitIn $script:serverWorkingDirectory -AndPushed
+        GivenNewCommitIn $script:clientDirectory
+        WhenUpdated -RepoRoot $script:clientDirectory -AndMergeStrategyIs 'FastForward' -ErrorAction SilentlyContinue
+        ThenPushStatus -IsNull
+        ThenUpdateFailed
+        ThenErrorIs 'Cannot\ perform\ fast-forward\ merge'
+        ThenHeadIsLastCommit
+        ThenHeadsDifferent
+    }
+
+    It 'no local branch' {
+        GivenNewCommitIn $script:clientDirectory
+        GivenCheckedOut $script:lastCommit.Sha
+        WhenUpdated -RepoRoot $script:clientDirectory -ErrorAction SilentlyContinue
+        ThenPushStatus -IsNull
+        ThenUpdateFailed
+        ThenErrorIs 'isn''t\ on\ a\ branch'
+        ThenHeadIsLastCommit
+        ThenHeadsDifferent
+    }
+
+    It 'no tracking branch and there is a remote equivalent' {
+        GivenNewCommitIn $script:clientDirectory
+        GivenNewCommitIn $script:serverWorkingDirectory -AndPushed
+        GivenNoUpstreamBranchFor 'master'
+        WhenUpdated -RepoRoot $script:clientDirectory
+        ThenMergeStatusIs 'NonFastForward'
+        ThenPushStatus -Is Ok
+        ThenHeadIsNewCommit
+        ThenHeadsSame
+    }
+
+    It 'no tracking branch and there is no remote equivalent' {
+        GivenBranch 'develop'
+        GivenNewCommitIn $script:clientDirectory
+        WhenUpdated -RepoRoot $script:clientDirectory -ErrorAction SilentlyContinue
+        ThenPushStatus -IsNull
+        ThenUpdateFailed
+        ThenErrorIs 'unable\ to\ find\ a\ remote\ branch\ named\ "develop"'
+        ThenHeadIsLastCommit 'develop'
+        ThenHeadsDifferent 'develop'
+    }
+
+    It 'the given repo doesn''t exist' {
+        Send-GitBranch -RepoRoot 'C:\I\do\not\exist' -ErrorAction SilentlyContinue
+        $Global:Error.Count | Should -Be 1
+        $Global:Error | Should -Match 'does not exist'
+    }
+
+    It 'there are conflicts between local and remote' {
+        GivenConflicts
+        WhenUpdated -RepoRoot $script:clientDirectory -ErrorAction SilentlyContinue
+        ThenPushStatus -IsNull
+        ThenMergeStatusIs 'Conflicts'
+        ThenHeadIsLastCommit
+        ThenHeadsDifferent
+    }
 }

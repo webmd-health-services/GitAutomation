@@ -1,9 +1,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,7 @@
     RootModule = 'GitAutomation.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.14.0'
+    ModuleVersion = '1.0.0'
 
     # ID used to uniquely identify this module
     GUID = '119a2511-62d9-4626-9728-0c8ec7068c57'
@@ -33,7 +33,7 @@
     # Description of the functionality provided by this module
     Description = @'
     GitAutomation is a PowerShell module for working with Git repositories. You can use it to create, clone, query, push to, pull from, and commit to Git repositories.
-    
+
     This module uses [LibGit2Sharp](https://github.com/libgit2/libgit2sharp), the .NET wrapper of [libgit2](https://libgit2.github.com/), "a portable, pure C implementation of... Git", which allows you to call Git via API instead using the Git command line interface.
 '@
 
@@ -59,7 +59,7 @@
     # RequiredModules = @()
 
     # Assemblies that must be loaded prior to importing this module
-    RequiredAssemblies = @( 'bin\LibGit2Sharp.dll', 'bin\Git.Automation.dll' )
+    RequiredAssemblies = @()
 
     # Script files (.ps1) that are run in the caller's environment prior to importing this module.
     # ScriptsToProcess = @()
@@ -68,9 +68,9 @@
     TypesToProcess = @( 'Types\LibGit2Sharp.StatusEntry.types.ps1xml' )
 
     # Format files (.ps1xml) to be loaded when importing this module
-    FormatsToProcess = @( 
+    FormatsToProcess = @(
                             'Formats\Git.Automation.CommitInfo.formats.ps1xml',
-                            'Formats\LibGit2Sharp.StatusEntry.formats.ps1xml' 
+                            'Formats\LibGit2Sharp.StatusEntry.formats.ps1xml'
                         )
 
     # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
@@ -149,12 +149,7 @@
 
             # ReleaseNotes of this module
 
-            ReleaseNotes = @'
-* Added a verbose message to `Remove-GitConfiguration`
-* Fixing typo in about_GitAutomation_Installation help topic.
-* `Import-GitAutomation.ps1` no longer shows `Import-Module` and `Remove-Module` verbose messages.
-* Upgrading to LibGitSharp 0.26.1 (from 0.24.0). GitAutomation now requires .NET Framework 4.6 or later.
-'@
+            ReleaseNotes = 'https://github.com/webmd-health-services/GitAutomation/blob/main/CHANGELOG.md'
 
         } # End of PSData hashtable
 

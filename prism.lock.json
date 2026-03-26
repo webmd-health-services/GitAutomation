@@ -1,0 +1,9 @@
+{
+    "PSModules":  [
+                      {
+                          "name":  "Glob",
+                          "version":  "0.1.1",
+                          "repositorySourceLocation":  "https://www.powershellgallery.com/api/v2"
+                      }
+                  ]
+}

@@ -1,107 +1,101 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-# 
-#     http://www.apache.org/licenses/LICENSE-2.0
-# 
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
+#Requires -Version '5.1'
 Set-StrictMode -Version 'Latest'
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
+BeforeAll {
+    Set-StrictMode -Version 'Latest'
 
-$output = $null
+    & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
-function GivenLocalRepository
-{
-    param(
-        $Path
-    )
+    $script:testDirPath = $null
+    $script:testNum = 0
+    $script:output = $null
 
-    New-GitRepository -Path $Path
-}
-
-function GivenThereAreNoErrors
-{
-    $Global:Error.Clear()
-}
-
-function ThenRepositoryWasClonedTo
-{
-    param(
-        $Destination,
-
-        [Switch]
-        $WithNoOutput
-    )
-
-    It 'should succeed' {
-        $Global:Error.Count | Should Be 0
-    }
-    It 'should clone the repository' {
-        git -C $Destination status --porcelain 2>&1 | Should BeNullOrEmpty
-        $LASTEXITCODE | Should Be 0
-    }
-
-    if( $WithNoOutput )
+    function GivenLocalRepository
     {
-        It 'should return no output' {
-            $output | Should BeNullOrEmpty
+        param(
+            $Path
+        )
+
+        New-GitRepository -Path $Path
+    }
+
+    function GivenThereAreNoErrors
+    {
+        $Global:Error.Clear()
+    }
+
+    function ThenRepositoryWasClonedTo
+    {
+        param(
+            $Destination,
+
+            [Switch]
+            $WithNoOutput
+        )
+
+        $Global:Error.Count | Should -Be 0
+        git -C $Destination status --porcelain 2>&1 | Should -BeNullOrEmpty
+        $LASTEXITCODE | Should -Be 0
+
+        if( $WithNoOutput )
+        {
+            $script:output | Should -BeNullOrEmpty
+        }
+        else
+        {
+            $script:output | Should -BeOfType ([IO.DirectoryInfo])
+            $script:output.FullName | Should -Be (Join-Path -Path $Destination -ChildPath '.git\')
         }
     }
-    else
+
+    function WhenCloningRepository
     {
-        It 'should return [IO.DirectoryInfo] for repository' {
-            $output | Should BeOfType ([IO.DirectoryInfo])
-            $output.FullName | Should Be (Join-Path -Path $Destination -ChildPath '.git\')
-        }
+        param(
+            $Source,
+            $To,
+            [Switch]
+            $PassThru
+        )
+
+        $script:output = Copy-GitRepository -Source $Source -DestinationPath $To -PassThru:$PassThru
     }
 }
 
-function WhenCloningRepository
-{
-    param(
-        $Source,
-        $To,
-        [Switch]
-        $PassThru
-    )
+Describe 'Copy-GitRepository' {
+    BeforeEach {
+        $script:testDirPath = Join-Path -Path $TestDrive -ChildPath ($script:testNum++)
+        New-Item -Path $script:testDirPath -ItemType Directory
+    }
 
-    $script:output = Copy-GitRepository -Source $Source -DestinationPath $To -PassThru:$PassThru
-}
-
-Describe 'Copy-GitRepository when cloning a remote repository' {
-    $destination = Join-Path -Path (Get-Item -Path 'TestDrive:').FullName -ChildPath 'GitAutomation'
-    GivenThereAreNoErrors
-    WhenCloningRepository 'https://github.com/webmd-health-services/GitAutomation' -To $destination
-    ThenRepositoryWasClonedTo $destination -WithNoOutput
-}
-
-Describe 'Copy-GitRepository when cloning a repository with relative paths' {
-    Push-Location -Path (Get-Item -Path 'TestDrive:').FullName
-    try
-    {
-        GivenLocalRepository 'fubar'
+    It 'cloning a remote repository' {
+        $destination = Join-Path -Path $script:testDirPath -ChildPath 'repo'
         GivenThereAreNoErrors
-        WhenCloningRepository 'fubar' -To 'snafu'
-        ThenRepositoryWasClonedTo (Join-Path -Path (Get-Item 'TestDrive:').FullName -ChildPath 'snafu') -WithNoOutput
+        WhenCloningRepository 'https://github.com/webmd-health-services/GitAutomation' -To $destination
+        ThenRepositoryWasClonedTo $destination -WithNoOutput
     }
-    finally
-    {
-        Pop-Location
-    }
-}
 
-Describe 'Copy-GitRepository when cloning a repository with the -PassThru switch' {
-    $tempRoot = Get-Item -Path 'TestDrive:'
-    $tempRoot = $tempRoot.FullName
-    $destinationPath = Join-Path -Path $tempRoot -ChildPath 'snafu'
-    GivenLocalRepository 'fubar'
-    GivenThereAreNoErrors
-    WhenCloningRepository 'fubar' -To $destinationPath -PassThru
-    ThenRepositoryWasClonedTo $destinationPath
+    It 'cloning a repository with relative paths' {
+        Push-Location -Path $script:testDirPath
+        try
+        {
+            GivenLocalRepository 'fubar'
+            GivenThereAreNoErrors
+            WhenCloningRepository 'fubar' -To 'snafu'
+            ThenRepositoryWasClonedTo (Join-Path -Path $script:testDirPath -ChildPath 'snafu') -WithNoOutput
+        }
+        finally
+        {
+            Pop-Location
+        }
+    }
+
+    It 'cloning a repository with the -PassThru switch' {
+        $sourcePath = Join-Path -Path $script:testDirPath -ChildPath 'fubar'
+        $destinationPath = Join-Path -Path $script:testDirPath -ChildPath 'snafu'
+        GivenLocalRepository $sourcePath
+        GivenThereAreNoErrors
+        WhenCloningRepository $sourcePath -To $destinationPath -PassThru
+        ThenRepositoryWasClonedTo $destinationPath
+    }
 }

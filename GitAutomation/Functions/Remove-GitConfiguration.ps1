@@ -110,6 +110,14 @@ function Remove-GitConfiguration
         return
     }
 
+    if (-not [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths($Scope))
+    {
+        $msg = "Failed to remove Git configuration ""${Name}"" at ${Scope} scope because no directories are " +
+               'configured at that scope.'
+        Write-Error -Message $msg -ErrorAction $ErrorActionPreference
+        return
+    }
+
     $config = [LibGit2Sharp.Configuration]::BuildFrom([nullstring]::Value,[nullstring]::Value)
     try
     {

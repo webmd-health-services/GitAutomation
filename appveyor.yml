@@ -1,0 +1,61 @@
+version: 0.0.0+{build}
+
+skip_tags: true
+
+skip_branch_with_pr: true
+
+build:
+  verbosity: minimal
+
+test: off
+
+environment:
+  WHISKEY_DISABLE_ERROR_FORMAT: True
+  matrix:
+  - job_name: pwsh.exe on Windows
+    job_group: pwsh
+    appveyor_build_worker_image: Visual Studio 2022
+
+  - job_name: pwsh on macOS
+    job_group: pwsh
+    appveyor_build_worker_image: macOS
+
+  - job_name: powershell.exe
+    job_group: ps
+    appveyor_build_worker_image: Visual Studio 2022
+
+  - job_name: pwsh on Ubuntu
+    job_group: pwsh
+    appveyor_build_worker_image: Ubuntu
+
+artifacts:
+- path: .output\*
+
+for:
+# Build in Windows PowerShell
+- matrix:
+    only:
+    - job_group: ps
+  build_script:
+  - ps: &init_script |
+        $ProgressPreference = 'SilentlyContinue'
+        iwr https://raw.githubusercontent.com/webmd-health-services/Prism/main/Scripts/init.ps1 | iex | Format-Table
+  - ps: &build_script |
+      try
+      {
+        .\build.ps1
+      }
+      catch
+      {
+        Get-Module
+        $_ | Format-List * -Force
+        exit 1
+      }
+
+# Build in PowerShell
+- matrix:
+    only:
+    - job_group: pwsh
+  build_script:
+  - pwsh: *init_script
+  - pwsh: *build_script

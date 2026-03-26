@@ -9,7 +9,7 @@ function Set-GitConfiguration
     The `Set-GitConfiguration` function sets Git configuration variables. These variables change Git's behavior. Git has hundreds of variables and we can't document them here. Some are shared between Git commands. Some variables are only used by specific commands. The `git help config` help topic lists most of them.
 
     By default, this function sets options for the current repository, or a specific repository using the `RepoRoot` parameter. To set options for the current user across all repositories, use the `-Global` switch. If running in an elevated process, `Set-GitConfiguration` will look in `$env:HOME` and `$env:USERPROFILE` (in that order) for a .gitconfig file. If it can't find one, it will create one in `$env:HOME`. If the `HOME` environment variable isn't defined, it will create a `.gitconfig` file in the `$env:USERPROFILE` directory.
-    
+
     If running in a non-elevated process, `Set-GitConfiguration` will look in `$env:HOME`, `$env:HOMEDRIVE$env:HOMEPATH`, and `$env:USERPROFILE` (in that order) and use the first `.gitconfig` file it finds. If it can't find a `.gitconfig` file, it will create a `.gitconfig` in the `$env:HOME` directory. If the `HOME` environment variable isn't defined, it will create the `.gitconfig` file in the `$env:HOMEDRIVE$env:HOMEPATH` directory.
 
     To set the configuration in a specific file, use the `Path` parameter. If the file doesn't exist, it is created.
@@ -130,7 +130,16 @@ function Set-GitConfiguration
         }
 
         # LibGit2 only creates config files explicitly.
-        [string[]]$searchPaths = [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths($Scope) | Join-Path -ChildPath $configFileName
+        $configDirPath = [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths($Scope)
+        if (-not $configDirPath)
+        {
+            $msg = "Failed to set configuration at ${Scope} scope because there is no configured directory for that " +
+                   'scope.'
+            Write-Error -Message $msg -ErrorAction $ErrorActionPreference
+            return
+        }
+
+        [string[]]$searchPaths = Join-Path -Path $configDirPath -ChildPath $configFileName
         if( $searchPaths )
         {
             $scopeConfigFiles = $searchPaths | Where-Object { Test-Path -Path $_ -PathType Leaf }

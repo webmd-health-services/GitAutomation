@@ -6,34 +6,46 @@ function Get-GitRepositoryStatus
     Gets information about all added, untracked, and modified files in a repository.
 
     .DESCRIPTION
-    The `Get-GitRepositoryStatus` commands gets information about which files in your working directory are new, untracked, or modified, including files that have been staged for the next commit. It gets information about each uncommitted change in your repository.
+    The `Get-GitRepositoryStatus` commands gets information about which files in your working directory are new,
+    untracked, or modified, including files that have been staged for the next commit. It gets information about each
+    uncommitted change in your repository.
 
     Ignored items are not returned unless you provide the `IncludeIgnored` switch.
 
-    You can get status for specific files and directories with the Path parameter. If you provide a `RepoRoot` parameter to work with a specific repository, the values of the `Path` parameter should be relative to the root of that repository. With no `RepoRoot` parameter, the paths in the `Path` parameter are treated as relative to the current directory. Wildcards are supported and are passed directly to Git to evaluate (i.e. use Git wildcard syntax not PowerShell's).
+    You can get status for specific files and directories with the Path parameter. If you provide a `RepoRoot` parameter
+    to work with a specific repository, the values of the `Path` parameter should be relative to the root of that
+    repository. With no `RepoRoot` parameter, the paths in the `Path` parameter are treated as relative to the current
+    directory. Wildcards are supported and are passed directly to Git to evaluate (i.e. use Git wildcard syntax not
+    PowerShell's).
 
-    The `LibGit2Sharp.StatusEntry` objects returned have several extended type data members added. You should use these members instead of using the object's `State` property.
+    The `LibGit2Sharp.StatusEntry` objects returned have several extended type data members added. You should use these
+    members instead of using the object's `State` property.
 
      * `IsStaged`: `$true` if the item has been staged for the next commit; `$false` otherwise.
-     * `IsAdded`: returns `$true` if the item is new in the working directory or has been staged for the next commit; `$false` otherwise.
+     * `IsAdded`: returns `$true` if the item is new in the working directory or has been staged for the next commit;
+       `$false` otherwise.
      * `IsConflicted`: returns `$true` if the item was merged and currently has conflicts; `$false` otherwise.
-     * `IsDeleted`: returns `$true` if the item was deleted from the working directory or has been staged for removal in the next commit; `$false` otherwise.
-     * `IsIgnored`: returns `$true` if the item is ignored; `$false` otherwise. You'll only see ignored items if you use the `IncludeIgnored` switch.
+     * `IsDeleted`: returns `$true` if the item was deleted from the working directory or has been staged for removal in
+       the next commit; `$false` otherwise.
+     * `IsIgnored`: returns `$true` if the item is ignored; `$false` otherwise. You'll only see ignored items if you use
+       the `IncludeIgnored` switch.
      * `IsModified`: returns `$true` if the item is modified; `$false` otherwise.
      * `IsRenamed`: returns `$true` if the item was renamed; `$false` otherwise.
      * `IsTypeChanged`: returns `$true` if the item's type was changed; `$false` otherwise.
      * `IsUnchanged`: returns `$true` if the item is unchanged; `$false` otherwise.
      * `IsUnreadable`: returns `$true` if the item is unreadable; `$false` otherwise.
-     * `IsUntracked`: returns `$true` if the item is untracked (i.e. hasn't been staged or added to the repository); `$false` otherwise.
+     * `IsUntracked`: returns `$true` if the item is untracked (i.e. hasn't been staged or added to the repository);
+       `$false` otherwise.
 
-    When displayed in a table (the default), the first column will show characters that indicate the state of each item, e.g.
+    When displayed in a table (the default), the first column will show characters that indicate the state of each item,
+    e.g.
 
-        State    FilePath                                                                                                                                                                                                                                            
-        -----    --------                                                                                                                                                                                                                                            
-         a       GitAutomation\Formats\LibGit2Sharp.StatusEntry.ps1xml                                                                                                                                                                                                     
-         a       GitAutomation\Functions\Get-GitRepositoryStatus.ps1                                                                                                                                                                                                       
-          m      GitAutomation\GitAutomation.psd1                                                                                                                                                                                                                                
-         a       GitAutomation\Types\LibGit2Sharp.StatusEntry.types.ps1xml                                                                                                                                                                                                 
+        State    FilePath
+        -----    --------
+         a       GitAutomation\Formats\LibGit2Sharp.StatusEntry.ps1xml
+         a       GitAutomation\Functions\Get-GitRepositoryStatus.ps1
+          m      GitAutomation\GitAutomation.psd1
+         a       GitAutomation\Types\LibGit2Sharp.StatusEntry.types.ps1xml
          a       Tests\Get-GitRepositoryStatus.Tests.ps1
 
     The state will display:
@@ -65,21 +77,26 @@ function Get-GitRepositoryStatus
     .EXAMPLE
     Get-GitRepositoryStatus -Path 'build.ps1','*.cs'
 
-    Demonstrates how to get the status for specific files at or under the current directory using the Path parameter. In this case, only modified files named `build.ps1` or that match the wildcard `*.cs` under the current directory will be returned.
+    Demonstrates how to get the status for specific files at or under the current directory using the Path parameter. In
+    this case, only modified files named `build.ps1` or that match the wildcard `*.cs` under the current directory will
+    be returned.
 
     .EXAMPLE
     Get-GitRepositoryStatus -Path 'build.ps1','*.cs' -RepoRoot 'C:\Projects\GitAutomation`
 
-    Demonstrates how to get the status for specific files under the root of a specific repository. In this case, only modified files named `build.ps1` or that match the wildcard `*.cs` under `C:\Projects\GitAutomation` will be returned.
+    Demonstrates how to get the status for specific files under the root of a specific repository. In this case, only
+    modified files named `build.ps1` or that match the wildcard `*.cs` under `C:\Projects\GitAutomation` will be
+    returned.
     #>
     [CmdletBinding()]
     [OutputType([LibGit2Sharp.StatusEntry])]
     param(
         [Parameter(Position=0)]
         [string[]]
-        # The path to specific files and/or directories whose status to get. Git-style wildcards are supported. 
+        # The path to specific files and/or directories whose status to get. Git-style wildcards are supported.
         #
-        # If no `RepoRoot` parameter is provided, these paths are evaluated as relative to the current directory. If a `RepoRoot` parameter is provided, these paths are evaluated as relative to the root of that repository.
+        # If no `RepoRoot` parameter is provided, these paths are evaluated as relative to the current directory. If a
+        # `RepoRoot` parameter is provided, these paths are evaluated as relative to the root of that repository.
         $Path,
 
         [Switch]
@@ -121,38 +138,39 @@ function Get-GitRepositoryStatus
 
         $repoRootRegex = $repo.Info.WorkingDirectory.TrimEnd([IO.Path]::DirectorySeparatorChar)
         $repoRootRegex = [regex]::Escape($repoRootRegex)
-        $repoRootRegex = '^{0}\\?' -f $repoRootRegex
+        $repoRootRegex = '^{0}(\\|/)?' -f $repoRootRegex
 
         try
         {
             if( $Path )
             {
-                $statusOptions.PathSpec = $Path | 
-                                                ForEach-Object {
-                                                
-                                                    $pathItem = $_
-                                                
-                                                    if( [IO.Path]::IsPathRooted($_) )
-                                                    {
-                                                        return $_
-                                                    }
+                $statusOptions.PathSpec =
+                    $Path |
+                    ForEach-Object {
 
-                                                    $fullPath = Join-Path -Path (Get-Location).ProviderPath -ChildPath $_
-                                                    try
-                                                    {
-                                                        return [IO.Path]::GetFullPath($fullPath)
-                                                    }
-                                                    catch
-                                                    {
-                                                        return $pathItem
-                                                    }
-                                                } |
-                                                ForEach-Object { $_ -replace $repoRootRegex,'' } |
-                                                ForEach-Object { $_ -replace ([regex]::Escape([IO.Path]::DirectorySeparatorChar)),'/' }
+                        $pathItem = $_
+
+                        if( [IO.Path]::IsPathRooted($_) )
+                        {
+                            return $_
+                        }
+
+                        $fullPath = Join-Path -Path (Get-Location).ProviderPath -ChildPath $_
+                        try
+                        {
+                            return [IO.Path]::GetFullPath($fullPath)
+                        }
+                        catch
+                        {
+                            return $pathItem
+                        }
+                    } |
+                    ForEach-Object { $_ -replace $repoRootRegex,'' } |
+                    ForEach-Object { $_ -replace ([regex]::Escape([IO.Path]::DirectorySeparatorChar)),'/' }
             }
 
             $repo.RetrieveStatus($statusOptions) |
-                Where-Object { 
+                Where-Object {
                     if( $IncludeIgnored )
                     {
                         return $true
@@ -163,7 +181,7 @@ function Get-GitRepositoryStatus
         }
         finally
         {
-            Pop-Location -StackName 'Get-GitRepositorySTatus' -ErrorAction Ignore
+            Pop-Location -StackName 'Get-GitRepositoryStatus' -ErrorAction Ignore
         }
     }
     finally

@@ -1,316 +1,294 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-# 
-#     http://www.apache.org/licenses/LICENSE-2.0
-# 
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-    
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
-$commitOutput = $null
-$repoRoot = $null
+#Requires -Version 5.1
+Set-StrictMode -Version 'Latest'
 
-function Init
-{
-    $Global:Error.Clear()
-    $Script:commitOutput = $null
-    $Script:repoRoot = $null
-}
+BeforeAll {
+    Set-StrictMode -Version 'Latest'
 
-function GivenRepository
-{
-    $Script:repoRoot = Join-Path -Path $TestDrive.FullName -ChildPath 'repo'
-    New-GitRepository -Path $repoRoot | Out-Null
-}
+    & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
-function GivenBranch
-{
-    param(
-        $Name
-    )
+    $script:commitOutput = $null
+    $script:repoRoot = $null
+    $script:testNum = 0
 
-    New-GitBranch -RepoRoot $repoRoot -Name $Name
-}
-
-function GivenCommit
-{
-    param(
-        [int]
-        $NumberOfCommits = 1
-    )
-    
-    1..$NumberOfCommits | ForEach-Object {
-        $filePath = Join-Path -Path $repoRoot -ChildPath ([System.IO.Path]::GetRandomFileName())
-        [Guid]::NewGuid() | Set-Content -Path $filePath -Force
-        Add-GitItem -Path $filePath -RepoRoot $repoRoot | Out-Null
-        Save-GitCommit -Message 'Get-GitCommit Tests' -RepoRoot $repoRoot | Out-Null
-    }
-}
-
-function GivenHeadIs
-{
-    param(
-        $Revision
-    )
-
-    Update-GitRepository -RepoRoot $repoRoot -Revision $Revision
-}
-
-function AddMerge
-{
-    try
+    function GivenRepository
     {
-        # Temporary until we get merge functionality in this module
-        $repo = Find-GitRepository -Path $repoRoot
-
-        $testBranch = 'GitCommitTestBranch'
-        New-GitBranch -RepoRoot $repoRoot -Name $testBranch
-
-        GivenCommit -NumberOfCommits 1
-        [LibGit2Sharp.Commands]::Checkout($repo, 'master', (New-Object LibGit2Sharp.CheckoutOptions))
-
-        $mergeOptions = New-Object LibGit2Sharp.MergeOptions
-        $mergeOptions.FastForwardStrategy = 'NoFastForward'
-        $mergeSignature = New-Object LibGit2Sharp.Signature -ArgumentList 'test','email@example.com',([System.DateTimeOffset]::Now)
-
-        $repo.Merge($testBranch, $mergeSignature, $mergeOptions)
+        New-GitRepository -Path $script:repoRoot | Out-Null
     }
-    finally
+
+    function GivenBranch
     {
-        $repo.Dispose()
+        param(
+            $Name
+        )
+
+        New-GitBranch -RepoRoot $script:repoRoot -Name $Name
     }
-}
 
-function AddTag
-{
-    param(
-        $Tag
-    )
-
-    New-GitTag -RepoRoot $repoRoot -Name $Tag
-}
-
-function WhenGettingCommit
-{
-    [CmdletBinding(DefaultParameterSetName='Default')]
-    param(
-        [Parameter(ParameterSetName='All')]
-        [switch]
-        $All,
-
-        [Parameter(ParameterSetName='Lookup')]
-        [string]
-        $Revision,
-
-        [Parameter(ParameterSetName='CommitFilter')]
-        [string]
-        $Since = 'HEAD',
-
-        [Parameter(ParameterSetName='CommitFilter')]
-        [string]
-        $Until,
-
-        [Parameter(ParameterSetName='CommitFilter')]
-        [switch]
-        $NoMerges
-    )
-
-    if ($PSCmdlet.ParameterSetName -eq 'All')
+    function GivenCommit
     {
-        $Script:commitOutput = Get-GitCommit -RepoRoot $repoRoot -All
+        param(
+            [int]
+            $NumberOfCommits = 1
+        )
+
+        1..$NumberOfCommits | ForEach-Object {
+            $filePath = Join-Path -Path $script:repoRoot -ChildPath ([System.IO.Path]::GetRandomFileName())
+            [Guid]::NewGuid() | Set-Content -Path $filePath -Force
+            Add-GitItem -Path $filePath -RepoRoot $script:repoRoot | Out-Null
+            Save-GitCommit -Message 'Get-GitCommit Tests' -RepoRoot $script:repoRoot | Out-Null
+        }
     }
-    elseif ($PSCmdlet.ParameterSetName -eq 'Lookup')
+
+    function GivenHeadIs
     {
-        $Script:commitOutput = Get-GitCommit -RepoRoot $repoRoot -Revision $Revision
+        param(
+            $Revision
+        )
+
+        Update-GitRepository -RepoRoot $script:repoRoot -Revision $Revision
     }
-    elseif ($PSCmdlet.ParameterSetName -eq 'CommitFilter')
+
+    function AddMerge
     {
-        $Script:commitOutput = Get-GitCommit -RepoRoot $repoRoot -Since $Since -Until $Until -NoMerges:$NoMerges
-    }
-    else
-    {
-        Push-Location $repoRoot
         try
         {
-            $Script:commitOutput = Get-GitCommit
+            # Temporary until we get merge functionality in this module
+            $repo = Find-GitRepository -Path $script:repoRoot
+
+            $testBranch = 'GitCommitTestBranch'
+            New-GitBranch -RepoRoot $script:repoRoot -Name $testBranch
+
+            GivenCommit -NumberOfCommits 1
+            [LibGit2Sharp.Commands]::Checkout($repo, 'master', (New-Object LibGit2Sharp.CheckoutOptions))
+
+            $mergeOptions = New-Object LibGit2Sharp.MergeOptions
+            $mergeOptions.FastForwardStrategy = 'NoFastForward'
+            $mergeSignature = New-Object LibGit2Sharp.Signature -ArgumentList 'test','email@example.com',([System.DateTimeOffset]::Now)
+
+            $repo.Merge($testBranch, $mergeSignature, $mergeOptions)
         }
         finally
         {
-            Pop-Location
+            $repo.Dispose()
         }
     }
-}
 
-function ThenCommitIsHeadCommit
-{
-    It 'should return the current HEAD commit' {
-        $commitOutput.Sha | Should -Be (Get-Content -Path (Join-Path -Path $repoRoot -ChildPath '.git\refs\heads\master'))
-    }
-}
-
-function ThenNumberCommitsReturnedIs
-{
-    param(
-        [int]
-        $NumberOfCommits
+    function AddTag
+    {
+        param(
+            $Tag
         )
 
-        $commitsReturned = $commitOutput | Measure-Object | Select-Object -ExpandProperty 'Count'
-        It 'should return the correct number of commits' {
+        New-GitTag -RepoRoot $script:repoRoot -Name $Tag
+    }
+
+    function WhenGettingCommit
+    {
+        [CmdletBinding(DefaultParameterSetName='Default')]
+        param(
+            [Parameter(ParameterSetName='All')]
+            [switch]
+            $All,
+
+            [Parameter(ParameterSetName='Lookup')]
+            [string]
+            $Revision,
+
+            [Parameter(ParameterSetName='CommitFilter')]
+            [string]
+            $Since = 'HEAD',
+
+            [Parameter(ParameterSetName='CommitFilter')]
+            [string]
+            $Until,
+
+            [Parameter(ParameterSetName='CommitFilter')]
+            [switch]
+            $NoMerges
+        )
+
+        if ($PSCmdlet.ParameterSetName -eq 'All')
+        {
+            $script:commitOutput = Get-GitCommit -RepoRoot $script:repoRoot -All
+        }
+        elseif ($PSCmdlet.ParameterSetName -eq 'Lookup')
+        {
+            $script:commitOutput = Get-GitCommit -RepoRoot $script:repoRoot -Revision $Revision
+        }
+        elseif ($PSCmdlet.ParameterSetName -eq 'CommitFilter')
+        {
+            $script:commitOutput =
+                Get-GitCommit -RepoRoot $script:repoRoot -Since $Since -Until $Until -NoMerges:$NoMerges
+        }
+        else
+        {
+            Push-Location $script:repoRoot
+            try
+            {
+                $script:commitOutput = Get-GitCommit
+            }
+            finally
+            {
+                Pop-Location
+            }
+        }
+    }
+
+    function ThenCommitIsHeadCommit
+    {
+        $script:commitOutput.Sha |
+            Should -Be (Get-Content -Path (Join-Path -Path $script:repoRoot -ChildPath '.git\refs\heads\master'))
+    }
+
+    function ThenNumberCommitsReturnedIs
+    {
+        param(
+            [int]
+            $NumberOfCommits
+            )
+
+            $commitsReturned = $script:commitOutput | Measure-Object | Select-Object -ExpandProperty 'Count'
             $commitsReturned | Should -Be $NumberOfCommits
-        }
-}
+    }
 
-function ThenReturned
-{
-    param(
-        [Parameter(Mandatory=$true,ParameterSetName='Type')]
-        $Type,
-        [Parameter(Mandatory=$true,ParameterSetName='Nothing')]
-        [switch]
-        $Nothing
+    function ThenReturned
+    {
+        param(
+            [Parameter(Mandatory=$true,ParameterSetName='Type')]
+            $Type,
+            [Parameter(Mandatory=$true,ParameterSetName='Nothing')]
+            [switch]
+            $Nothing
+            )
+
+        if ($Nothing)
+        {
+            $script:commitOutput | Should -BeNullOrEmpty
+        }
+        else
+        {
+            $script:commitOutput | Should -BeOfType $Type
+        }
+    }
+
+    function ThenErrorMessage
+    {
+        param(
+            $Message
         )
 
-    if ($Nothing)
-    {
-        It 'should not return anything' {
-            $commitOutput | Should -BeNullOrEmpty
-        }
-    }
-    else
-    {
-        It 'should return the correct object type' {
-            $commitOutput | Should -BeOfType $Type
-        }
-    }
-}
-
-function ThenErrorMessage
-{
-    param(
-        $Message
-    )
-
-    It ('should write error /{0}/' -f $Message) {
         $Global:Error[0] | Should -Match $Message
     }
-}
 
-function ThenNoErrorMessages
-{
-    It 'should not write any errors' {
+    function ThenNoErrorMessages
+    {
         $Global:Error | Should -BeNullOrEmpty
     }
 }
 
-Describe 'Get-GitCommit.when no parameters specified' {
-    Init
-    GivenRepository
-    GivenCommit -NumberOfCommits 2
-    WhenGettingCommit
-    ThenReturned -Type [Git.Automation.CommitInfo]
-    ThenNumberCommitsReturnedIs 2
-    ThenNoErrorMessages
-}
+Describe 'Get-GitCommit' {
+    BeforeEach {
+        $Global:Error.Clear()
+        $script:commitOutput = $null
+        $script:repoRoot = Join-Path -Path $TestDrive -ChildPath ($script:testNum++)
+    }
 
-Describe 'Get-GitCommit.when getting all commits' {
-    Init
-    GivenRepository
-    GivenCommit -NumberOfCommits 5
-    GivenHeadIs 'master'
-    GivenBranch 'somebranch'
-    GivenCommit -NumberOfCommits 5
-    GivenHeadIs 'master'
-    GivenBranch 'someotherbranch'
-    GivenCommit -NumberOfCommits 5
-    WhenGettingCommit -All
-    ThenReturned -Type [Git.Automation.CommitInfo]
-    ThenNumberCommitsReturnedIs 15
-    ThenNoErrorMessages
-}
+    It 'no parameters specified' {
+        GivenRepository
+        GivenCommit -NumberOfCommits 2
+        WhenGettingCommit
+        ThenReturned -Type [Git.Automation.CommitInfo]
+        ThenNumberCommitsReturnedIs 2
+        ThenNoErrorMessages
+    }
 
-Describe 'Get-GitCommit.when getting specifically the current HEAD commit' {
-    Init
-    GivenRepository
-    GivenCommit -NumberOfCommits 3
-    WhenGettingCommit -Revision 'HEAD'
-    ThenReturned -Type [Git.Automation.CommitInfo]
-    ThenNumberCommitsReturnedIs 1
-    ThenCommitIsHeadCommit
-    ThenNoErrorMessages
-}
+    It 'getting all commits' {
+        GivenRepository
+        GivenCommit -NumberOfCommits 5
+        GivenHeadIs 'master'
+        GivenBranch 'somebranch'
+        GivenCommit -NumberOfCommits 5
+        GivenHeadIs 'master'
+        GivenBranch 'someotherbranch'
+        GivenCommit -NumberOfCommits 5
+        WhenGettingCommit -All
+        ThenReturned -Type [Git.Automation.CommitInfo]
+        ThenNumberCommitsReturnedIs 15
+        ThenNoErrorMessages
+    }
 
-Describe 'Get-GitCommit.when getting a commit that does not exist' {
-    Init
-    GivenRepository
-    GivenCommit -NumberOfCommits 1
-    WhenGettingCommit -Revision 'nonexistentcommit' -ErrorAction SilentlyContinue
-    ThenReturned -Nothing
-    ThenErrorMessage 'Commit ''nonexistentcommit'' not found in repository'
-}
+    It 'getting specifically the current HEAD commit' {
+        GivenRepository
+        GivenCommit -NumberOfCommits 3
+        WhenGettingCommit -Revision 'HEAD'
+        ThenReturned -Type [Git.Automation.CommitInfo]
+        ThenNumberCommitsReturnedIs 1
+        ThenCommitIsHeadCommit
+        ThenNoErrorMessages
+    }
 
-Describe 'Get-GitCommit.when getting commit list with an invalid commit' {
-    Init
-    GivenRepository
-    GivenCommit -NumberOfCommits 1
-    WhenGettingCommit -Since 'HEAD' -Until 'nonexistentcommit' -ErrorAction SilentlyContinue
-    ThenReturned -Nothing
-    ThenErrorMessage 'Commit ''nonexistentcommit'' not found in repository'
-}
+    It 'getting a commit that does not exist' {
+        GivenRepository
+        GivenCommit -NumberOfCommits 1
+        WhenGettingCommit -Revision 'nonexistentcommit' -ErrorAction SilentlyContinue
+        ThenReturned -Nothing
+        ThenErrorMessage 'Commit ''nonexistentcommit'' not found in repository'
+    }
 
-Describe 'Get-GitCommit.when Since and Until are the same commit' {
-    Init
-    GivenRepository
-    GivenCommit -NumberOfCommits 1
-    AddTag '1.0'
-    WhenGettingCommit -Since 'HEAD' -Until '1.0' -ErrorAction SilentlyContinue
-    ThenReturned -Nothing
-    ThenErrorMessage 'Commit reference ''HEAD'' and ''1.0'' refer to the same commit'
-}
+    It 'getting commit list with an invalid commit' {
+        GivenRepository
+        GivenCommit -NumberOfCommits 1
+        WhenGettingCommit -Since 'HEAD' -Until 'nonexistentcommit' -ErrorAction SilentlyContinue
+        ThenReturned -Nothing
+        ThenErrorMessage 'Commit ''nonexistentcommit'' not found in repository'
+    }
 
-Describe 'Get-GitCommit.when getting all commits until a specific commit' {
-    Init
-    GivenRepository
-    GivenCommit -NumberOfCommits 1
-    AddTag '1.0'
-    GivenCommit -NumberOfCommits 3
-    WhenGettingCommit -Until '1.0'
-    ThenReturned -Type [Git.Automation.CommitInfo]
-    ThenNumberCommitsReturnedIs 3
-    ThenNoErrorMessages
-}
+    It 'Since and Until are the same commit' {
+        GivenRepository
+        GivenCommit -NumberOfCommits 1
+        AddTag '1.0'
+        WhenGettingCommit -Since 'HEAD' -Until '1.0' -ErrorAction SilentlyContinue
+        ThenReturned -Nothing
+        ThenErrorMessage 'Commit reference ''HEAD'' and ''1.0'' refer to the same commit'
+    }
 
-Describe 'Get-GitCommit.when getting list of commits between two specific commits' {
-    Init
-    GivenRepository
-    GivenCommit -NumberOfCommits 1
-    AddTag '1.0'
-    GivenCommit -NumberOfCommits 2
-    AddMerge # Adds 2 commits (regular + merge commit)
-    AddTag '2.0'
-    GivenCommit -NumberOfCommits 1
-    WhenGettingCommit -Since '2.0' -Until '1.0'
-    ThenReturned -Type [Git.Automation.CommitInfo]
-    ThenNumberCommitsReturnedIs 4
-    ThenNoErrorMessages
-}
+    It 'getting all commits until a specific commit' {
+        GivenRepository
+        GivenCommit -NumberOfCommits 1
+        AddTag '1.0'
+        GivenCommit -NumberOfCommits 3
+        WhenGettingCommit -Until '1.0'
+        ThenReturned -Type [Git.Automation.CommitInfo]
+        ThenNumberCommitsReturnedIs 3
+        ThenNoErrorMessages
+    }
 
-Describe 'Get-GitCommit.when getting list of commits with excluding merge commits' {
-    Init
-    GivenRepository
-    GivenCommit -NumberOfCommits 1
-    AddTag '1.0'
-    GivenCommit -NumberOfCommits 2
-    AddMerge # Adds 2 commits (regular + merge commit)
-    AddTag '2.0'
-    GivenCommit -NumberOfCommits 1
-    WhenGettingCommit -Since '2.0' -Until '1.0' -NoMerges
-    ThenReturned -Type [Git.Automation.CommitInfo]
-    ThenNumberCommitsReturnedIs 3
-    ThenNoErrorMessages
+    It 'getting list of commits between two specific commits' {
+        GivenRepository
+        GivenCommit -NumberOfCommits 1
+        AddTag '1.0'
+        GivenCommit -NumberOfCommits 2
+        AddMerge # Adds 2 commits (regular + merge commit)
+        AddTag '2.0'
+        GivenCommit -NumberOfCommits 1
+        WhenGettingCommit -Since '2.0' -Until '1.0'
+        ThenReturned -Type [Git.Automation.CommitInfo]
+        ThenNumberCommitsReturnedIs 4
+        ThenNoErrorMessages
+    }
+
+    It 'getting list of commits with excluding merge commits' {
+        GivenRepository
+        GivenCommit -NumberOfCommits 1
+        AddTag '1.0'
+        GivenCommit -NumberOfCommits 2
+        AddMerge # Adds 2 commits (regular + merge commit)
+        AddTag '2.0'
+        GivenCommit -NumberOfCommits 1
+        WhenGettingCommit -Since '2.0' -Until '1.0' -NoMerges
+        ThenReturned -Type [Git.Automation.CommitInfo]
+        ThenNumberCommitsReturnedIs 3
+        ThenNoErrorMessages
+    }
 }

@@ -1,9 +1,9 @@
 ﻿// Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//  
+//
 //    http://www.apache.org/licenses/LICENSE-2.0
-//   
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -113,15 +113,10 @@ namespace Git.Automation
 
 		public override int Write(Stream stream, long length)
 		{
-			if (! IsAlive() && ! _process.HasExited)
-			{
-				return 0;
-			}
-
 			try
 			{
 
-				while (length > 0)
+				while (length > 0 && IsAlive() && ! _process.HasExited)
 				{
 					int toCopy = length > int.MaxValue ? int.MaxValue : (int) length;
 					var buf = new byte[toCopy];

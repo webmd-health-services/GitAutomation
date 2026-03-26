@@ -1,29 +1,104 @@
+#!/usr/bin/env pwsh
+
+<#
+.SYNOPSIS
+Starts a Whiskey build.
+
+.DESCRIPTION
+The `build.ps1` script starts a Whiskey build in the script's directory. It first download the latest `0.*` version of
+Whiskey from Whiskey's GitHub [Releases](https://github.com/webmd-health-services/Whiskey/releases) and place it into a
+`PSModules/Whiskey` directory. The script will look for a `whiskey.yml` file in the same directory as itself. If one
+doesn't exit, it will create a new starter `whiskey.yml` file with empty `Build` and `Publish` pipelines. Finally,
+`Invoke-WhiskeyBuild` is called to run the build tasks specified in the `whiskey.yml`.
+
+Pass the token to use to authenticate to GitHub to the `GitHubBearerToken` parameter. Or, you can set the a
+`GITHUB_BEARER_TOKEN` environment variable to the bearer token to use.
+
+To download all the tools that are required for a build, use the `-Initialize` switch.
+
+To run a specific pipeline from the whiskey.yml file, pass the pipeline name to the `PipelineName` parameter. By
+default, runs the `Build` pipeline.
+
+To run a build using a specific whiskey.yml file, use the `ConfigurationPath` parameter.
+
+To cleanup downloaded build tools and artifacts created from previous builds, use the `-Clean` switch.
+
+.EXAMPLE
+./build.ps1
+
+Starts a Whiskey build.
+
+.EXAMPLE
+./build.ps1 -Clean
+
+Demonstrates how to use Whiskey to clean up any downloaded build tools and previously built artifacts.
+
+.EXAMPLE
+./build.ps1 -Initialize
+
+Demonstrates how to initialize the build directory with any tools that are required by tasks in the `whiskey.yml` file.
+
+.EXAMPLE
+./build.ps1 -PipelineName Test
+
+Demonstrates how to run a specific pipeline from the whiskey.yml file. In this example, the `Test` pipeline is run.
+
+.EXAMPLE
+./build.ps1 -ConfigurationPath '../whiskey.yml'
+
+Demonstrates how to run a build using a specific whiskey.yml file. In this example, the whiskey.yml file in the
+current directory's parent directory will be used.
+#>
 [CmdletBinding(DefaultParameterSetName='Build')]
 param(
     [Parameter(Mandatory,ParameterSetName='Clean')]
     # Runs the build in clean mode, which removes any files, tools, packages created by previous builds.
-    [Switch]$Clean,
+    [switch] $Clean,
 
     [Parameter(Mandatory,ParameterSetName='Initialize')]
     # Initializes the repository.
-    [Switch]$Initialize
+    [switch] $Initialize,
+
+    # Run a specific pipeline. The default is to run the `Build` pipeline.
+    [String] $PipelineName,
+
+    # Run a build using a specific whiskey.yml file. The default is to use a whiskey.yml file in the same directory
+    # as this script.
+    [String] $ConfigurationPath,
+
+    # The bearer token to use to authenticate with the GitHub API when getting the Whiskey releases. The default value
+    # is the `GITHUB_BEARER_TOKEN` environment variable.
+    [String] $GitHubBearerToken
 )
 
 #Requires -Version 5.1
+$ErrorActionPreference = 'Stop'
+
 Set-StrictMode -Version Latest
 
-# Set to a specific version to use a specific version of Whiskey. 
+# Set to a specific version to use a specific version of Whiskey.
 $whiskeyVersion = '0.*'
-$allowPrerelease = $true
+$allowPrerelease = $false
 
 $psModulesRoot = Join-Path -Path $PSScriptRoot -ChildPath 'PSModules'
 $whiskeyModuleRoot = Join-Path -Path $PSScriptRoot -ChildPath 'PSModules\Whiskey'
 
 if( -not (Test-Path -Path $whiskeyModuleRoot -PathType Container) )
 {
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor [System.Net.SecurityProtocolType]::Tls12
-    $release = 
-        Invoke-RestMethod -Uri 'https://api.github.com/repos/webmd-health-services/Whiskey/releases' |
+    $headers = @{ 'Content-Type' = 'application/json' }
+    if (-not $GitHubBearerToken -and $env:GITHUB_BEARER_TOKEN)
+    {
+        $GitHubBearerToken = $env:GITHUB_BEARER_TOKEN
+        $headers['Authorization'] = "Bearer ${GitHubBearerToken}"
+    }
+    if ($GitHubBearerToken)
+    {
+        $headers['Authorization'] = "Bearer ${GitHubBearerToken}"
+    }
+    [System.Net.ServicePointManager]::SecurityProtocol =
+        [System.Net.ServicePointManager]::SecurityProtocol -bor [System.Net.SecurityProtocolType]::Tls12
+    $release =
+        Invoke-RestMethod -Uri 'https://api.github.com/repos/webmd-health-services/Whiskey/releases' -Headers $headers |
         ForEach-Object { $_ } |
         Where-Object { $_.name -like $whiskeyVersion } |
         Where-Object {
@@ -31,8 +106,7 @@ if( -not (Test-Path -Path $whiskeyModuleRoot -PathType Container) )
             {
                 return $true
             }
-            [version]::TryParse($_.name,[ref]$null)
-            return $true
+            [Version]::TryParse($_.name,[ref]$null)
         } |
         Sort-Object -Property 'created_at' -Descending |
         Select-Object -First 1
@@ -43,12 +117,12 @@ if( -not (Test-Path -Path $whiskeyModuleRoot -PathType Container) )
         return
     }
 
-    $zipUri = 
+    $zipUri =
         $release.assets |
         ForEach-Object { $_ } |
-        Where-Object { $_.name -eq 'Whiskey.zip' } |
+        Where-Object { $_.name -like 'Whiskey*.zip' } |
         Select-Object -ExpandProperty 'browser_download_url'
-    
+
     if( -not $zipUri )
     {
         Write-Error -Message ('URI to Whiskey ZIP file does not exist.') -ErrorAction Stop
@@ -101,6 +175,22 @@ if( -not (Test-Path -Path $whiskeyModuleRoot -PathType Container) )
     Import-Module -Name $whiskeyModuleRoot -Force
 }
 
+if (-not $ConfigurationPath)
+{
+    $ConfigurationPath = Join-Path -Path $PSScriptRoot -ChildPath 'whiskey.yml'
+    if( -not (Test-Path -Path $ConfigurationPath -PathType 'Leaf') )
+    {
+        @'
+Build:
+- Version:
+    Version: 0.0.0
+
+Publish:
+
+'@ | Set-Content -Path $ConfigurationPath
+    }
+}
+
 $optionalArgs = @{ }
 if( $Clean )
 {
@@ -112,15 +202,10 @@ if( $Initialize )
     $optionalArgs['Initialize'] = $true
 }
 
-$configPath = Join-Path -Path $PSScriptRoot -ChildPath 'whiskey.yml' -Resolve
+if ($PipelineName)
+{
+    $optionalArgs['PipelineName'] = $PipelineName
+}
 
-$context = New-WhiskeyContext -Environment 'Dev' -ConfigurationPath $configPath
-if( (Test-Path -Path 'env:GITHUB_ACCESS_TOKEN') )
-{
-    Add-WhiskeyApiKey -Context $context -ID 'github.com' -Value $env:GITHUB_ACCESS_TOKEN
-}
-if( (Test-Path -Path 'env:POWERSHELLGALLERY_COM_API_KEY') )
-{
-    Add-WhiskeyApiKey -Context $context -ID 'powershellgallery.com' -Value $env:POWERSHELLGALLERY_COM_API_KEY
-}
+$context = New-WhiskeyContext -Environment 'Dev' -ConfigurationPath $ConfigurationPath
 Invoke-WhiskeyBuild -Context $context @optionalArgs

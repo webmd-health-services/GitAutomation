@@ -3,15 +3,24 @@
 [![latest](https://img.shields.io/badge/dynamic/json.svg?label=latest&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fwebmd-health-services%2FGitAutomation%2Freleases%2Flatest&query=%24.name&colorB=brightgreen)](https://www.powershellgallery.com/packages/BitbucketServerAutomation)
 
 # Overview
-GitAutomation is a PowerShell module for working with Git repositories. You can use it to create, clone, query, push, pull, commit, and even more with Git repositories.
+GitAutomation is a PowerShell module for working with Git repositories. You can use it to create, clone, query, push,
+pull, commit, and even more with Git repositories.
 
-This module uses [LibGit2Sharp](https://github.com/libgit2/libgit2sharp), the .NET wrapper of [libgit2](https://libgit2.org/), "a portable, pure C implementation of... Git", which allows you to call Git via API instead using the Git command line interface.
+This module uses [LibGit2Sharp](https://github.com/libgit2/libgit2sharp), the .NET wrapper of
+[libgit2](https://libgit2.org/), "a portable, pure C implementation of... Git", which allows you to call Git via API
+instead using the Git command line interface.
+
+# System Requirements
+
+* Windows PowerShell (powershell.exe): .NET 4.7.2
+* PowerShell (pwsh) 7.4/.NET 8
 
 # Installation
 
 ## Install from PowerShell Gallery
 
- Ensure you have [PowerShellGet](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget) installed and make [PowerShell Gallery](https://www.powershellgallery.com/) a trusted source:
+ Ensure you have [PowerShellGet](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget) installed and
+ make [PowerShell Gallery](https://www.powershellgallery.com/) a trusted source:
 
     Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 

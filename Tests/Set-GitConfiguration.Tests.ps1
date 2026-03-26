@@ -1,152 +1,155 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-# 
-#     http://www.apache.org/licenses/LICENSE-2.0
-# 
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-#Requires -Version 4
+#Requires -Version 5.1
 Set-StrictMode -Version 'Latest'
 
-& (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
+BeforeAll {
+    Set-StrictMode -Version 'Latest'
 
-$globalSearchPaths = [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global)
+    & (Join-Path -Path $PSScriptRoot -ChildPath 'Initialize-GitAutomationTest.ps1' -Resolve)
 
-function Assert-ConfigurationVariableSet
-{
-    param(
-        $Path
-    )
+    $script:testDirPath = $null
+    $script:testNum = 0
+    $script:repoNum = 0
 
-    It 'should set the configuraton variable' {
-        Get-Content -Path $Path | Where-Object { $_ -match 'autocrlf\ =\ false' } | Should Not BeNullOrEmpty
-    }
-}
+    $script:globalSearchPaths = [LibGit2Sharp.GlobalSettings]::GetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global)
 
-Describe 'Set-GitConfiguration when setting the current repository''s configuration' {
-    $repo = New-GitTestRepo
-    Push-Location -Path $repo
-    try
+    function Assert-ConfigurationVariableSet
     {
-        Set-GitConfiguration -Name 'core.autocrlf' -Value 'false'
-        Assert-ConfigurationVariableSet -Path '.git\config'
+        param(
+            $Path
+        )
+
+        Get-Content -Path $Path | Where-Object { $_ -match 'autocrlf\ =\ false' } | Should -Not -BeNullOrEmpty
     }
-    finally
+
+    function GivenRepo
     {
-        Pop-Location
+        $repoRoot = Join-Path -Path $script:testDirPath -ChildPath ($script:repoNum++)
+        New-GitRepository -Path $repoRoot | Format-List | Out-String | Write-Debug
+        return $repoRoot
     }
 }
 
-Describe 'Set-GitConfiguration when setting a specific repository''s configuration' {
-    $repo = New-GitTestRepo
-
-    Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -RepoRoot $repo
-    Assert-ConfigurationVariableSet -Path (Join-Path -Path $repo -ChildPath '.git\config')
+AfterAll {
+    [LibGit2Sharp.GlobalSettings]::SetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global, $script:globalSearchPaths)
 }
 
-Describe 'Set-GitConfiguration when repo does not exist' {
-    Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -RepoRoot (Get-Item -Path 'TestDrive:').FullName -ErrorVariable 'errors' -ErrorAction SilentlyContinue
-    It 'should write an error' {
-        $errors | Should Match 'not in a Git repository'
+Describe 'Set-GitConfiguration' {
+    BeforeEach {
+        $script:testDirPath = Join-Path -Path $TestDrive -ChildPath ($script:testNum++)
+        New-Item -Path $script:testDirPath -ItemType Directory
     }
-}
 
-Describe 'Set-GitConfiguration when setting global configuration' {
-    $value = [Guid]::NewGuid()
-    Set-GitConfiguration -Name 'GitAutomation.test' -Value $value -Scope Global
-    $repo = Find-GitRepository -Path $PSScriptRoot
-    It 'should set option globally' {
-        $option = $repo.Config | Where-Object { $_.Key -eq 'GitAutomation.test' -and $_.Value -eq $value -and $_.Level -eq [LibGit2Sharp.ConfigurationLevel]::Global } | Should Not BeNullOrEmpty
-    }
-}
-
-Describe 'Set-GitConfiguration when setting a specific repository''s configuration and current directory is a sub-directory of the repository root' {
-    $repo = New-GitTestRepo
-    Push-Location -Path $repo
-    try
-    {
-        New-Item -Path 'child' -ItemType 'Directory' 
-        Set-Location -Path 'child'
-
-        Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -ErrorVariable 'errors'
-        Assert-ConfigurationVariableSet -Path '..\.git\config'
-        It 'should not write any errors' {
-            $errors | Should BeNullOrEmpty
+    It 'setting the current repository''s configuration' {
+        $repo = GivenRepo
+        Push-Location -Path $repo
+        try
+        {
+            Set-GitConfiguration -Name 'core.autocrlf' -Value 'false'
+            Assert-ConfigurationVariableSet -Path '.git\config'
+        }
+        finally
+        {
+            Pop-Location
         }
     }
-    finally
-    {
-        Pop-Location
+
+    It 'setting a specific repository''s configuration' {
+        $repo = GivenRepo
+
+        Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -RepoRoot $repo
+        Assert-ConfigurationVariableSet -Path (Join-Path -Path $repo -ChildPath '.git\config')
     }
-}
 
-Describe 'Set-GitConfiguration when using a specific configuration file' {
-    $file = Join-Path -Path (Get-Item -Path 'TestDrive:').FullName -ChildPath 'fubarsnafu'
-
-    Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -Path $file -ErrorVariable 'errors'
-    Assert-ConfigurationVariableSet -Path $file
-    It 'should not write any errors' {
-        $errors | Should BeNullOrEmpty
+    It 'repo does not exist' {
+        Set-GitConfiguration -Name 'core.autocrlf' `
+                             -Value 'false' `
+                             -RepoRoot (Get-Item -Path 'TestDrive:').FullName `
+                             -ErrorVariable 'errors' `
+                             -ErrorAction SilentlyContinue
+        $errors | Should -Match 'not in a Git repository'
     }
-}
 
-Describe 'Set-GitConfiguration when using a relative path to a specific configuration file' {
-    $testDriveRoot = (Get-Item -Path 'TestDrive:').FullName 
+    It 'setting global configuration' {
+        $value = [Guid]::NewGuid()
+        Set-GitConfiguration -Name 'GitAutomation.test' -Value $value -Scope Global
+        $repo = Find-GitRepository -Path $PSScriptRoot
+        $option =
+            $repo.Config |
+            Where-Object { $_.Key -eq 'GitAutomation.test' -and $_.Value -eq $value -and $_.Level -eq [LibGit2Sharp.ConfigurationLevel]::Global } |
+            Should -Not -BeNullOrEmpty
+    }
 
-    Push-Location -Path $testDriveRoot
-    try
-    {
-        Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -Path 'fubarsnafu' -ErrorVariable 'errors'
-        Assert-ConfigurationVariableSet -Path (Join-Path -Path $testDriveRoot -ChildPath 'fubarsnafu')
-        It 'should not write any errors' {
-            $errors | Should BeNullOrEmpty
+    It 'setting a specific repository''s configuration and current directory is a sub-directory of the repository root' {
+        $repo = GivenRepo
+        Push-Location -Path $repo
+        try
+        {
+            New-Item -Path 'child' -ItemType 'Directory'
+            Set-Location -Path 'child'
+
+            Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -ErrorVariable 'errors'
+            Assert-ConfigurationVariableSet -Path '..\.git\config'
+            $errors | Should -BeNullOrEmpty
+        }
+        finally
+        {
+            Pop-Location
         }
     }
-    finally
-    {
-        Pop-Location
-    }
-}
+    It 'using a specific configuration file' {
+        $file = Join-Path -Path (Get-Item -Path 'TestDrive:').FullName -ChildPath 'fubarsnafu'
 
-Describe 'Set-GitConfiguration when setting global configuration and not in a repository' {
-    $tempRoot = (Get-Item -Path 'TestDrive:').FullName
-    Mock -CommandName 'Test-Path' -ModuleName 'GitAutomation' -ParameterFilter { $Path -eq 'env:HOME' } -MockWith { return $false }
-    Push-Location -Path $tempRoot
-    try
-    {
-        [LibGit2Sharp.GlobalSettings]::SetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global, ($tempRoot -replace '\\','/'))
+        Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -Path $file -ErrorVariable 'errors'
+        Assert-ConfigurationVariableSet -Path $file
+        $errors | Should -BeNullOrEmpty
+    }
+
+    It 'using a relative path to a specific configuration file' {
+        $testDriveRoot = (Get-Item -Path 'TestDrive:').FullName
+
+        Push-Location -Path $testDriveRoot
+        try
+        {
+            Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -Path 'fubarsnafu' -ErrorVariable 'errors'
+            Assert-ConfigurationVariableSet -Path (Join-Path -Path $testDriveRoot -ChildPath 'fubarsnafu')
+            $errors | Should -BeNullOrEmpty
+        }
+        finally
+        {
+            Pop-Location
+        }
+    }
+
+    It 'setting global configuration and not in a repository' {
+        $tempRoot = (Get-Item -Path 'TestDrive:').FullName
+        Mock -CommandName 'Test-Path' -ModuleName 'GitAutomation' -ParameterFilter { $Path -eq 'env:HOME' } -MockWith { return $false }
+        Push-Location -Path $tempRoot
+        try
+        {
+            [LibGit2Sharp.GlobalSettings]::SetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global, ($tempRoot -replace '\\','/'))
+            Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -Scope Global -ErrorVariable 'errors'
+            Assert-ConfigurationVariableSet -Path '.gitconfig'
+            $errors | Should -BeNullOrEmpty
+        }
+        finally
+        {
+            Pop-Location
+        }
+    }
+
+    It 'HOME environment variable exists' {
+        $tempDirPath = [IO.Path]::GetTempPath()
+
+        [LibGit2Sharp.GlobalSettings]::SetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global, ($tempDirPath -replace '\\','/') )
+        $tempRoot = (Get-Item -Path 'TestDrive:').FullName
+        Mock -CommandName 'Test-Path' -ModuleName 'GitAutomation' -ParameterFilter { $Path -eq 'env:HOME' } -MockWith { return $true }
+        Mock -CommandName 'Get-Item' -ModuleName 'GitAutomation' -ParameterFilter { $Path -eq 'env:HOME' } -MockWith { return [pscustomobject]@{ Name = 'HOME' ; Value = (Get-Item -Path 'TestDrive:').FullName } }
+
         Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -Scope Global -ErrorVariable 'errors'
-        Assert-ConfigurationVariableSet -Path '.gitconfig'
-        It 'should not write any errors' {
-            $errors | Should BeNullOrEmpty
-        }
-    }
-    finally
-    {
-        Pop-Location
+        Assert-ConfigurationVariableSet -Path (Join-Path -Path $tempRoot -ChildPath '.gitconfig')
+        $errors | Should -BeNullOrEmpty
+
+        Join-Path -Path $tempDirPath -ChildPath '.gitconfig' | Should -Not -Exist
     }
 }
-
-Describe 'Set-GitConfiguration when HOME environment variable exists' {
-    [LibGit2Sharp.GlobalSettings]::SetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global, ($env:TEMP -replace '\\','/') )
-    $tempRoot = (Get-Item -Path 'TestDrive:').FullName
-    Mock -CommandName 'Test-Path' -ModuleName 'GitAutomation' -ParameterFilter { $Path -eq 'env:HOME' } -MockWith { return $true }
-    Mock -CommandName 'Get-Item' -ModuleName 'GitAutomation' -ParameterFilter { $Path -eq 'env:HOME' } -MockWith { return [pscustomobject]@{ Name = 'HOME' ; Value = (Get-Item -Path 'TestDrive:').FullName } }
-
-    Set-GitConfiguration -Name 'core.autocrlf' -Value 'false' -Scope Global -ErrorVariable 'errors'
-    Assert-ConfigurationVariableSet -Path (Join-Path -Path $tempRoot -ChildPath '.gitconfig')
-    It 'should not write any errors' {
-        $errors | Should BeNullOrEmpty
-    }
-
-    It 'should not create any other configuration files' {
-        Join-Path -Path $env:TEMP -ChildPath '.gitconfig' | Should Not Exist
-    }
-}
-
-[LibGit2Sharp.GlobalSettings]::SetConfigSearchPaths([LibGit2Sharp.ConfigurationLevel]::Global, $globalSearchPaths)
