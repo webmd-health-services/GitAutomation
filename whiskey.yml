@@ -5,8 +5,8 @@ Build:
 - Version:
     Path: GitAutomation\GitAutomation.psd1
     Prerelease:
-    - "*": rc$(WHISKEY_BUILD_NUMBER)
     - main: ""
+    - "*": rc$(WHISKEY_BUILD_NUMBER)
     IncrementPrereleaseVersion: true
 
 - Exec: appveyor UpdateBuild -Version "$(WHISKEY_SEMVER2)+$(WHISKEY_BUILD_NUMBER)"
